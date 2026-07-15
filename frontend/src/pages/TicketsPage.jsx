@@ -5,6 +5,7 @@ import TicketSearch from "../components/tickets/TicketSearch";
 import TicketFilters from "../components/tickets/TicketFilters";
 import TicketTable from "../components/tickets/TicketTable";
 import AddEditTicketModal from "../components/tickets/AddEditTicketModal";
+import TicketStats from "../components/tickets/TicketStats";
 
 import useTicketStore from "../store/ticketStore";
 import toast from "react-hot-toast";
@@ -272,16 +273,21 @@ const paginatedTickets =
         setForm={setForm}
       />
 
-      <TicketSearch
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-      />
+      <TicketStats ticketCounts={ticketCounts} />
 
-      <TicketFilters
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        ticketCounts={ticketCounts}
-      />
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+        <div className="w-full lg:max-w-md">
+          <TicketSearch
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+          />
+        </div>
+
+        <TicketFilters
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+        />
+      </div>
 
       <TicketTable
         tickets={paginatedTickets}

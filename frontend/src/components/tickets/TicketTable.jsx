@@ -3,6 +3,7 @@
 //   Pencil,
 //   Trash2,
 // } from "lucide-react";
+// import { useEffect, useRef } from "react";
 
 // function statusBadge(status) {
 //   switch ((status || "").toUpperCase()) {
@@ -46,6 +47,8 @@
 //   handleEdit,
 //   handleDelete,
 // }) {
+//   const menuRef = useRef(null);
+
 //   if (!tickets || tickets.length === 0) {
 //     return (
 //       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
@@ -66,6 +69,10 @@
 
 //             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
 //               Title
+//             </th>
+
+//             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+//               Assigned To
 //             </th>
 
 //             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
@@ -110,6 +117,25 @@
 //                   <div className="mt-1 text-sm text-gray-500 line-clamp-2">
 //                     {ticket.description}
 //                   </div>
+//                 </td>
+
+//                 {/* Assigned Employee */}
+//                 <td className="px-5 py-4 text-sm">
+//                   {ticket.assignedTo ? (
+//                     <div>
+//                       <div className="font-semibold text-slate-800">
+//                         {ticket.assignedTo.name}
+//                       </div>
+
+//                       <div className="text-xs text-gray-500">
+//                         {ticket.assignedTo.email}
+//                       </div>
+//                     </div>
+//                   ) : (
+//                     <span className="text-gray-400 italic">
+//                       Unassigned
+//                     </span>
+//                   )}
 //                 </td>
 
 //                 {/* Priority */}
@@ -185,6 +211,7 @@
 
 // export default TicketTable;
 
+import { useEffect, useRef, useState, useLayoutEffect } from "react";
 import {
   MoreVertical,
   Pencil,
@@ -233,16 +260,66 @@ function TicketTable({
   handleEdit,
   handleDelete,
 }) {
+  const menuRef = useRef(null);
+
+  const [menuPosition, setMenuPosition] = useState("down");
+
+  const buttonRefs = useRef({});
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
+        setOpenMenu(null);
+      }
+    }
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, [setOpenMenu]);
+
+  useLayoutEffect(() => {
+  if (!openMenu) return;
+
+  const button = buttonRefs.current[openMenu];
+
+  if (!button) return;
+
+  const rect = button.getBoundingClientRect();
+
+  const menuHeight = 150;
+
+  const spaceBelow = document.documentElement.clientHeight - rect.bottom;
+
+  if (spaceBelow < menuHeight) {
+    setMenuPosition("up");
+  } else {
+    setMenuPosition("down");
+  }
+
+}, [openMenu]);
+
   if (!tickets || tickets.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
+      <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500 shadow-sm">
         No tickets found
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
+    <div className="overflow-x-auto overflow-y-visible rounded-2xl bg-white shadow-sm border border-gray-200">
       <table className="min-w-full">
         {/* Header */}
         <thead className="bg-yellow-400 text-black">
@@ -279,13 +356,17 @@ function TicketTable({
 
         {/* Body */}
         <tbody>
-          {tickets.map((ticket) => {
+          {tickets.map((ticket, index) => {
+
             const id = ticket.id;
+
+            // Open upward for the last two rows
+            const openUp = index >= tickets.length - 2;
 
             return (
               <tr
                 key={id}
-                className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+                className="border-b border-gray-100 transition hover:bg-yellow-50 last:border-b-0"
               >
                 {/* Customer */}
                 <td className="px-5 py-4 text-sm font-medium text-slate-700">
@@ -298,7 +379,7 @@ function TicketTable({
                     {ticket.title}
                   </div>
 
-                  <div className="mt-1 text-sm text-gray-500 line-clamp-2">
+                  <div className="mt-1 line-clamp-2 text-sm text-gray-500">
                     {ticket.description}
                   </div>
                 </td>
@@ -316,7 +397,7 @@ function TicketTable({
                       </div>
                     </div>
                   ) : (
-                    <span className="text-gray-400 italic">
+                    <span className="italic text-gray-400">
                       Unassigned
                     </span>
                   )}
@@ -333,7 +414,7 @@ function TicketTable({
                   </span>
                 </td>
 
-                {/* Status */}
+                                {/* Status */}
                 <td className="px-5 py-4">
                   <span
                     className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(
@@ -353,29 +434,48 @@ function TicketTable({
 
                 {/* Actions */}
                 <td className="px-5 py-4">
-                  <div className="relative flex justify-center">
+                  <div
+                    ref={openMenu === id ? menuRef : null}
+                    className="relative flex justify-center"
+                  >
                     <button
-                      onClick={() =>
-                        setOpenMenu(openMenu === id ? null : id)
+                       ref={(el)=>{
+                        if(el){
+                          buttonRefs.current[id] = el;
+                        }
+                      }}
+                      onClick={() =>  setOpenMenu(openMenu === id ? null : id)
                       }
-                      className="rounded-lg p-2 hover:bg-gray-100 transition"
+                      className="rounded-lg p-2 transition hover:bg-gray-100"
                     >
                       <MoreVertical size={18} />
                     </button>
 
                     {openMenu === id && (
-                      <div className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-gray-200 bg-white shadow-lg">
+                      <div
+                        className={`absolute right-0 z-[999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
+                         menuPosition === "up"
+                            ? "bottom-full mb-2"
+                            : "top-full mt-2"
+                        }`}
+                      >
                         <button
-                          onClick={() => handleEdit(ticket)}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+                          onClick={() => {
+                            handleEdit(ticket);
+                            setOpenMenu(null);
+                          }}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
                         >
                           <Pencil size={16} />
                           Edit
                         </button>
 
                         <button
-                          onClick={() => handleDelete(id)}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            handleDelete(id);
+                            setOpenMenu(null);
+                          }}
+                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
                         >
                           <Trash2 size={16} />
                           Delete

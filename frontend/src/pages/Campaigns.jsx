@@ -197,6 +197,7 @@ import EditCampaignModal from "../components/campaigns/EditCampaignModal";
 import AICampaignModal from "../components/campaigns/AICampaignModal";
 import ViewCampaignModal from "../components/campaigns/ViewCampaignModal";
 import SendCampaignModal from "../components/campaigns/SendCampaignModal";
+import Pagination from "../components/common/Pagination";
 
 export default function Campaigns() {
   const {
@@ -222,9 +223,17 @@ export default function Campaigns() {
 
   const [aiCampaign, setAiCampaign] = useState(null);
 
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 10;
+
   useEffect(() => {
     fetchCampaigns();
   }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter((campaign) => {
@@ -240,6 +249,23 @@ export default function Campaigns() {
       return matchesSearch && matchesStatus;
     });
   }, [campaigns, search, statusFilter]);
+
+  // =========================
+  // PAGINATION
+  // =========================
+
+  const totalPages = Math.ceil(
+    filteredCampaigns.length / itemsPerPage
+  );
+
+  const startIndex =
+    (currentPage - 1) * itemsPerPage;
+
+  const paginatedCampaigns =
+    filteredCampaigns.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
 
   // ===============================
   // VIEW
@@ -399,7 +425,7 @@ export default function Campaigns() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
 
-            {filteredCampaigns.map((campaign) => (
+            {paginatedCampaigns.map((campaign) => (
 
               <CampaignCard
                 key={campaign.id}
@@ -420,6 +446,16 @@ export default function Campaigns() {
 
           </div>
 
+        )}
+
+        {!isLoading && filteredCampaigns.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredCampaigns.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         )}
 
       {/* ========================= */}

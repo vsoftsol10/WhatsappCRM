@@ -10,6 +10,7 @@ import EditTemplateModal from "../components/templates/EditTemplateModal";
 import TemplatePreviewModal from "../components/templates/TemplatePreviewModal";
 import SendTemplateModal from "../components/templates/SendTemplateModal";
 import toast from "react-hot-toast";
+import Pagination from "../components/common/Pagination";
 
 export default function Templates() {
   const {
@@ -32,6 +33,10 @@ export default function Templates() {
   const [showSendModal, setShowSendModal] = useState(false);
   
   const [selectedTemplate, setSelectedTemplate] = useState(null);
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const itemsPerPage = 9; // 3 x 3 grid
 
   useEffect(() => {
     fetchTemplates();
@@ -56,6 +61,23 @@ export default function Templates() {
     search,
     statusFilter,
   ]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, statusFilter]);
+
+  const totalPages = Math.ceil(
+    filteredTemplates.length / itemsPerPage
+  );
+
+  const startIndex =
+    (currentPage - 1) * itemsPerPage;
+
+  const paginatedTemplates =
+    filteredTemplates.slice(
+      startIndex,
+      startIndex + itemsPerPage
+    );
 
   const handleEdit = (template) => {
     setSelectedTemplate(template);
@@ -164,7 +186,7 @@ export default function Templates() {
       {!isLoading &&
         filteredTemplates.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-            {filteredTemplates.map(
+            {paginatedTemplates.map(
               (template) => (
                 <TemplateCard
                   key={template.id}
@@ -177,6 +199,16 @@ export default function Templates() {
               )
             )}
           </div>
+        )}
+
+        {filteredTemplates.length > 0 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={filteredTemplates.length}
+            itemsPerPage={itemsPerPage}
+            onPageChange={setCurrentPage}
+          />
         )}
 
       {/* MODAL */}

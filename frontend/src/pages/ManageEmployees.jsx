@@ -579,29 +579,28 @@ const handleDelete = async (id) => {
         adminEmployees={adminEmployees}
       />
 
-      {/* ================= FILTER CHIPS ================= */}
 
-      <EmployeeFilters
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-      />
+      {/* ================= SEARCH + FILTERS ================= */}
 
-      {/* ================= SEARCH ================= */}
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        {/* Search */}
+        <div className="relative w-full lg:max-w-md">
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg" />
 
-      <div className="relative">
+          <input
+            type="text"
+            placeholder="Search employee by name or email..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          />
+        </div>
 
-        <FiSearch className="absolute left-4 top-3.5 text-gray-400 text-lg" />
-
-        <input
-          type="text"
-          placeholder="Search employee by name or email..."
-          value={searchTerm}
-          onChange={(e) =>
-            setSearchTerm(e.target.value)
-          }
-          className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+        {/* Filter Chips */}
+        <EmployeeFilters
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
         />
-
       </div>
 
       {/* ================= CONTENT ================= */}

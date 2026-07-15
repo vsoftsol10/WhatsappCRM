@@ -22,7 +22,7 @@ function EmployeeFilters({
   ];
 
   return (
-    <div className="flex flex-wrap gap-3 mb-6">
+    <div className="flex flex-wrap gap-3 lg:justify-end">
       {filters.map((filter) => {
         const isActive =
           statusFilter === filter.key;

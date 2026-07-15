@@ -52,7 +52,7 @@ function TicketSearch({
   setSearchTerm,
 }) {
   return (
-    <div className="mb-6">
+    <div>
       <div className="relative w-full max-w-xl">
         <Search
           size={20}

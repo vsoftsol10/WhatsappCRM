@@ -268,7 +268,7 @@ function Customers() {
 
         {/* ================= TABLE ================= */}
 
-        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
           <table className="w-full">
             <thead className="bg-yellow-400 text-black">
               <tr>
