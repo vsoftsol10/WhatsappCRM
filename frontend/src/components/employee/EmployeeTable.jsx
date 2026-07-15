@@ -1,0 +1,464 @@
+// import { useState } from "react";
+// import {
+//   MoreVertical,
+//   Pencil,
+//   Eye,
+//   Trash2,
+// } from "lucide-react";
+// import { useNavigate } from "react-router-dom";
+
+// function roleBadge(role) {
+//   switch ((role || "").toUpperCase()) {
+//     case "ADMIN":
+//       return "bg-red-100 text-red-700";
+
+//     case "USER":
+//       return "bg-green-100 text-green-700";
+
+//     default:
+//       return "bg-gray-100 text-gray-700";
+//   }
+// }
+
+// export default function EmployeeTable({
+//   employees,
+//   handleDelete,
+// }) {
+//   const navigate = useNavigate();
+
+//   const [openMenu, setOpenMenu] =
+//     useState(null);
+
+//   if (!employees || employees.length === 0) {
+//     return (
+//       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
+//         No employees found
+//       </div>
+//     );
+//   }
+
+//   return (
+//     <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
+//       <table className="min-w-full">
+//         {/* Header */}
+
+//         <thead className="bg-yellow-400 text-black">
+//           <tr>
+//             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+//               Employee
+//             </th>
+
+//             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+//               Phone
+//             </th>
+
+//             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+//               Department
+//             </th>
+
+//             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+//               Designation
+//             </th>
+
+//             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+//               Role
+//             </th>
+
+//             <th className="px-5 py-4 text-center text-sm font-bold uppercase tracking-wide">
+//               Actions
+//             </th>
+//           </tr>
+//         </thead>
+
+//         {/* Body */}
+
+//         <tbody>
+//           {employees.map((employee) => (
+//             <tr
+//               key={employee.id}
+//               className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+//             >
+//               {/* Employee */}
+
+//               <td className="px-5 py-4">
+//                 <div className="flex items-center gap-3">
+//                   <div className="w-11 h-11 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+//                     {employee.name
+//                       ?.charAt(0)
+//                       .toUpperCase()}
+//                   </div>
+
+//                   <div>
+//                     <div className="font-semibold text-slate-800">
+//                       {employee.name}
+//                     </div>
+
+//                     <div className="text-xs text-gray-500">
+//                       {employee.email}
+//                     </div>
+//                   </div>
+//                 </div>
+//               </td>
+
+//               {/* Phone */}
+
+//               <td className="px-5 py-4 text-sm text-slate-700">
+//                 {employee.phone || "-"}
+//               </td>
+
+//               {/* Department */}
+
+//               <td className="px-5 py-4 text-sm text-slate-700">
+//                 {employee.department || "-"}
+//               </td>
+
+//               {/* Designation */}
+
+//               <td className="px-5 py-4 text-sm text-slate-700">
+//                 {employee.designation || "-"}
+//               </td>
+
+//               {/* Role */}
+
+//               <td className="px-5 py-4">
+//                 <span
+//                   className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(
+//                     employee.role
+//                   )}`}
+//                 >
+//                   {employee.role}
+//                 </span>
+//               </td>
+
+//               {/* Actions */}
+
+//               <td className="px-5 py-4">
+//                 <div className="relative flex justify-center">
+//                   <button
+//                     onClick={() =>
+//                       setOpenMenu(
+//                         openMenu === employee.id
+//                           ? null
+//                           : employee.id
+//                       )
+//                     }
+//                     className="rounded-lg p-2 hover:bg-gray-100 transition"
+//                   >
+//                     <MoreVertical size={18} />
+//                   </button>
+
+//                   {openMenu === employee.id && (
+//                     <div className="absolute right-0 top-10 z-50 w-44 rounded-xl border border-gray-200 bg-white shadow-lg">
+
+//                       <button
+//                         onClick={() => {
+//                           navigate(
+//                             `/employees/${employee.id}`
+//                           );
+//                           setOpenMenu(null);
+//                         }}
+//                         className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+//                       >
+//                         <Eye size={16} />
+//                         View
+//                       </button>
+
+//                       <button
+//                         onClick={() => {
+//                           navigate(
+//                             `/employees/edit/${employee.id}`
+//                           );
+//                           setOpenMenu(null);
+//                         }}
+//                         className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+//                       >
+//                         <Pencil size={16} />
+//                         Edit
+//                       </button>
+
+//                       <button
+//                         onClick={() => {
+//                           handleDelete(
+//                             employee.id
+//                           );
+//                           setOpenMenu(null);
+//                         }}
+//                         className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+//                       >
+//                         <Trash2 size={16} />
+//                         Delete
+//                       </button>
+
+//                     </div>
+//                   )}
+//                 </div>
+//               </td>
+//             </tr>
+//           ))}
+//         </tbody>
+//       </table>
+//     </div>
+//   );
+// }
+
+import { useEffect, useRef, useState } from "react";
+import {
+  MoreVertical,
+  Pencil,
+  Eye,
+  Trash2,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+function roleBadge(role) {
+  switch ((role || "").toUpperCase()) {
+    case "ADMIN":
+      return "bg-red-100 text-red-700";
+
+    case "USER":
+      return "bg-green-100 text-green-700";
+
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+
+function statusBadge(status) {
+  switch ((status || "").toUpperCase()) {
+    case "ACTIVE":
+      return "bg-green-100 text-green-700";
+
+    case "INACTIVE":
+      return "bg-red-100 text-red-700";
+
+    default:
+      return "bg-gray-100 text-gray-700";
+  }
+}
+
+export default function EmployeeTable({
+  employees,
+  handleDelete,
+}) {
+  const navigate = useNavigate();
+
+  const [openMenu, setOpenMenu] =
+    useState(null);
+
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
+        setOpenMenu(null);
+      }
+    };
+
+    document.addEventListener(
+      "mousedown",
+      handleClickOutside
+    );
+
+    return () =>
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+  }, []);
+
+  if (!employees || employees.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
+        No employees found
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-x-auto overflow-y-visible rounded-2xl bg-white shadow-sm border border-gray-200">
+      <table className="min-w-full">
+
+        {/* Header */}
+
+        <thead className="bg-yellow-400 text-black">
+          <tr>
+            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+              Employee
+            </th>
+
+            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+              Phone
+            </th>
+
+            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+              Department
+            </th>
+
+            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+              Designation
+            </th>
+
+            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+              Status
+            </th>
+
+            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+              Role
+            </th>
+
+            <th className="px-5 py-4 text-center text-sm font-bold uppercase tracking-wide">
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        {/* Body */}
+
+        <tbody>
+          {employees.map((employee, index) => (
+            <tr
+              key={employee.id}
+              className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+            >
+              {/* Employee */}
+
+              <td className="px-5 py-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+                    {employee.name?.charAt(0).toUpperCase()}
+                  </div>
+
+                  <div>
+                    <div className="font-semibold text-slate-800">
+                      {employee.name}
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      {employee.email}
+                    </div>
+                  </div>
+                </div>
+              </td>
+
+              {/* Phone */}
+
+              <td className="px-5 py-4 text-sm text-slate-700">
+                {employee.phone || "-"}
+              </td>
+
+              {/* Department */}
+
+              <td className="px-5 py-4 text-sm text-slate-700">
+                {employee.department || "-"}
+              </td>
+
+              {/* Designation */}
+
+              <td className="px-5 py-4 text-sm text-slate-700">
+                {employee.designation || "-"}
+              </td>
+
+              {/* Status */}
+
+              <td className="px-5 py-4">
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(
+                    employee.status
+                  )}`}
+                >
+                  {employee.status}
+                </span>
+              </td>
+
+              {/* Role */}
+
+              <td className="px-5 py-4">
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(
+                    employee.role
+                  )}`}
+                >
+                  {employee.role}
+                </span>
+              </td>
+
+              {/* Actions */}
+
+              <td className="px-5 py-4">
+                <div
+                  ref={
+                    openMenu === employee.id
+                      ? menuRef
+                      : null
+                  }
+                  className="relative flex justify-center"
+                >
+                  <button
+                    onClick={() =>
+                      setOpenMenu(
+                        openMenu === employee.id
+                          ? null
+                          : employee.id
+                      )
+                    }
+                    className="rounded-lg p-2 hover:bg-gray-100 transition"
+                  >
+                    <MoreVertical size={18} />
+                  </button>
+
+                                    {openMenu === employee.id && (
+                    <div
+                      className={`absolute right-0 z-50 w-44 rounded-xl border border-gray-200 bg-white shadow-xl ${
+                        index >= employees.length - 2
+                          ? "bottom-10"
+                          : "top-10"
+                      }`}
+                    >
+                      <button
+                        onClick={() => {
+                          navigate(`/employees/${employee.id}`);
+                          setOpenMenu(null);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100 transition"
+                      >
+                        <Eye size={16} />
+                        View
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          navigate(
+                            `/employees/edit/${employee.id}`
+                          );
+                          setOpenMenu(null);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100 transition"
+                      >
+                        <Pencil size={16} />
+                        Edit
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          handleDelete(employee.id);
+                          setOpenMenu(null);
+                        }}
+                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition"
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
