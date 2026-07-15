@@ -178,7 +178,7 @@ function Customers() {
 
     return (
     <div className="min-h-screen bg-gray-50 text-gray-900 p-8">
-      <div className="max-w-7xl mx-auto">
+      
 
         {/* ================= HEADER ================= */}
 
@@ -481,7 +481,7 @@ function Customers() {
           </div>
         </div>
 
-      </div>
+      
     </div>
   );
 }

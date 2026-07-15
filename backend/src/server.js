@@ -16,6 +16,7 @@ const taskRoutes = require("./routes/taskRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const dealRoutes = require("./routes/dealRoutes");
 const dealActivityRoutes = require("./routes/dealActivityRoutes");
+const webhookRoutes = require("./routes/webhook");
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/deals", dealActivityRoutes);
+app.use("/webhook", webhookRoutes);
 
 // Test route
 app.get("/", (req, res) => {
