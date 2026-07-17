@@ -137,11 +137,11 @@ export default function Sidebar({
   };
 
   const linkClass = ({ isActive }) =>
-    `group flex h-12 items-center gap-3 rounded-xl px-4 text-[15px] transition-all duration-200 ease-out hover:scale-[1.02]
+    `group flex h-11 items-center gap-3 rounded-lg px-3 text-[15px] transition-all duration-200 ease-out hover:scale-[1.02]
     ${
       isActive
-        ? "bg-[#075E54] text-white font-semibold shadow-md shadow-black/20 scale-[1.01]"
-        : "bg-transparent text-white hover:bg-[#0A6E63] hover:text-white"
+        ? "scale-[1.01] bg-[#00C86B] text-white font-semibold shadow-md shadow-[#00C86B]/20"
+        : "bg-transparent text-slate-100 hover:bg-[#0A6E63] hover:text-white"
     }`;
 
   return (
@@ -156,40 +156,43 @@ export default function Sidebar({
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 max-w-[85vw] flex-col border-r border-white/10 bg-gradient-to-b from-[#0F172A] to-[#075E54] p-6 text-white shadow-2xl shadow-black/20 transition-transform duration-300 lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 flex h-screen w-72 max-w-[85vw] flex-col border-r border-white/10 bg-gradient-to-b from-[#061113] via-[#071114] to-[#02090B] p-5 text-white shadow-xl shadow-black/20 transition-transform duration-300 lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
       {/* BRAND */}
-      <div className="border-b border-white/10 pb-6">
-        <h1 className="text-2xl font-bold tracking-wide">
-          <span className="text-white">WhatsApp</span>{" "}
+      <div className="border-b border-white/10 pb-5">
+        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#25D366] text-sm text-white">
+            <FaComments />
+          </span>
+          <span className="text-white">WhatsApp</span>
           <span className="text-[#25D366]">CRM</span>
         </h1>
 
-        <p className="mt-1 text-xs text-slate-400">
+        <p className="mt-1.5 text-sm text-slate-400">
           Business Messaging Platform
         </p>
       </div>
 
       {/* NAVIGATION */}
       <div className="mt-6 flex-1 overflow-y-auto pr-1">
-        <div className="space-y-6">
+        <div className="space-y-5">
           {sections.map((section) => (
             <div
               key={section.id}
-              className="overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03]"
+              className="border-b border-white/10 pb-4 last:border-b-0"
             >
               <button
                 onClick={() => toggleSection(section.id)}
-                className="flex w-full items-center justify-between px-4 py-3 transition-all duration-200 ease-out hover:bg-white/5"
+                className="mb-2 flex w-full items-center justify-between px-1 py-1 transition-all duration-200 ease-out"
               >
-                <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-400">
+                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#25D366]">
                   {section.title}
                 </span>
 
                 <FaChevronRight
-                  className={`text-xs text-slate-400 transition-transform duration-300 ${
+                  className={`text-[10px] text-slate-600 transition-transform duration-300 ${
                     openSection === section.id ? "rotate-90" : ""
                   }`}
                 />
@@ -203,7 +206,7 @@ export default function Sidebar({
                 }`}
               >
                 <div className="overflow-hidden">
-                  <div className="flex flex-col gap-2 px-2 pb-2">
+                  <div className="flex flex-col gap-2">
                     {section.items
                       .filter((item) => {
                         // Hide Employees menu for USER role
@@ -226,7 +229,7 @@ export default function Sidebar({
                             className={linkClass}
                             onClick={onClose}
                           >
-                            <Icon className="text-white transition-transform duration-200 group-hover:scale-110" />
+                            <Icon className="text-sm text-white transition-transform duration-200 group-hover:scale-110" />
                             {item.name}
                           </NavLink>
                         );
@@ -240,7 +243,7 @@ export default function Sidebar({
       </div>
 
       {/* USER CARD */}
-      <div className="border-t border-white/10 pt-4">
+      <div className="border-t border-white/10 pt-7">
         {/* <div className="bg-gray-900 rounded-xl p-3 mb-4">
           <p className="font-semibold text-sm">
             {user?.name || "Admin"}
@@ -253,7 +256,7 @@ export default function Sidebar({
 
         <button
           onClick={logout}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#DC2626] py-3 text-[15px] font-medium text-white transition-all duration-200 ease-out hover:scale-[1.02] hover:bg-[#B91C1C] active:scale-[0.98]"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent py-3 text-[15px] font-semibold text-[#25D366] transition-all duration-200 ease-out hover:scale-[1.02] hover:border-[#B91C1C] hover:bg-[#B91C1C] hover:text-white active:scale-[0.98]"
         >
           <FaSignOutAlt />
           Logout
