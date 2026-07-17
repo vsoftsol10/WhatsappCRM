@@ -34,7 +34,7 @@ export default function DealsHeader({
 
         <button
           onClick={onAddDeal}
-          className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 transition px-5 py-3 rounded-xl font-semibold shadow"
+          className="flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] transition px-5 py-3 rounded-xl font-semibold shadow"
         >
           <Plus size={18} />
           Add Deal
@@ -53,7 +53,7 @@ export default function DealsHeader({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search deals..."
-            className="w-full border rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-yellow-300 focus:border-yellow-400"
+            className="w-full border rounded-xl py-3 pl-12 pr-4 outline-none focus:ring-2 focus:ring-[#25D366] focus:border-[#25D366]"
           />
         </div>
 
@@ -62,7 +62,7 @@ export default function DealsHeader({
             onClick={() => setView("list")}
             className={`flex items-center gap-2 px-5 py-3 transition ${
               view === "list"
-                ? "bg-yellow-400 font-semibold"
+                ? "bg-[#25D366] font-semibold"
                 : "bg-white hover:bg-gray-100"
             }`}
           >
@@ -74,7 +74,7 @@ export default function DealsHeader({
             onClick={() => setView("kanban")}
             className={`flex items-center gap-2 px-5 py-3 transition ${
               view === "kanban"
-                ? "bg-yellow-400 font-semibold"
+                ? "bg-[#25D366] font-semibold"
                 : "bg-white hover:bg-gray-100"
             }`}
           >
@@ -92,7 +92,7 @@ export default function DealsHeader({
             onClick={() => setSelectedStage(stage)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition ${
               selectedStage === stage
-                ? "bg-yellow-400 text-black"
+                ? "bg-[#25D366] text-black"
                 : "bg-gray-100 hover:bg-gray-200"
             }`}
           >

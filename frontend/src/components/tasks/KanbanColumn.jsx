@@ -17,7 +17,7 @@ export default function KanbanColumn({
         return "bg-blue-100 text-blue-700 border-blue-300";
 
       case "REVIEW":
-        return "bg-amber-100 text-amber-700 border-amber-300";
+        return "bg-[#DCF8C6] text-[#128C7E] border-[#25D366]";
 
       case "COMPLETED":
         return "bg-green-100 text-green-700 border-green-300";

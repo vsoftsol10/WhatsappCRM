@@ -74,7 +74,7 @@ function GlobalSearch() {
           setShowResults(true);
         }}
         onFocus={() => setShowResults(true)}
-        className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 shadow-sm outline-none transition focus:border-yellow-400"
+        className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 shadow-sm outline-none transition focus:border-[#25D366]"
       />
 
       {/* Search Results */}
@@ -89,11 +89,11 @@ function GlobalSearch() {
                   key={item.key}
                   type="button"
                   onClick={() => handleNavigate(item.path)}
-                  className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-yellow-50 transition"
+                  className="flex w-full items-center gap-4 px-4 py-3 text-left hover:bg-[#DCF8C6] transition"
                 >
                   <Icon
                     size={18}
-                    className="text-yellow-600"
+                    className="text-[#25D366]"
                   />
 
                   <div>
@@ -131,7 +131,7 @@ export default GlobalSearch;
 //       <input
 //         type="text"
 //         placeholder="Search pages..."
-//         className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 shadow-sm outline-none focus:border-yellow-400"
+//         className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 shadow-sm outline-none focus:border-[#25D366]"
 //       />
 //     </div>
 //   );

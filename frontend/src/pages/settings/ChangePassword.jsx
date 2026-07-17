@@ -60,13 +60,13 @@
 
 //   return (
 //     <div className="min-h-screen ml-8.5 bg-black flex items-center justify-center p-6">
-//       <div className="w-full max-w-md bg-gray-900 border border-yellow-500 rounded-xl p-8 shadow-lg">
-//         <h2 className="text-3xl font-bold text-yellow-400 mb-6 text-center">
+//       <div className="w-full max-w-md bg-gray-900 border border-[#25D366] rounded-xl p-8 shadow-lg">
+//         <h2 className="text-3xl font-bold text-[#25D366] mb-6 text-center">
 //           Change Password
 //         </h2>
 
 //         {message && (
-//           <div className="bg-green-500/20 border border-green-500 text-green-300 p-3 rounded mb-4">
+//           <div className="bg-[#DCF8C6]0/20 border border-green-500 text-green-300 p-3 rounded mb-4">
 //             {message}
 //           </div>
 //         )}
@@ -87,7 +87,7 @@
 //               placeholder="Current Password"
 //               value={formData.currentPassword}
 //               onChange={handleChange}
-//               className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:border-yellow-400 focus:outline-none"
+//               className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:border-[#25D366] focus:outline-none"
 //               required
 //             />
 
@@ -96,7 +96,7 @@
 //               onClick={() =>
 //                 setShowCurrentPassword(!showCurrentPassword)
 //               }
-//               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-yellow-400"
+//               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#25D366]"
 //             >
 //               {showCurrentPassword ? (
 //                 <FaEyeSlash size={18} />
@@ -114,7 +114,7 @@
 //               placeholder="New Password"
 //               value={formData.newPassword}
 //               onChange={handleChange}
-//               className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:border-yellow-400 focus:outline-none"
+//               className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:border-[#25D366] focus:outline-none"
 //               required
 //             />
 
@@ -123,7 +123,7 @@
 //               onClick={() =>
 //                 setShowNewPassword(!showNewPassword)
 //               }
-//               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-yellow-400"
+//               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#25D366]"
 //             >
 //               {showNewPassword ? (
 //                 <FaEyeSlash size={18} />
@@ -141,7 +141,7 @@
 //               placeholder="Confirm Password"
 //               value={formData.confirmPassword}
 //               onChange={handleChange}
-//               className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:border-yellow-400 focus:outline-none"
+//               className="w-full bg-black border border-gray-700 text-white p-3 rounded focus:border-[#25D366] focus:outline-none"
 //               required
 //             />
 
@@ -150,7 +150,7 @@
 //               onClick={() =>
 //                 setShowConfirmPassword(!showConfirmPassword)
 //               }
-//               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-yellow-400"
+//               className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#25D366]"
 //             >
 //               {showConfirmPassword ? (
 //                 <FaEyeSlash size={18} />
@@ -163,7 +163,7 @@
 //           <button
 //             type="submit"
 //             disabled={isLoading}
-//             className="w-full bg-yellow-400 text-black font-semibold py-3 rounded hover:bg-yellow-500 transition"
+//             className="w-full bg-[#25D366] text-black font-semibold py-3 rounded hover:bg-[#128C7E] transition"
 //           >
 //             {isLoading ? "Updating..." : "Update Password"}
 //           </button>
@@ -240,27 +240,27 @@ const ChangePassword = () => {
   };
 
   return (
-    <div className="min-h-screen ml-8.5 bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
+    <div className="crm-page">
+      <div className="mx-auto max-w-2xl">
 
         {/* Header */}
 
-        <div className="mb-8 flex items-center gap-4">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
 
           <button
             type="button"
             onClick={() => navigate("/settings")}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm transition hover:bg-yellow-400"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-gray-200 bg-white shadow-sm transition hover:bg-[#25D366]"
           >
             <FiArrowLeft size={20} />
           </button>
 
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+          <div className="min-w-0">
+            <h1 className="crm-title">
               Change Password
             </h1>
 
-            <p className="mt-2 text-gray-500">
+            <p className="crm-subtitle">
               Update your account password to keep your account secure.
             </p>
           </div>
@@ -268,10 +268,10 @@ const ChangePassword = () => {
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+        <div className="crm-page-surface p-5 sm:p-8">
 
           {message && (
-            <div className="mb-6 rounded-xl border border-green-300 bg-green-50 px-4 py-3 text-green-700">
+            <div className="mb-6 rounded-xl border border-green-300 bg-[#DCF8C6] px-4 py-3 text-green-700">
               {message}
             </div>
           )}
@@ -297,7 +297,7 @@ const ChangePassword = () => {
                   placeholder="Enter current password"
                   value={formData.currentPassword}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 focus:outline-none"
+                  className="crm-input pr-12"
                   required
                 />
 
@@ -306,7 +306,7 @@ const ChangePassword = () => {
                   onClick={() =>
                     setShowCurrentPassword(!showCurrentPassword)
                   }
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-yellow-500"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#25D366]"
                 >
                   {showCurrentPassword ? (
                     <FaEyeSlash size={18} />
@@ -330,7 +330,7 @@ const ChangePassword = () => {
                   placeholder="Enter new password"
                   value={formData.newPassword}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 focus:outline-none"
+                  className="crm-input pr-12"
                   required
                 />
 
@@ -339,7 +339,7 @@ const ChangePassword = () => {
                   onClick={() =>
                     setShowNewPassword(!showNewPassword)
                   }
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-yellow-500"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#25D366]"
                 >
                   {showNewPassword ? (
                     <FaEyeSlash size={18} />
@@ -363,7 +363,7 @@ const ChangePassword = () => {
                   placeholder="Confirm new password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 pr-12 text-gray-900 placeholder-gray-400 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 focus:outline-none"
+                  className="crm-input pr-12"
                   required
                 />
 
@@ -372,7 +372,7 @@ const ChangePassword = () => {
                   onClick={() =>
                     setShowConfirmPassword(!showConfirmPassword)
                   }
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-yellow-500"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-[#25D366]"
                 >
                   {showConfirmPassword ? (
                     <FaEyeSlash size={18} />
@@ -388,7 +388,7 @@ const ChangePassword = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full rounded-xl bg-yellow-400 py-3 font-semibold text-black transition hover:bg-yellow-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="crm-primary-button w-full"
               >
                 {isLoading ? "Updating Password..." : "Update Password"}
               </button>

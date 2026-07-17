@@ -249,7 +249,7 @@ export default function CreateTaskModal({
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-yellow-400 px-6 py-5 flex justify-between items-center">
+          <div className="bg-[#25D366] px-6 py-5 flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">
               Create Task
             </h2>
@@ -257,7 +257,7 @@ export default function CreateTaskModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-yellow-500 transition"
+              className="p-2 rounded-full hover:bg-[#128C7E] transition"
             >
               <X size={22} />
             </button>
@@ -281,7 +281,7 @@ export default function CreateTaskModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.title
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
 
@@ -306,7 +306,7 @@ export default function CreateTaskModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.description
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
 
@@ -330,7 +330,7 @@ export default function CreateTaskModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.priority
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               >
                 <option value="LOW">Low</option>
@@ -359,7 +359,7 @@ export default function CreateTaskModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.dueDate
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
 
@@ -383,7 +383,7 @@ export default function CreateTaskModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.assignedToId
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               >
                 <option value="">
@@ -416,7 +416,7 @@ export default function CreateTaskModal({
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold transition"
+                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition"
               >
                 Create Task
               </button>

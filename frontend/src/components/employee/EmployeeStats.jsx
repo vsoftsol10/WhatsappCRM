@@ -51,8 +51,8 @@ export default function EmployeeStats({
               shadow-sm
               transition-all
               duration-200
-              hover:border-yellow-300
-              hover:bg-yellow-50
+              hover:border-[#25D366]
+              hover:bg-[#DCF8C6]
               hover:shadow-lg
             "
           >
@@ -67,10 +67,10 @@ export default function EmployeeStats({
                 </h2>
               </div>
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DCF8C6]">
                 <Icon
                   size={24}
-                  className="text-yellow-600"
+                  className="text-[#25D366]"
                 />
               </div>
             </div>

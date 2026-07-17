@@ -77,7 +77,7 @@
 
 //         <button
 //           onClick={handleAddActivity}
-//           className="bg-yellow-400 px-4 rounded font-semibold"
+//           className="bg-[#25D366] px-4 rounded font-semibold"
 //         >
 //           Add
 //         </button>
@@ -102,7 +102,7 @@
 //                 className="mb-6 relative"
 //               >
 //                 {/* DOT */}
-//                 <div className="absolute left-[-6px] top-1 w-3 h-3 bg-yellow-400 rounded-full" />
+//                 <div className="absolute left-[-6px] top-1 w-3 h-3 bg-[#25D366] rounded-full" />
 
 //                 <div className="ml-4">
 //                   <div className="font-semibold text-gray-800">
@@ -223,7 +223,7 @@ export default function DealActivity({ dealId }) {
 
         <button
           onClick={handleAddActivity}
-          className="bg-yellow-400 px-4 rounded font-semibold"
+          className="bg-[#25D366] px-4 rounded font-semibold"
         >
           Add
         </button>
@@ -245,7 +245,7 @@ export default function DealActivity({ dealId }) {
             activities.map((act) => (
               <div key={act.id} className="mb-6 relative">
                 {/* dot */}
-                <div className="absolute left-[-6px] top-1 w-3 h-3 bg-yellow-400 rounded-full" />
+                <div className="absolute left-[-6px] top-1 w-3 h-3 bg-[#25D366] rounded-full" />
 
                 <div className="ml-4">
                   <div className="font-semibold text-gray-800">

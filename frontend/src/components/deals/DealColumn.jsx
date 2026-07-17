@@ -15,7 +15,7 @@ export default function DealColumn({
           {stage}
         </h2>
 
-        <span className="bg-yellow-100 text-yellow-700 px-2 py-1 text-xs rounded-full">
+        <span className="bg-[#DCF8C6] text-[#128C7E] px-2 py-1 text-xs rounded-full">
           {deals.length}
         </span>
       </div>

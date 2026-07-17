@@ -68,8 +68,8 @@
 //                 shadow-sm
 //                 transition-all
 //                 duration-200
-//                 hover:border-yellow-300
-//                 hover:bg-yellow-50
+//                 hover:border-[#25D366]
+//                 hover:bg-[#DCF8C6]
 //                 hover:shadow-lg
 //               "
 //             >
@@ -84,10 +84,10 @@
 //                   </h2>
 //                 </div>
 
-//                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100">
+//                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DCF8C6]">
 //                   <Icon
 //                     size={24}
-//                     className="text-yellow-600"
+//                     className="text-[#25D366]"
 //                   />
 //                 </div>
 //               </div>
@@ -116,8 +116,8 @@
 //                 transition-all
 //                 ${
 //                   isActive
-//                     ? "border-yellow-400 bg-yellow-400 text-black shadow-md"
-//                     : "border-gray-300 bg-white text-slate-700 hover:bg-yellow-50 hover:border-yellow-300"
+//                     ? "border-[#25D366] bg-[#25D366] text-black shadow-md"
+//                     : "border-gray-300 bg-white text-slate-700 hover:bg-[#DCF8C6] hover:border-[#25D366]"
 //                 }
 //               `}
 //             >
@@ -145,7 +145,7 @@ function TicketFilters({
   ];
 
   return (
-    <div className="flex flex-wrap gap-3 lg:justify-end">
+    <div className="flex flex-wrap gap-2 sm:gap-3 lg:justify-end">
       {filters.map((item) => {
         const isActive = statusFilter === item.key;
 
@@ -156,8 +156,8 @@ function TicketFilters({
             onClick={() => setStatusFilter(item.key)}
             className={`rounded-xl border px-5 py-2.5 text-sm font-semibold transition-all ${
               isActive
-                ? "border-yellow-400 bg-yellow-400 text-black shadow-md"
-                : "border-gray-300 bg-white text-slate-700 hover:bg-yellow-50 hover:border-yellow-300"
+                ? "border-[#25D366] bg-[#25D366] text-black shadow-md"
+                : "border-gray-300 bg-white text-slate-700 hover:bg-[#DCF8C6] hover:border-[#25D366]"
             }`}
           >
             {item.label}

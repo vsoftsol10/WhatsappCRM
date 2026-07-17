@@ -60,7 +60,7 @@
 //   return (
 //     <div className="min-h-screen bg-black text-white p-8">
 //       <div className="max-w-3xl mx-auto">
-//         <h1 className="text-4xl font-bold text-yellow-400 mb-2">
+//         <h1 className="text-4xl font-bold text-[#25D366] mb-2">
 //           Edit Customer
 //         </h1>
 
@@ -80,7 +80,7 @@
 //                 name="name"
 //                 value={formData.name}
 //                 onChange={handleChange}
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -94,7 +94,7 @@
 //                 name="phone"
 //                 value={formData.phone}
 //                 onChange={handleChange}
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -108,7 +108,7 @@
 //                 name="email"
 //                 value={formData.email}
 //                 onChange={handleChange}
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -122,7 +122,7 @@
 //                 name="company"
 //                 value={formData.company}
 //                 onChange={handleChange}
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -135,7 +135,7 @@
 //                 name="status"
 //                 value={formData.status}
 //                 onChange={handleChange}
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               >
 //                 <option value="ACTIVE">ACTIVE</option>
 //                 <option value="INACTIVE">INACTIVE</option>
@@ -144,7 +144,7 @@
 
 //             <button
 //               type="submit"
-//               className="w-full bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 transition"
+//               className="w-full bg-[#25D366] text-black py-3 rounded-lg font-bold hover:bg-[#128C7E] transition"
 //             >
 //               Update Customer
 //             </button>
@@ -275,12 +275,12 @@ function EditCustomer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 ml-8 p-8">
+    <div className="crm-page bg-gray-100">
 
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
         {/* Header */}
-        <div className="bg-yellow-400 px-8 py-6 flex items-center gap-4">
+        <div className="flex flex-col gap-4 bg-[#25D366] px-5 py-5 sm:flex-row sm:items-center sm:px-8 sm:py-6">
 
           <button
             type="button"
@@ -290,12 +290,12 @@ function EditCustomer() {
             <FiArrowLeft size={20} />
           </button>
 
-          <div>
-            <h1 className="text-3xl font-bold text-black">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-black sm:text-3xl">
               Edit Customer
             </h1>
 
-            <p className="text-gray-800 mt-1">
+            <p className="mt-1 break-words text-gray-800">
               Update customer information
             </p>
           </div>
@@ -304,7 +304,7 @@ function EditCustomer() {
 
         <form
           onSubmit={handleSubmit}
-          className="p-8 space-y-6"
+          className="space-y-6 p-5 sm:p-8"
         >
 
           {/* Customer Name */}
@@ -321,7 +321,7 @@ function EditCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.name
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -346,7 +346,7 @@ function EditCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.phone
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -371,7 +371,7 @@ function EditCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.email
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -396,7 +396,7 @@ function EditCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.company
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -419,7 +419,7 @@ function EditCustomer() {
               value={formData.source}
               onChange={handleChange}
               placeholder="Enter source (e.g. WhatsApp, Instagram)"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
             />
           </div>
 
@@ -435,7 +435,7 @@ function EditCustomer() {
               onChange={handleChange}
               rows={4}
               placeholder="Enter customer requirements"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400 resize-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366] resize-none"
             />
           </div>
 
@@ -452,7 +452,7 @@ function EditCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.status
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             >
               <option value="ACTIVE">ACTIVE</option>
@@ -467,18 +467,18 @@ function EditCustomer() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:gap-4">
             <button
               type="button"
               onClick={() => navigate("/customers")}
-              className="px-6 py-3 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition"
+              className="crm-secondary-button"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition"
+              className="crm-primary-button"
             >
               Update Customer
             </button>

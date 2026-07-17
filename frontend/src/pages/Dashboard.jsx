@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   if (error) {
     return (
-      <div className="p-6 ml-8.5 min-h-screen bg-gray-50 text-red-600">
+      <div className="crm-page text-red-600">
         {error}
       </div>
     );
@@ -41,7 +41,7 @@ export default function Dashboard() {
 
   if (isLoading) {
     return (
-      <div className="p-6 ml-8.5 bg-gray-50 min-h-screen flex items-center justify-center">
+      <div className="crm-page flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
 
@@ -54,7 +54,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 text-gray-900">
+    <div className="crm-page">
 
       {/* HEADER */}
       <DashboardHeader />
@@ -63,7 +63,7 @@ export default function Dashboard() {
       <DashboardSearch />
 
       {/* KPI CARDS */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-8">
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-5">
 
         <DashboardStatCard
           title="Conversations"
@@ -71,7 +71,7 @@ export default function Dashboard() {
           subtitle="WhatsApp Chats"
           icon={MessageCircle}
           iconBg="bg-green-100"
-          iconColor="text-green-600"
+          iconColor="text-[#128C7E]"
           borderColor="from-green-500 to-emerald-500"
           path="/conversations"
         />
@@ -81,9 +81,9 @@ export default function Dashboard() {
           value={dashboardStats?.totalLeads}
           subtitle="Sales Pipeline"
           icon={Briefcase}
-          iconBg="bg-yellow-100"
-          iconColor="text-yellow-600"
-          borderColor="from-yellow-500 to-orange-500"
+          iconBg="bg-[#DCF8C6]"
+          iconColor="text-[#25D366]"
+          borderColor="from-[#25D366] to-[#128C7E]"
           path="/leads"
         />
 
@@ -123,7 +123,7 @@ export default function Dashboard() {
       </div>
 
       {/* RECENT CONVERSATIONS + TASK OVERVIEW */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-3 xl:gap-6">
 
         <div className="xl:col-span-2">
           <RecentConversations />
@@ -136,7 +136,7 @@ export default function Dashboard() {
       </div>
 
       {/* CHARTS */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+      <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-6">
 
         <LeadGrowthChart 
            leadGrowth={dashboardStats?.leadGrowth || []}
@@ -149,7 +149,7 @@ export default function Dashboard() {
       </div>
 
       {/* INSIGHTS + PERFORMANCE */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mt-6">
+      <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-2 xl:gap-6">
 
         <InsightsCard
           stats={dashboardStats}

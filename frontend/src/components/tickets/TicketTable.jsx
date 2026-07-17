@@ -11,7 +11,7 @@
 //       return "bg-red-100 text-red-700";
 
 //     case "IN_PROGRESS":
-//       return "bg-yellow-100 text-yellow-800";
+//       return "bg-[#DCF8C6] text-[#128C7E]";
 
 //     case "RESOLVED":
 //       return "bg-green-100 text-green-700";
@@ -30,7 +30,7 @@
 //       return "bg-red-100 text-red-700";
 
 //     case "MEDIUM":
-//       return "bg-yellow-100 text-yellow-800";
+//       return "bg-[#DCF8C6] text-[#128C7E]";
 
 //     case "LOW":
 //       return "bg-green-100 text-green-700";
@@ -61,7 +61,7 @@
 //     <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
 //       <table className="min-w-full">
 //         {/* Header */}
-//         <thead className="bg-yellow-400 text-black">
+//         <thead className="bg-[#25D366] text-black">
 //           <tr>
 //             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
 //               Customer
@@ -101,7 +101,7 @@
 //             return (
 //               <tr
 //                 key={id}
-//                 className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+//                 className="border-b border-gray-100 last:border-b-0 hover:bg-[#DCF8C6] transition"
 //               >
 //                 {/* Customer */}
 //                 <td className="px-5 py-4 text-sm font-medium text-slate-700">
@@ -211,29 +211,30 @@
 
 // export default TicketTable;
 
-import { useEffect, useRef, useState, useLayoutEffect } from "react";
+import { useEffect, useRef } from "react";
 import {
   MoreVertical,
   Pencil,
   Trash2,
 } from "lucide-react";
+import { useAuthStore } from "../../store/authStore";
 
 function statusBadge(status) {
   switch ((status || "").toUpperCase()) {
     case "OPEN":
-      return "bg-red-100 text-red-700";
+      return "bg-red-100 text-red-700 border-red-300";
 
     case "IN_PROGRESS":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-[#DCF8C6] text-[#128C7E] border-[#25D366]";
 
     case "RESOLVED":
-      return "bg-green-100 text-green-700";
+      return "bg-green-100 text-green-700 border-green-300";
 
     case "CLOSED":
-      return "bg-slate-200 text-slate-700";
+      return "bg-slate-100 text-slate-700 border-slate-300";
 
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-100 text-gray-700 border-gray-300";
   }
 }
 
@@ -243,7 +244,7 @@ function priorityBadge(priority) {
       return "bg-red-100 text-red-700";
 
     case "MEDIUM":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-[#DCF8C6] text-[#128C7E]";
 
     case "LOW":
       return "bg-green-100 text-green-700";
@@ -259,12 +260,16 @@ function TicketTable({
   setOpenMenu,
   handleEdit,
   handleDelete,
+  onStatusChange
 }) {
+
+  const user = useAuthStore(
+    (state) => state.user
+  );
+
+  const isAdmin = user?.role === "ADMIN";
+
   const menuRef = useRef(null);
-
-  const [menuPosition, setMenuPosition] = useState("down");
-
-  const buttonRefs = useRef({});
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -289,206 +294,210 @@ function TicketTable({
     };
   }, [setOpenMenu]);
 
-  useLayoutEffect(() => {
-  if (!openMenu) return;
-
-  const button = buttonRefs.current[openMenu];
-
-  if (!button) return;
-
-  const rect = button.getBoundingClientRect();
-
-  const menuHeight = 150;
-
-  const spaceBelow = document.documentElement.clientHeight - rect.bottom;
-
-  if (spaceBelow < menuHeight) {
-    setMenuPosition("up");
-  } else {
-    setMenuPosition("down");
-  }
-
-}, [openMenu]);
-
   if (!tickets || tickets.length === 0) {
     return (
-      <div className="rounded-2xl border border-gray-200 bg-white p-10 text-center text-gray-500 shadow-sm">
+      <div className="crm-page-surface p-8 text-center text-gray-500 sm:p-10">
         No tickets found
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-visible rounded-2xl bg-white shadow-sm border border-gray-200">
-      <table className="min-w-full">
-        {/* Header */}
-        <thead className="bg-yellow-400 text-black">
-          <tr>
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
-              Customer
-            </th>
+    <div className="crm-table-shell overflow-visible">
+      <div className="crm-table-scroll">
+        <table className="w-full min-w-[920px]">
+          {/* Header */}
+          <thead className="bg-[#25D366] text-black">
+            <tr>
+              <th className="crm-th">
+                Customer
+              </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
-              Title
-            </th>
+              <th className="crm-th min-w-[220px]">
+                Title
+              </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
-              Assigned To
-            </th>
+              <th className="crm-th min-w-[210px]">
+                Assigned To
+              </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
-              Priority
-            </th>
+              <th className="crm-th">
+                Priority
+              </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
-              Status
-            </th>
+              <th className="crm-th">
+                Status
+              </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
-              Created
-            </th>
+              <th className="crm-th">
+                Created
+              </th>
 
-            <th className="px-5 py-4 text-center text-sm font-bold uppercase tracking-wide">
-              Actions
-            </th>
-          </tr>
-        </thead>
+              {isAdmin && (
+                <th className="crm-th text-center">
+                  Actions
+                </th>
+              )}
+            </tr>
+          </thead>
 
-        {/* Body */}
-        <tbody>
-          {tickets.map((ticket, index) => {
+          {/* Body */}
+          <tbody>
+            {tickets.map((ticket, index) => {
 
-            const id = ticket.id;
+              const id = ticket.id;
 
-            // Open upward for the last two rows
-            const openUp = index >= tickets.length - 2;
+              // Open upward for the last two rows
+              const openUp = index >= tickets.length - 2;
 
-            return (
-              <tr
-                key={id}
-                className="border-b border-gray-100 transition hover:bg-yellow-50 last:border-b-0"
-              >
-                {/* Customer */}
-                <td className="px-5 py-4 text-sm font-medium text-slate-700">
-                  {ticket.customer?.name || "-"}
-                </td>
+              //const isLastRows = index >= tickets.length - 3;
 
-                {/* Title */}
-                <td className="px-5 py-4">
-                  <div className="text-base font-semibold text-slate-800">
-                    {ticket.title}
-                  </div>
+              const shouldOpenUp = index >= tickets.length - 2;
 
-                  <div className="mt-1 line-clamp-2 text-sm text-gray-500">
-                    {ticket.description}
-                  </div>
-                </td>
+              return (
+                <tr
+                  key={id}
+                  className="border-b border-gray-100 transition hover:bg-[#DCF8C6] last:border-b-0"
+                >
+                  {/* Customer */}
+                  <td className="crm-td font-medium">
+                    {ticket.customer?.name || "-"}
+                  </td>
 
-                {/* Assigned Employee */}
-                <td className="px-5 py-4 text-sm">
-                  {ticket.assignedTo ? (
-                    <div>
-                      <div className="font-semibold text-slate-800">
-                        {ticket.assignedTo.name}
-                      </div>
-
-                      <div className="text-xs text-gray-500">
-                        {ticket.assignedTo.email}
-                      </div>
+                  {/* Title */}
+                  <td className="crm-td">
+                    <div className="break-words text-base font-semibold text-slate-800">
+                      {ticket.title}
                     </div>
-                  ) : (
-                    <span className="italic text-gray-400">
-                      Unassigned
+
+                    <div className="mt-1 line-clamp-2 text-sm text-gray-500">
+                      {ticket.description}
+                    </div>
+                  </td>
+
+                  {/* Assigned Employee */}
+                  <td className="crm-td">
+                    {ticket.assignedTo ? (
+                      <div>
+                        <div className="font-semibold text-slate-800">
+                          {ticket.assignedTo.name}
+                        </div>
+
+                        <div className="break-all text-xs text-gray-500">
+                          {ticket.assignedTo.email}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="italic text-gray-400">
+                        Unassigned
+                      </span>
+                    )}
+                  </td>
+
+                  {/* Priority */}
+                  <td className="crm-td">
+                    <span
+                      className={`crm-badge ${priorityBadge(
+                        ticket.priority
+                      )}`}
+                    >
+                      {ticket.priority}
                     </span>
-                  )}
-                </td>
+                  </td>
 
-                {/* Priority */}
-                <td className="px-5 py-4">
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${priorityBadge(
-                      ticket.priority
-                    )}`}
-                  >
-                    {ticket.priority}
-                  </span>
-                </td>
-
-                                {/* Status */}
-                <td className="px-5 py-4">
-                  <span
-                    className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(
+                                  {/* Status */}
+                 <td className="crm-td">
+                  <select
+                    value={ticket.status}
+                    onChange={(e) =>
+                      onStatusChange(ticket.id, e.target.value)
+                    }
+                    className={`w-full max-w-[150px] cursor-pointer rounded-lg border px-3 py-2 text-sm font-medium outline-none ${statusBadge(
                       ticket.status
                     )}`}
                   >
-                    {ticket.status.replace("_", " ")}
-                  </span>
+                    <option value="OPEN">OPEN</option>
+                    <option value="IN_PROGRESS">
+                      IN PROGRESS
+                    </option>
+                    <option value="RESOLVED">
+                      RESOLVED
+                    </option>
+                    <option value="CLOSED">
+                      CLOSED
+                    </option>
+                  </select>
                 </td>
 
-                {/* Date */}
-                <td className="px-5 py-4 text-sm text-slate-600">
-                  {ticket.createdAt
-                    ? new Date(ticket.createdAt).toLocaleDateString()
-                    : "-"}
-                </td>
+                  {/* Date */}
+                  <td className="crm-td whitespace-nowrap text-slate-600">
+                    {ticket.createdAt
+                      ? new Date(ticket.createdAt).toLocaleDateString()
+                      : "-"}
+                  </td>
 
-                {/* Actions */}
-                <td className="px-5 py-4">
-                  <div
-                    ref={openMenu === id ? menuRef : null}
-                    className="relative flex justify-center"
-                  >
-                    <button
-                       ref={(el)=>{
-                        if(el){
-                          buttonRefs.current[id] = el;
-                        }
-                      }}
-                      onClick={() =>  setOpenMenu(openMenu === id ? null : id)
-                      }
-                      className="rounded-lg p-2 transition hover:bg-gray-100"
-                    >
-                      <MoreVertical size={18} />
-                    </button>
-
-                    {openMenu === id && (
+                  {/* Actions */}
+                  {isAdmin && (
+                    <td className="crm-td">
                       <div
-                        className={`absolute right-0 z-[999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
-                         menuPosition === "up"
-                            ? "bottom-full mb-2"
-                            : "top-full mt-2"
-                        }`}
+                        ref={openMenu === id ? menuRef : null}
+                        className="relative flex justify-center"
                       >
                         <button
-                          onClick={() => {
-                            handleEdit(ticket);
-                            setOpenMenu(null);
-                          }}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
+                          onClick={() =>  setOpenMenu(openMenu === id ? null : id)
+                          }
+                          className="rounded-lg p-2 transition hover:bg-gray-100"
                         >
-                          <Pencil size={16} />
-                          Edit
+                          <MoreVertical size={18} />
                         </button>
 
-                        <button
-                          onClick={() => {
-                            handleDelete(id);
-                            setOpenMenu(null);
-                          }}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
-                        >
-                          <Trash2 size={16} />
-                          Delete
-                        </button>
+                        {openMenu === id && (
+                          // <div
+                          //   className={`absolute right-0 z-[999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
+                          //     isLastRows
+                          //       ? "bottom-full mb-2"
+                          //       : "top-full mt-2"
+                          //   }`}
+                          // >
+                          <div
+                            className={`absolute right-0 z-[9999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
+                              shouldOpenUp
+                                ? "bottom-full mb-2"
+                                : "top-full mt-2"
+                            }`}
+                          >
+                            <button
+                              onClick={() => {
+                                handleEdit(ticket);
+                                setOpenMenu(null);
+                              }}
+                              className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
+                            >
+                              <Pencil size={16} />
+                              Edit
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                handleDelete(id);
+                                setOpenMenu(null);
+                              }}
+                              className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                    </td>
+                  )}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

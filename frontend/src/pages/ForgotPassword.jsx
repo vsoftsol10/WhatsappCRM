@@ -51,7 +51,7 @@
 //         )}
 
 //         {successMessage && (
-//           <div className="mb-4 p-3 bg-green-500/10 border border-green-500 text-green-400 text-sm rounded">
+//           <div className="mb-4 p-3 bg-[#DCF8C6]0/10 border border-green-500 text-green-400 text-sm rounded">
 //             {successMessage}
 //           </div>
 //         )}
@@ -76,7 +76,7 @@
 //                   setEmail(e.target.value);
 //                   clearError();
 //                 }}
-//                 className="w-full pl-10 pr-3 py-2 bg-black border border-gray-700 rounded-lg focus:border-yellow-400 outline-none"
+//                 className="w-full pl-10 pr-3 py-2 bg-black border border-gray-700 rounded-lg focus:border-[#25D366] outline-none"
 //                 required
 //               />
 //             </div>
@@ -85,7 +85,7 @@
 //           <button
 //             type="submit"
 //             disabled={isLoading}
-//             className="w-full bg-yellow-400 text-black py-2 rounded-lg font-semibold hover:bg-yellow-300 flex items-center justify-center gap-2"
+//             className="w-full bg-[#25D366] text-black py-2 rounded-lg font-semibold hover:bg-[#128C7E] flex items-center justify-center gap-2"
 //           >
 //             {isLoading ? (
 //               <>
@@ -101,7 +101,7 @@
 //         <div className="text-center mt-6">
 //           <Link
 //             to="/login"
-//             className="text-yellow-400 hover:underline text-sm"
+//             className="text-[#25D366] hover:underline text-sm"
 //           >
 //             Back to Login
 //           </Link>
@@ -206,7 +206,7 @@ const ForgotPassword = () => {
 
         {/* SUCCESS */}
         {successMessage && (
-          <div className="mb-4 rounded border border-green-500 bg-green-500/10 p-3 text-sm text-green-400">
+          <div className="mb-4 rounded border border-green-500 bg-[#DCF8C6]0/10 p-3 text-sm text-green-400">
             {successMessage}
           </div>
         )}
@@ -241,7 +241,7 @@ const ForgotPassword = () => {
                 className={`w-full rounded-lg border bg-black py-2 pl-10 pr-3 outline-none transition-colors ${
                   errors.email
                     ? "border-red-500"
-                    : "border-gray-700 focus:border-yellow-400"
+                    : "border-gray-700 focus:border-[#25D366]"
                 }`}
               />
             </div>
@@ -257,7 +257,7 @@ const ForgotPassword = () => {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-yellow-400 py-2 font-semibold text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] py-2 font-semibold text-black transition hover:bg-[#128C7E] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <>
@@ -274,7 +274,7 @@ const ForgotPassword = () => {
         <div className="mt-6 text-center">
           <Link
             to="/login"
-            className="text-sm text-yellow-400 hover:underline"
+            className="text-sm text-[#25D366] hover:underline"
           >
             Back to Login
           </Link>

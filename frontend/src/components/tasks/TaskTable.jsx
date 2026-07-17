@@ -13,7 +13,7 @@
 //       return "bg-red-100 text-red-700 border border-red-200";
 
 //     case "MEDIUM":
-//       return "bg-amber-100 text-amber-700 border border-amber-200";
+//       return "bg-[#DCF8C6] text-[#128C7E] border border-[#DCF8C6]";
 
 //     case "LOW":
 //       return "bg-green-100 text-green-700 border border-green-200";
@@ -32,7 +32,7 @@
 //       return "bg-blue-100 text-blue-700 border border-blue-200";
 
 //     case "REVIEW":
-//       return "bg-amber-100 text-amber-700 border border-amber-200";
+//       return "bg-[#DCF8C6] text-[#128C7E] border border-[#DCF8C6]";
 
 //     case "COMPLETED":
 //       return "bg-green-100 text-green-700 border border-green-200";
@@ -87,10 +87,10 @@
 //       <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-12 shadow-sm">
 //         <div className="flex flex-col items-center justify-center">
 
-//           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+//           <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#DCF8C6]">
 //             <User
 //               size={30}
-//               className="text-yellow-600"
+//               className="text-[#25D366]"
 //             />
 //           </div>
 
@@ -120,7 +120,7 @@
 //           {/* TABLE HEADER */}
 //           {/* ========================= */}
 
-//           <thead className="sticky top-0 z-10 bg-yellow-400">
+//           <thead className="sticky top-0 z-10 bg-[#25D366]">
 
 //             <tr>
 
@@ -165,14 +165,14 @@
 //             return (
 //               <tr
 //                 key={task.id}
-//                 className="transition-all duration-200 hover:bg-yellow-50/60"
+//                 className="transition-all duration-200 hover:bg-[#DCF8C6]/60"
 //               >
 //                 {/* ================= Assigned To ================= */}
 
 //                 <td className="px-6 py-5">
 //                   {task.assignedTo ? (
 //                     <div className="flex items-center gap-3">
-//                       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-yellow-100 font-semibold text-yellow-700">
+//                       <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#DCF8C6] font-semibold text-[#128C7E]">
 //                         {task.assignedTo.name
 //                           ?.charAt(0)
 //                           ?.toUpperCase()}
@@ -219,7 +219,7 @@
 //                           e.target.value
 //                         )
 //                       }
-//                       className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 ${priorityBadge(
+//                       className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-[#25D366] focus:ring-2 focus:ring-[#DCF8C6] ${priorityBadge(
 //                         task.priority
 //                       )}`}
 //                     >
@@ -258,7 +258,7 @@
 //                           e.target.value
 //                         )
 //                       }
-//                       className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 ${statusBadge(
+//                       className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-[#25D366] focus:ring-2 focus:ring-[#DCF8C6] ${statusBadge(
 //                         task.status
 //                       )}`}
 //                     >
@@ -398,7 +398,7 @@ function priorityBadge(priority) {
       return "bg-red-100 text-red-700 border border-red-200";
 
     case "MEDIUM":
-      return "bg-amber-100 text-amber-700 border border-amber-200";
+      return "bg-[#DCF8C6] text-[#128C7E] border border-[#DCF8C6]";
 
     case "LOW":
       return "bg-green-100 text-green-700 border border-green-200";
@@ -417,7 +417,7 @@ function statusBadge(status) {
       return "bg-blue-100 text-blue-700 border border-blue-200";
 
     case "REVIEW":
-      return "bg-amber-100 text-amber-700 border border-amber-200";
+      return "bg-[#DCF8C6] text-[#128C7E] border border-[#DCF8C6]";
 
     case "COMPLETED":
       return "bg-green-100 text-green-700 border border-green-200";
@@ -497,13 +497,13 @@ export default function TaskTable({
 
   if (!tasks || tasks.length === 0) {
   return (
-    <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-12 shadow-sm">
+    <div className="crm-page-surface mt-6 p-8 text-center sm:p-12">
       <div className="flex flex-col items-center justify-center">
 
-        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-yellow-100">
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[#DCF8C6]">
           <User
             size={30}
-            className="text-yellow-600"
+            className="text-[#25D366]"
           />
         </div>
 
@@ -523,9 +523,9 @@ export default function TaskTable({
 return (
   <div
     ref={wrapperRef}
-    className="mt-6 rounded-2xl border border-gray-200 bg-white shadow-sm"
+    className="crm-table-shell mt-6 overflow-visible"
   >
-    <div className="overflow-x-auto">
+    <div className="crm-table-scroll">
 
       <table className="w-full min-w-[1000px] table-auto">
 
@@ -533,37 +533,39 @@ return (
         {/* TABLE HEADER */}
         {/* ========================= */}
 
-        <thead className="sticky top-0 z-10 bg-yellow-400">
+        <thead className="sticky top-0 z-10 bg-[#25D366]">
 
           <tr>
 
-            <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-black">
+            <th className="crm-th">
               Assigned To
             </th>
 
-            <th className="min-w-[280px] px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-black">
+            <th className="crm-th min-w-[280px]">
               Task
             </th>
 
-            <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-black">
+            <th className="crm-th">
               Priority
             </th>
 
-            <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-black">
+            <th className="crm-th">
               Status
             </th>
 
-            <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-black">
+            <th className="crm-th">
               Due Date
             </th>
 
-            <th className="whitespace-nowrap px-6 py-4 text-left text-xs font-bold uppercase tracking-wider text-black">
+            <th className="crm-th">
               Created
             </th>
 
-            <th className="w-20 px-6 py-4 text-center text-xs font-bold uppercase tracking-wider text-black">
-              Actions
-            </th>
+            {isAdmin && (
+              <th className="crm-th w-20 text-center">
+                Actions
+              </th>
+            )}
 
           </tr>
 
@@ -580,28 +582,28 @@ return (
             return (
               <tr
                 key={task.id}
-                className="transition-all duration-200 hover:bg-yellow-50/60"
+                className="transition-all duration-200 hover:bg-[#DCF8C6]/60"
               >
 
                 {/* ================= Assigned To ================= */}
 
-                <td className="px-6 py-5">
+                <td className="crm-td">
                   {task.assignedTo ? (
                     <div className="flex items-center gap-3">
 
-                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-yellow-100 font-semibold text-yellow-700">
+                      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#DCF8C6] font-semibold text-[#128C7E]">
                         {task.assignedTo.name
                           ?.charAt(0)
                           ?.toUpperCase()}
                       </div>
 
-                      <div>
+                      <div className="min-w-0">
 
                         <p className="font-semibold text-slate-800">
                           {task.assignedTo.name}
                         </p>
 
-                        <p className="text-xs text-gray-500">
+                        <p className="break-all text-xs text-gray-500">
                           {task.assignedTo.email}
                         </p>
 
@@ -617,9 +619,9 @@ return (
 
                 {/* ================= Task ================= */}
 
-                <td className="px-6 py-5">
+                <td className="crm-td">
 
-                  <div className="font-semibold text-slate-800">
+                  <div className="break-words font-semibold text-slate-800">
                     {task.title}
                   </div>
 
@@ -631,7 +633,7 @@ return (
 
                                 {/* ================= Priority ================= */}
 
-                <td className="px-6 py-5">
+                <td className="crm-td">
                   {isAdmin ? (
                     <select
                       value={task.priority}
@@ -641,7 +643,7 @@ return (
                           e.target.value
                         )
                       }
-                      className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 ${priorityBadge(
+                      className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-[#25D366] focus:ring-2 focus:ring-[#DCF8C6] ${priorityBadge(
                         task.priority
                       )}`}
                     >
@@ -670,7 +672,7 @@ return (
 
                 {/* ================= Status ================= */}
 
-                <td className="px-6 py-5">
+                <td className="crm-td">
                   {canUpdateStatus ? (
                     <select
                       value={task.status}
@@ -680,7 +682,7 @@ return (
                           e.target.value
                         )
                       }
-                      className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 ${statusBadge(
+                      className={`rounded-xl border px-3 py-2 text-sm font-semibold outline-none transition focus:border-[#25D366] focus:ring-2 focus:ring-[#DCF8C6] ${statusBadge(
                         task.status
                       )}`}
                     >
@@ -712,7 +714,7 @@ return (
                 </td>
                                 {/* ================= Due Date ================= */}
 
-                <td className="whitespace-nowrap px-6 py-5 text-sm text-slate-600">
+                <td className="crm-td whitespace-nowrap text-slate-600">
                   {task.dueDate
                     ? new Date(task.dueDate).toLocaleDateString()
                     : "-"}
@@ -720,7 +722,7 @@ return (
 
                 {/* ================= Created ================= */}
 
-                <td className="whitespace-nowrap px-6 py-5 text-sm text-slate-600">
+                <td className="crm-td whitespace-nowrap text-slate-600">
                   {task.createdAt
                     ? new Date(task.createdAt).toLocaleDateString()
                     : "-"}
@@ -728,70 +730,72 @@ return (
 
                 {/* ================= Actions ================= */}
 
-                <td className="px-6 py-5">
-                  <div className="relative inline-block">
-                    {isAdmin ? (
-                      <>
-                        <button
-                          ref={(el) => {
-                            if (el) {
-                              buttonRefs.current[task.id] = el;
+                {isAdmin && (
+                  <td className="crm-td">
+                    <div className="relative inline-block">
+                      {isAdmin ? (
+                        <>
+                          <button
+                            ref={(el) => {
+                              if (el) {
+                                buttonRefs.current[task.id] = el;
+                              }
+                            }}
+                            onClick={() =>
+                              setOpenMenu(
+                                openMenu === task.id
+                                  ? null
+                                  : task.id
+                              )
                             }
-                          }}
-                          onClick={() =>
-                            setOpenMenu(
-                              openMenu === task.id
-                                ? null
-                                : task.id
-                            )
-                          }
-                          className="rounded-xl p-2 transition hover:bg-gray-100"
-                        >
-                          <MoreVertical
-                            size={18}
-                            className="text-gray-600"
-                          />
-                        </button>
-
-                        {openMenu === task.id && (
-                          <div
-                            className={`absolute right-0 z-[9999] w-44 rounded-xl border border-gray-200 bg-white shadow-xl ${
-                              menuPosition === "up"
-                                ? "bottom-full mb-2"
-                                : "top-full mt-2"
-                            }`}
+                            className="rounded-xl p-2 transition hover:bg-gray-100"
                           >
-                            <button
-                              onClick={() => {
-                                setOpenMenu(null);
-                                onEdit(task);
-                              }}
-                              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
-                            >
-                              <Pencil size={16} />
-                              Edit Task
-                            </button>
+                            <MoreVertical
+                              size={18}
+                              className="text-gray-600"
+                            />
+                          </button>
 
-                            <button
-                              onClick={() => {
-                                setOpenMenu(null);
-                                onDelete(task.id);
-                              }}
-                              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                          {openMenu === task.id && (
+                            <div
+                              className={`absolute right-0 z-[9999] w-44 rounded-xl border border-gray-200 bg-white shadow-xl ${
+                                menuPosition === "up"
+                                  ? "bottom-full mb-2"
+                                  : "top-full mt-2"
+                              }`}
                             >
-                              <Trash2 size={16} />
-                              Delete Task
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <span className="text-sm text-gray-400">
-                        —
-                      </span>
-                    )}
-                  </div>
-                </td>
+                              <button
+                                onClick={() => {
+                                  setOpenMenu(null);
+                                  onEdit(task);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
+                              >
+                                <Pencil size={16} />
+                                Edit Task
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  setOpenMenu(null);
+                                  onDelete(task.id);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                              >
+                                <Trash2 size={16} />
+                                Delete Task
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-sm text-gray-400">
+                          —
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                )}
 
               </tr>
             );

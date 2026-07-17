@@ -27,14 +27,14 @@ export default function InsightsCard({ stats }) {
       title: "Active Leads",
       value: stats?.totalLeads ?? 0,
       icon: Target,
-      color: "text-yellow-600",
-      bg: "bg-yellow-100",
+      color: "text-[#25D366]",
+      bg: "bg-[#DCF8C6]",
     },
     {
       title: "Completed Tasks",
       value: stats?.tasks?.completed ?? 0,
       icon: CheckCircle2,
-      color: "text-green-600",
+      color: "text-[#128C7E]",
       bg: "bg-green-100",
     },
   ];
@@ -135,7 +135,7 @@ export default function InsightsCard({ stats }) {
 
             <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-green-100">
               <Clock3
-                className="text-green-600"
+                className="text-[#128C7E]"
                 size={20}
               />
             </div>
@@ -152,9 +152,9 @@ export default function InsightsCard({ stats }) {
 
           <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 text-center transition-all duration-300 hover:bg-white hover:shadow-sm">
 
-            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-yellow-100">
+            <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-[#DCF8C6]">
               <TrendingUp
-                className="text-yellow-600"
+                className="text-[#25D366]"
                 size={20}
               />
             </div>

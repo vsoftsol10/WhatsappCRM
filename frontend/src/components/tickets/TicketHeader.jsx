@@ -34,7 +34,7 @@
 
 //       <button
 //         onClick={handleAddTicket}
-//         className="flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 rounded-xl font-semibold transition"
+//         className="flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] rounded-xl font-semibold transition"
 //       >
 //         <Plus size={18} />
 //         Add Ticket
@@ -68,20 +68,20 @@ function TicketHeader({
   };
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6 gap-4">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-800">
+    <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="min-w-0">
+        <h1 className="crm-title text-slate-800">
           Tickets
         </h1>
 
-        <p className="text-slate-500">
+        <p className="crm-subtitle text-slate-500">
           Manage customer support tickets
         </p>
       </div>
 
       <button
         onClick={handleAddTicket}
-        className="flex items-center gap-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 rounded-xl font-semibold transition"
+        className="crm-primary-button w-full sm:w-auto"
       >
         <Plus size={18} />
         Add Ticket

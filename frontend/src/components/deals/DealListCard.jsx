@@ -21,7 +21,7 @@ export default function DealListCard({
     LEAD: "bg-blue-50 border-blue-200 text-blue-700",
     PROPOSAL: "bg-purple-50 border-purple-200 text-purple-700",
     NEGOTIATION: "bg-orange-50 border-orange-200 text-orange-700",
-    WON: "bg-green-50 border-green-200 text-green-700",
+    WON: "bg-[#DCF8C6] border-green-200 text-green-700",
     LOST: "bg-red-50 border-red-200 text-red-700",
   };
 
@@ -116,7 +116,7 @@ export default function DealListCard({
 
             {/* Deal Value */}
       <div className="flex items-center gap-2 border-t pt-4 text-gray-700">
-        <IndianRupee size={18} className="text-yellow-600" />
+        <IndianRupee size={18} className="text-[#25D366]" />
 
         <span className="text-xl font-bold text-gray-900">
           {Number(deal.value || 0).toLocaleString()}

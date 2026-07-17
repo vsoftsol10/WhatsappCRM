@@ -41,7 +41,7 @@ const ViewEmployee = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-100 ml-8 flex items-center justify-center">
+      <div className="crm-page flex items-center justify-center bg-gray-100">
         <p className="text-lg text-gray-500">
           Loading Employee...
         </p>
@@ -51,7 +51,7 @@ const ViewEmployee = () => {
 
   if (!employee) {
     return (
-      <div className="min-h-screen bg-gray-100 ml-8 flex items-center justify-center">
+      <div className="crm-page flex items-center justify-center bg-gray-100">
         <p className="text-lg text-red-500">
           Employee not found.
         </p>
@@ -60,12 +60,12 @@ const ViewEmployee = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 ml-8 p-8">
+    <div className="crm-page bg-gray-100">
 
       {/* Header */}
-      <div className="flex justify-between items-center mb-8">
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
 
           <button
             onClick={() => navigate("/employees")}
@@ -74,12 +74,12 @@ const ViewEmployee = () => {
             <FiArrowLeft size={20} />
           </button>
 
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+          <div className="min-w-0">
+            <h1 className="crm-title">
               Employee Details
             </h1>
 
-            <p className="text-gray-500 mt-1">
+            <p className="crm-subtitle">
               View employee information.
             </p>
           </div>
@@ -90,7 +90,7 @@ const ViewEmployee = () => {
           onClick={() =>
             navigate(`/employees/edit/${employee.id}`)
           }
-          className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-3 rounded-xl shadow transition"
+          className="flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-black font-semibold px-5 py-3 rounded-xl shadow transition"
         >
           <FiEdit2 />
           Edit Employee
@@ -99,17 +99,17 @@ const ViewEmployee = () => {
       </div>
 
       {/* Profile Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 mb-8">
+      <div className="crm-page-surface mb-8 p-5 sm:p-8">
 
-        <div className="flex items-center gap-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-6">
 
-          <div className="w-24 h-24 rounded-full bg-yellow-400 flex items-center justify-center text-4xl font-bold text-black">
+          <div className="w-24 h-24 rounded-full bg-[#25D366] flex items-center justify-center text-4xl font-bold text-black">
             {employee.name?.charAt(0).toUpperCase()}
           </div>
 
-          <div>
+          <div className="min-w-0">
 
-            <h2 className="text-3xl font-bold text-gray-900">
+            <h2 className="break-words text-2xl font-bold text-gray-900 sm:text-3xl">
               {employee.name}
             </h2>
 
@@ -137,7 +137,7 @@ const ViewEmployee = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
         {/* Contact Information */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div className="crm-page-surface p-5 sm:p-6">
 
           <h2 className="text-xl font-bold text-gray-900 mb-6">
             Contact Information
@@ -163,7 +163,7 @@ const ViewEmployee = () => {
 
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-full bg-green-100">
-                <FiPhone className="text-green-600" size={20} />
+                <FiPhone className="text-[#128C7E]" size={20} />
               </div>
 
               <div>
@@ -182,7 +182,7 @@ const ViewEmployee = () => {
         </div>
 
         {/* Employee Information */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+        <div className="crm-page-surface p-5 sm:p-6">
 
           <h2 className="text-xl font-bold text-gray-900 mb-6">
             Employee Information
@@ -191,9 +191,9 @@ const ViewEmployee = () => {
           <div className="space-y-5">
 
             <div className="flex items-center gap-4">
-              <div className="p-3 rounded-full bg-yellow-100">
+              <div className="p-3 rounded-full bg-[#DCF8C6]">
                 <FiBriefcase
-                  className="text-yellow-600"
+                  className="text-[#25D366]"
                   size={20}
                 />
               </div>
@@ -226,7 +226,7 @@ const ViewEmployee = () => {
                   className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold ${
                     employee.role === "ADMIN"
                       ? "bg-red-100 text-red-600"
-                      : "bg-green-100 text-green-600"
+                      : "bg-green-100 text-[#128C7E]"
                   }`}
                 >
                   {employee.role}
@@ -260,11 +260,11 @@ const ViewEmployee = () => {
       </div>
 
       {/* Footer */}
-      <div className="mt-8 flex justify-end gap-4">
+      <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-4">
 
         <button
           onClick={() => navigate("/employees")}
-          className="px-6 py-3 rounded-xl border border-gray-300 bg-white hover:bg-gray-50 font-semibold transition"
+          className="crm-secondary-button"
         >
           Back
         </button>
@@ -273,7 +273,7 @@ const ViewEmployee = () => {
           onClick={() =>
             navigate(`/employees/edit/${employee.id}`)
           }
-          className="flex items-center gap-2 px-6 py-3 rounded-xl bg-yellow-400 hover:bg-yellow-500 text-black font-semibold transition"
+          className="crm-primary-button"
         >
           <FiEdit2 />
           Edit Employee

@@ -41,7 +41,7 @@ function TicketStats({ ticketCounts }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-5 mb-6">
+    <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-5">
       {stats.map((item) => {
         const Icon = item.icon;
 
@@ -57,13 +57,13 @@ function TicketStats({ ticketCounts }) {
               shadow-sm
               transition-all
               duration-200
-              hover:border-yellow-300
-              hover:bg-yellow-50
+              hover:border-[#25D366]
+              hover:bg-[#DCF8C6]
               hover:shadow-lg
             "
           >
-            <div className="flex items-start justify-between">
-              <div>
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
                 <p className="text-sm font-medium text-gray-500">
                   {item.label}
                 </p>
@@ -73,10 +73,10 @@ function TicketStats({ ticketCounts }) {
                 </h2>
               </div>
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#DCF8C6]">
                 <Icon
                   size={24}
-                  className="text-yellow-600"
+                  className="text-[#25D366]"
                 />
               </div>
             </div>

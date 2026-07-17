@@ -33,10 +33,10 @@ export default function TaskCard({
         return "text-red-600 bg-red-50";
 
       case "MEDIUM":
-        return "text-yellow-600 bg-yellow-50";
+        return "text-[#25D366] bg-[#DCF8C6]";
 
       case "LOW":
-        return "text-green-600 bg-green-50";
+        return "text-[#128C7E] bg-[#DCF8C6]";
 
       default:
         return "text-gray-600 bg-gray-50";
@@ -52,10 +52,10 @@ export default function TaskCard({
         return "text-blue-600 bg-blue-50";
 
       case "REVIEW":
-        return "text-amber-600 bg-amber-50";
+        return "text-[#25D366] bg-[#DCF8C6]";
 
       case "COMPLETED":
-        return "text-green-600 bg-green-50";
+        return "text-[#128C7E] bg-[#DCF8C6]";
 
       default:
         return "text-gray-600 bg-gray-100";

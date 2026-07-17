@@ -1,5 +1,10 @@
 const prisma = require("../config/prisma");
 
+const {
+  notifyUser,
+  NotificationType,
+} = require("../services/notificationService");
+
 // ======================================================
 // COMMON INCLUDE
 // ======================================================
@@ -51,11 +56,6 @@ const createTicket = async (req, res) => {
       assignedToId,
     } = req.body;
 
-    console.log("Request Body:", req.body);
-    console.log("Title:", title);
-    console.log("CustomerId:", customerId);
-    console.log("User:", req.user);
-
     // Required fields
     if (!title || !customerId) {
       return res.status(400).json({
@@ -105,6 +105,23 @@ const createTicket = async (req, res) => {
       },
       include: ticketInclude,
     });
+
+    // ================= CREATE NOTIFICATION =================
+    if (assignedToId) {
+      try {
+        await notifyUser({
+          userId: assignedToId,
+          title: "New Ticket Assigned",
+          message: `You have been assigned a new ticket: "${ticket.title}".`,
+          type: NotificationType.TICKET,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Ticket notification failed:",
+          notificationError
+        );
+      }
+    }
 
     return res.status(201).json({
       success: true,
@@ -221,6 +238,10 @@ const getTicketById = async (req, res) => {
 // UPDATE TICKET
 // ======================================================
 
+// ======================================================
+// UPDATE TICKET
+// ======================================================
+
 const updateTicket = async (req, res) => {
   try {
     if (req.user.role !== "ADMIN") {
@@ -242,7 +263,9 @@ const updateTicket = async (req, res) => {
 
     // Check ticket exists
     const existingTicket = await prisma.ticket.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
     });
 
     if (!existingTicket) {
@@ -281,6 +304,26 @@ const updateTicket = async (req, res) => {
       },
       include: ticketInclude,
     });
+
+    // ================= REASSIGNMENT NOTIFICATION =================
+    if (
+      assignedToId &&
+      assignedToId !== existingTicket.assignedToId
+    ) {
+      try {
+        await notifyUser({
+          userId: assignedToId,
+          title: "Ticket Assigned",
+          message: `A ticket has been assigned to you: "${updatedTicket.title}".`,
+          type: NotificationType.TICKET,
+        });
+      } catch (notificationError) {
+        console.error(
+          "Ticket reassignment notification failed:",
+          notificationError
+        );
+      }
+    }
 
     return res.status(200).json({
       success: true,
@@ -422,3 +465,4 @@ module.exports = {
   deleteTicket,
   updateTicketStatus,
 };
+

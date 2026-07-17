@@ -161,7 +161,7 @@
 //               onClick={() =>
 //                 setShowAddModal(true)
 //               }
-//               className="bg-yellow-400 px-5 py-2 rounded-xl font-semibold"
+//               className="bg-[#25D366] px-5 py-2 rounded-xl font-semibold"
 //             >
 //               + Add Lead
 //             </button>
@@ -301,6 +301,10 @@ export default function Lead() {
   }, [fetchLeads]);
 
   useEffect(() => {
+    console.log("Leads:", leads);
+  }, [leads]);
+
+  useEffect(() => {
     setCurrentPage(1);
   }, [
     searchTerm,
@@ -423,13 +427,14 @@ export default function Lead() {
 
   if (error) {
     return (
-      <div className="p-6 text-red-500">
+      <div className="crm-page text-red-500">
         {error}
       </div>
     );
   }
 
   const handleConvert = async (id) => {
+     console.log("handleConvert called", id);
   try {
     await convertLead(id);
 
@@ -451,23 +456,23 @@ export default function Lead() {
 
   return (
 
-        <div className="p-6 space-y-6">
+        <div className="crm-page space-y-6">
 
       {/* ================= HEADER ================= */}
 
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-        <div>
-          <h1 className="text-4xl font-bold">
+        <div className="min-w-0">
+          <h1 className="crm-title">
             Leads
           </h1>
 
-          <p className="text-gray-500">
+          <p className="crm-subtitle">
             Manage your WhatsApp CRM leads
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
 
           {/* Grid / List Toggle */}
 
@@ -477,7 +482,7 @@ export default function Lead() {
               onClick={() => setViewMode("grid")}
               className={`p-2 transition ${
                 viewMode === "grid"
-                  ? "bg-yellow-400"
+                  ? "bg-[#25D366]"
                   : "hover:bg-gray-100"
               }`}
             >
@@ -488,7 +493,7 @@ export default function Lead() {
               onClick={() => setViewMode("list")}
               className={`p-2 transition ${
                 viewMode === "list"
-                  ? "bg-yellow-400"
+                  ? "bg-[#25D366]"
                   : "hover:bg-gray-100"
               }`}
             >
@@ -499,7 +504,7 @@ export default function Lead() {
 
           <button
             onClick={() => setShowAddModal(true)}
-            className="bg-yellow-400 px-5 py-2 rounded-xl font-semibold hover:bg-yellow-500 transition"
+            className="crm-primary-button w-full sm:w-auto"
           >
             + Add Lead
           </button>
@@ -530,11 +535,11 @@ export default function Lead() {
       {/* ================= CONTENT ================= */}
 
       {isLoading ? (
-        <div className="text-center py-10">
+        <div className="py-10 text-center">
           Loading leads...
         </div>
       ) : filteredLeads.length === 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm p-10 text-center">
+        <div className="crm-page-surface p-8 text-center sm:p-10">
 
           <h3 className="text-xl font-semibold">
             No Leads Found
@@ -547,7 +552,7 @@ export default function Lead() {
         </div>
       ) : viewMode === "grid" ? (
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6">
 
           {paginatedLeads.map((lead) => (
             <LeadCard

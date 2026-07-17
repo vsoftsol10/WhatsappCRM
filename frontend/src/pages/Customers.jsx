@@ -177,18 +177,18 @@ function Customers() {
   };
 
     return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 p-8">
+    <div className="crm-page">
       
 
         {/* ================= HEADER ================= */}
 
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="crm-title">
               Customers
             </h1>
 
-            <p className="mt-2 text-gray-500">
+            <p className="crm-subtitle">
               Manage your customer records
             </p>
           </div>
@@ -197,7 +197,7 @@ function Customers() {
             onClick={() =>
               navigate("/customers/add")
             }
-            className="rounded-xl bg-yellow-400 px-5 py-3 font-semibold text-black transition hover:bg-yellow-500"
+            className="crm-primary-button w-full sm:w-auto"
           >
             + Add Customer
           </button>
@@ -224,12 +224,12 @@ function Customers() {
                 placeholder="Search customers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-xl border border-gray-200 bg-white p-3 text-gray-900 outline-none transition focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200"
+                className="crm-input"
               />
             </div>
 
             {/* Filter Chips */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               {[
                 {
                   key: "ALL",
@@ -255,8 +255,8 @@ function Customers() {
                     }
                     className={`rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
                       isActive
-                        ? "border-yellow-400 bg-yellow-400 text-black shadow-md"
-                        : "border-gray-300 bg-white text-slate-700 hover:border-yellow-300 hover:bg-yellow-50"
+                        ? "border-[#25D366] bg-[#25D366] text-black shadow-md"
+                        : "border-gray-300 bg-white text-slate-700 hover:border-[#25D366] hover:bg-[#DCF8C6]"
                     }`}
                   >
                     {item.label}
@@ -268,31 +268,32 @@ function Customers() {
 
         {/* ================= TABLE ================= */}
 
-        <div className="rounded-2xl border border-gray-200 bg-white shadow-sm">
-          <table className="w-full">
-            <thead className="bg-yellow-400 text-black">
+        <div className="crm-table-shell overflow-visible">
+          <div className="crm-table-scroll">
+          <table className="w-full min-w-[900px]">
+            <thead className="bg-[#25D366] text-black">
               <tr>
-                <th className="p-4 text-left">
+                <th className="crm-th">
                   Name
                 </th>
 
-                <th className="p-4 text-left">
+                <th className="crm-th">
                   Phone
                 </th>
 
-                <th className="p-4 text-left">
+                <th className="crm-th">
                   Email
                 </th>
 
-                <th className="p-4 text-left">
+                <th className="crm-th">
                   Company
                 </th>
 
-                <th className="p-4 text-left">
+                <th className="crm-th">
                   Status
                 </th>
 
-                <th className="p-4 text-center">
+                <th className="crm-th text-center">
                   Actions
                 </th>
               </tr>
@@ -300,8 +301,11 @@ function Customers() {
 
             <tbody>
               {paginatedCustomers.length > 0 ? (
-                paginatedCustomers.map(
-                  (customer) => (
+                paginatedCustomers.map((customer, index) => {
+                const shouldOpenUp =
+                  index >= paginatedCustomers.length - 2;
+
+                return (
                     <tr
                       key={customer.id}
                       onClick={() =>
@@ -317,25 +321,25 @@ function Customers() {
                       }
                       className="cursor-pointer border-b border-gray-100 transition hover:bg-gray-50"
                     >
-                      <td className="p-4 font-medium">
+                      <td className="crm-td font-medium">
                         {customer.name}
                       </td>
 
-                      <td className="p-4">
+                      <td className="crm-td">
                         {customer.phone}
                       </td>
 
-                      <td className="p-4">
+                      <td className="crm-td break-all">
                         {customer.email}
                       </td>
 
-                      <td className="p-4">
+                      <td className="crm-td">
                         {customer.company || "-"}
                       </td>
 
-                      <td className="p-4">
+                      <td className="crm-td">
                         <span
-                          className={`rounded-full px-3 py-1 text-sm font-medium ${
+                          className={`crm-badge ${
                             customer.status ===
                             "ACTIVE"
                               ? "bg-green-100 text-green-700"
@@ -348,7 +352,8 @@ function Customers() {
 
                       {/* ================= ACTION MENU ================= */}
 
-                      <td className="relative p-4 text-center">
+                      <td className="crm-td">
+                        <div className="relative flex justify-center">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -371,10 +376,12 @@ function Customers() {
                           customer.id && (
                           <div
                             ref={menuRef}
-                            onClick={(e) =>
-                              e.stopPropagation()
-                            }
-                            className="absolute right-8 top-12 z-50 w-36 rounded-lg border border-gray-200 bg-white shadow-lg"
+                            onClick={(e) => e.stopPropagation()}
+                            className={`absolute right-0 z-[9999] w-36 rounded-lg border border-gray-200 bg-white shadow-lg ${
+                              shouldOpenUp
+                                ? "bottom-full mb-2"
+                                : "top-full mt-2"
+                            }`}
                           >
                             <button
                               onClick={() =>
@@ -410,10 +417,11 @@ function Customers() {
                             </button>
                           </div>
                         )}
+                        </div>
                       </td>
                     </tr>
                   )
-                )
+                })
               ) : (
                 <tr>
                   <td
@@ -426,16 +434,17 @@ function Customers() {
               )}
             </tbody>
           </table>
+          </div>
         </div>
 
             {/* ================= PAGINATION ================= */}
 
-        <div className="flex items-center justify-between border-t border-gray-200 px-6 py-4">
-          <p className="text-sm text-gray-600">
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 rounded-2xl border border-gray-200 bg-white px-4 py-4 shadow-sm sm:flex-row sm:px-6">
+          <p className="text-center text-sm text-gray-600 sm:text-left">
             Page {currentPage} of {totalPages}
           </p>
 
-          <div className="flex gap-2">
+          <div className="flex max-w-full flex-wrap justify-center gap-2">
             <button
               onClick={() =>
                 setCurrentPage((prev) =>
@@ -458,7 +467,7 @@ function Customers() {
                   }
                   className={`rounded-lg px-3 py-2 text-sm font-medium transition ${
                     currentPage === index + 1
-                      ? "bg-yellow-400 text-black"
+                      ? "bg-[#25D366] text-black"
                       : "border border-gray-300 bg-white hover:bg-gray-100"
                   }`}
                 >

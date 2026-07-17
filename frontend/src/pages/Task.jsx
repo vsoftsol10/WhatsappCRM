@@ -134,7 +134,7 @@
 //             onClick={() =>
 //               setShowCreateModal(true)
 //             }
-//             className="bg-yellow-400 text-black px-5 py-3 rounded-xl font-medium"
+//             className="bg-[#25D366] text-black px-5 py-3 rounded-xl font-medium"
 //           >
 //             Create Task
 //           </button>
@@ -165,7 +165,7 @@
 //             onClick={() => setViewMode("LIST")}
 //             className={`px-4 py-2 text-sm rounded-md ${
 //               viewMode === "LIST"
-//                 ? "bg-yellow-400 text-black"
+//                 ? "bg-[#25D366] text-black"
 //                 : "text-gray-600"
 //             }`}
 //           >
@@ -176,7 +176,7 @@
 //             onClick={() => setViewMode("KANBAN")}
 //             className={`px-4 py-2 text-sm rounded-md ${
 //               viewMode === "KANBAN"
-//                 ? "bg-yellow-400 text-black"
+//                 ? "bg-[#25D366] text-black"
 //                 : "text-gray-600"
 //             }`}
 //           >
@@ -425,7 +425,7 @@ const paginatedTasks =
   };
 
   return (
-    <div className="p-6">
+    <div className="crm-page">
 
       {/* ========================= */}
       {/* PAGE HEADER */}
@@ -433,11 +433,11 @@ const paginatedTasks =
 
       <div className="mb-6">
 
-        <h1 className="text-3xl font-bold text-slate-900">
+        <h1 className="crm-title text-slate-900">
           Tasks
         </h1>
 
-        <p className="mt-1 text-gray-500">
+        <p className="crm-subtitle">
           Manage and monitor your tasks
         </p>
 
@@ -472,7 +472,7 @@ const paginatedTasks =
 
         {/* Filter Chips */}
 
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
 
           {[
             "ALL",
@@ -486,7 +486,7 @@ const paginatedTasks =
               onClick={() => setStatusFilter(status)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition ${
                 statusFilter === status
-                  ? "bg-yellow-400 text-black"
+                  ? "bg-[#25D366] text-black"
                   : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
               }`}
             >
@@ -498,13 +498,13 @@ const paginatedTasks =
 
         {/* View Toggle */}
 
-        <div className="flex items-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+        <div className="flex max-w-full flex-wrap items-center rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
 
           <button
             onClick={() => setViewMode("LIST")}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
               viewMode === "LIST"
-                ? "bg-yellow-400 text-black"
+                ? "bg-[#25D366] text-black"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
@@ -516,7 +516,7 @@ const paginatedTasks =
             onClick={() => setViewMode("KANBAN")}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition ${
               viewMode === "KANBAN"
-                ? "bg-yellow-400 text-black"
+                ? "bg-[#25D366] text-black"
                 : "text-gray-600 hover:bg-gray-100"
             }`}
           >
@@ -544,7 +544,7 @@ const paginatedTasks =
 
       {!isLoading &&
         filteredTasks.length === 0 && (
-          <div className="mt-6 rounded-2xl border border-gray-200 bg-white p-12 text-center shadow-sm">
+          <div className="crm-page-surface mt-6 p-8 text-center sm:p-12">
 
             <h3 className="text-xl font-semibold text-slate-800">
               No Tasks Found

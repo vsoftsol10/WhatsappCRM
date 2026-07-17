@@ -61,7 +61,7 @@ export default function TaskOverviewCard({ tasks }) {
             Completion
           </span>
 
-          <span className="font-semibold text-green-600">
+          <span className="font-semibold text-[#128C7E]">
             {completion}%
           </span>
         </div>
@@ -92,8 +92,8 @@ export default function TaskOverviewCard({ tasks }) {
 
         <StatusItem
           icon={<LoaderCircle size={18} />}
-          iconBg="bg-yellow-100"
-          color="text-yellow-600"
+          iconBg="bg-[#DCF8C6]"
+          color="text-[#25D366]"
           label="In Progress"
           value={inProgress}
         />
@@ -109,7 +109,7 @@ export default function TaskOverviewCard({ tasks }) {
         <StatusItem
           icon={<CheckCircle2 size={18} />}
           iconBg="bg-green-100"
-          color="text-green-600"
+          color="text-[#128C7E]"
           label="Completed"
           value={completed}
         />

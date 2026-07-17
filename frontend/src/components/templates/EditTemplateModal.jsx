@@ -274,18 +274,18 @@ export default function EditTemplateModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+      <div className="flex min-h-screen items-center justify-center p-3 sm:p-4">
+        <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
           {/* Header */}
-          <div className="bg-yellow-400 px-6 py-5 flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800">
+          <div className="flex items-center justify-between gap-4 bg-[#25D366] px-5 py-4 sm:px-6 sm:py-5">
+            <h2 className="break-words text-xl font-bold text-gray-800 sm:text-2xl">
               Edit Template
             </h2>
 
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-yellow-500 transition"
+              className="p-2 rounded-full hover:bg-[#128C7E] transition"
             >
               <X size={22} />
             </button>
@@ -293,7 +293,7 @@ export default function EditTemplateModal({
 
           <form
             onSubmit={handleSubmit}
-            className="p-6 space-y-5 max-h-[75vh] overflow-y-auto"
+            className="max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6"
           >
             {/* Name */}
             <div>
@@ -310,7 +310,7 @@ export default function EditTemplateModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.name
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
 
@@ -334,7 +334,7 @@ export default function EditTemplateModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.category
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               >
                 <option value="MARKETING">Marketing</option>
@@ -364,7 +364,7 @@ export default function EditTemplateModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.messageType
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               >
                 <option value="TEXT">Text</option>
@@ -395,7 +395,7 @@ export default function EditTemplateModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.content
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
 
@@ -419,7 +419,7 @@ export default function EditTemplateModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.status
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               >
                 <option value="DRAFT">Draft</option>
@@ -435,18 +435,18 @@ export default function EditTemplateModal({
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+            <div className="mt-6 flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                className="crm-secondary-button"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold transition"
+                className="crm-primary-button"
               >
                 Update Template
               </button>

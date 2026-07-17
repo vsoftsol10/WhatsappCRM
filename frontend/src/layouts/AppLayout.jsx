@@ -20,12 +20,14 @@
 
 // export default AppLayout;
 
+import { useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import TopHeader from "../components/header/TopHeader";
 
 function AppLayout() {
   const location = useLocation();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const fullWidthPages = [
     "/conversations",
@@ -36,15 +38,20 @@ function AppLayout() {
   const isFullWidthPage = fullWidthPages.includes(location.pathname);
 
   return (
-    <div className="h-screen bg-gray-100">
-      <Sidebar />
+    <div className="h-screen overflow-hidden bg-gray-100">
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
+      />
 
-      <div className="ml-72 flex h-screen flex-col">
-        <TopHeader />
+      <div className="flex h-screen min-w-0 flex-col lg:ml-72">
+        <TopHeader
+          onMenuClick={() => setIsSidebarOpen(true)}
+        />
 
         <main
-          className={`flex-1 overflow-y-auto bg-gray-50 ${
-            isFullWidthPage ? "" : "px-5 py-6"
+          className={`flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 ${
+            isFullWidthPage ? "" : "px-4 py-5 sm:px-5 sm:py-6"
           }`}
         >
           <Outlet />

@@ -5,13 +5,13 @@ function ProfileMenu() {
   const { user } = useAuthStore();
 
   return (
-    <button className="flex items-center gap-3 rounded-xl px-3 py-2 transition hover:bg-gray-100">
-      <div className="flex h-11 w-11 items-center justify-center rounded-full bg-yellow-400">
+    <button className="flex min-w-0 items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-gray-100 sm:px-3">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25D366] sm:h-11 sm:w-11">
         <FaUserCircle size={28} className="text-white" />
       </div>
 
-      <div className="text-left">
-        <p className="text-sm font-semibold text-gray-800">
+      <div className="hidden min-w-0 text-left sm:block">
+        <p className="truncate text-sm font-semibold text-gray-800">
           {user?.name || "User"}
         </p>
 
@@ -20,7 +20,7 @@ function ProfileMenu() {
         </p>
       </div>
 
-      <FaChevronDown size={12} className="text-gray-500" />
+      {/* <FaChevronDown size={12} className="text-gray-500" /> */}
     </button>
   );
 }

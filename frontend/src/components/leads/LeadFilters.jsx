@@ -13,40 +13,34 @@
 //   ];
 
 //   return (
-//     <div className="space-y-4">
-      
-//       <div className="flex justify-end">
+//     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+//       {/* Search */}
+//       <div className="w-full lg:max-w-md">
 //         <input
 //           type="text"
 //           placeholder="Search leads..."
 //           value={searchTerm}
-//           onChange={(e) =>
-//             setSearchTerm(e.target.value)
-//           }
-//           className="border rounded-xl px-4 py-2 w-full md:w-96"
+//           onChange={(e) => setSearchTerm(e.target.value)}
+//           className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#25D366]"
 //         />
 //       </div>
 
-//       <div className="flex flex-wrap gap-3">
+//       {/* Filter Chips */}
+//       <div className="flex flex-wrap gap-3 lg:justify-end">
 //         {statuses.map((status) => (
 //           <button
 //             key={status}
-//             onClick={() =>
-//               setSelectedStatus(status)
-//             }
-//             className={`px-4 py-2 rounded-xl font-medium transition
-//               ${
-//                 selectedStatus === status
-//                   ? "bg-yellow-400 text-black"
-//                   : "bg-white text-gray-600"
-//               }
-//             `}
+//             onClick={() => setSelectedStatus(status)}
+//             className={`px-5 py-2.5 rounded-xl font-medium transition ${
+//               selectedStatus === status
+//                 ? "bg-[#25D366] text-black"
+//                 : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+//             }`}
 //           >
 //             {status}
 //           </button>
 //         ))}
 //       </div>
-
 //     </div>
 //   );
 // }
@@ -63,10 +57,11 @@ export default function LeadFilters({
     "CONTACTED",
     "QUALIFIED",
     "WON",
+    "CONVERTED",
   ];
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       {/* Search */}
       <div className="w-full lg:max-w-md">
         <input
@@ -74,7 +69,7 @@ export default function LeadFilters({
           placeholder="Search leads..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-yellow-400"
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#25D366]"
         />
       </div>
 
@@ -84,13 +79,13 @@ export default function LeadFilters({
           <button
             key={status}
             onClick={() => setSelectedStatus(status)}
-            className={`px-5 py-2.5 rounded-xl font-medium transition ${
+            className={`rounded-xl px-5 py-2.5 font-medium transition ${
               selectedStatus === status
-                ? "bg-yellow-400 text-black"
-                : "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50"
+                ? "bg-[#25D366] text-black"
+                : "border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
             }`}
           >
-            {status}
+            {status === "CONVERTED" ? "Converted" : status}
           </button>
         ))}
       </div>

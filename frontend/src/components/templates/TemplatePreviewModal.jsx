@@ -12,25 +12,25 @@ export default function TemplatePreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 p-3 sm:p-4">
+      <div className="max-h-[92vh] w-full max-w-2xl overflow-hidden rounded-2xl bg-white shadow-xl">
 
         {/* Header */}
-        <div className="flex justify-between items-center border-b p-6">
-          <div className="flex items-center gap-3">
-            <div className="bg-green-100 p-3 rounded-xl">
+        <div className="flex items-center justify-between gap-4 border-b bg-[#25D366] p-5 sm:p-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="rounded-xl bg-white p-3">
               <FileText
-                className="text-green-600"
+                className="text-[#25D366]"
                 size={24}
               />
             </div>
 
-            <div>
-              <h2 className="text-2xl font-bold">
+            <div className="min-w-0">
+              <h2 className="break-words text-xl font-bold sm:text-2xl">
                 {template.name}
               </h2>
 
-              <p className="text-gray-500">
+              <p className="text-sm text-gray-800">
                 Template Preview
               </p>
             </div>
@@ -38,16 +38,16 @@ export default function TemplatePreviewModal({
 
           <button
             onClick={onClose}
-            className="hover:bg-gray-100 p-2 rounded-lg"
+            className="rounded-lg p-2 hover:bg-[#128C7E]"
           >
             <X size={22} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6">
+        <div className="max-h-[65vh] space-y-6 overflow-y-auto p-5 sm:p-6">
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 
             <div>
               <p className="text-sm text-gray-500">
@@ -104,7 +104,7 @@ export default function TemplatePreviewModal({
               Template Content
             </p>
 
-            <div className="bg-green-50 rounded-xl p-5 whitespace-pre-wrap text-gray-700 min-h-[180px]">
+            <div className="min-h-[180px] whitespace-pre-wrap break-words rounded-xl bg-[#DCF8C6] p-5 text-gray-700">
               {template.content}
             </div>
           </div>
@@ -118,10 +118,10 @@ export default function TemplatePreviewModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t p-5 flex justify-end">
+        <div className="flex justify-end border-t p-5">
           <button
             onClick={onClose}
-            className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700"
+            className="crm-primary-button"
           >
             Close
           </button>

@@ -28,7 +28,7 @@ export default function PerformanceOverview({ stats }) {
       value: stats?.tasks?.completed ?? 0,
       // subtitle: "Finished Today",
       icon: ClipboardCheck,
-      color: "text-green-600",
+      color: "text-[#128C7E]",
       bg: "bg-green-100",
     },
     {

@@ -126,7 +126,7 @@ export default function DealsPage() {
 
  if (isFetchingDeals) {
   return (
-    <div className="p-6 ml-8.5 bg-gray-50 min-h-screen flex items-center justify-center">
+    <div className="crm-page flex items-center justify-center">
       <div className="text-center">
         <div className="w-12 h-12 border-4 border-gray-300 border-t-blue-600 rounded-full animate-spin mx-auto"></div>
 
@@ -139,7 +139,7 @@ export default function DealsPage() {
 }
 
   return (
-    <div className="min-h-screen ml-8.5 bg-gray-50 p-6 ml-8">
+    <div className="crm-page">
       <DealsHeader
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -153,7 +153,7 @@ export default function DealsPage() {
       {view === "list" ? (
         isLoading ? (
           <div className="py-16 text-center">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-yellow-500 rounded-full animate-spin mx-auto"></div>
+            <div className="w-10 h-10 border-4 border-gray-300 border-t-[#25D366] rounded-full animate-spin mx-auto"></div>
 
             <p className="mt-4 text-gray-600 font-medium">
               Updating Deals...
@@ -174,7 +174,7 @@ export default function DealsPage() {
       ) : (
         isLoading ? (
           <div className="py-16 text-center">
-            <div className="w-10 h-10 border-4 border-gray-300 border-t-yellow-500 rounded-full animate-spin mx-auto"></div>
+            <div className="w-10 h-10 border-4 border-gray-300 border-t-[#25D366] rounded-full animate-spin mx-auto"></div>
 
             <p className="mt-4 text-gray-600 font-medium">
               Updating Deals...

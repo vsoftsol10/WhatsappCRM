@@ -197,9 +197,9 @@ export default function TaskFilters({
               text-sm
               outline-none
               transition
-              focus:border-yellow-400
+              focus:border-[#25D366]
               focus:ring-2
-              focus:ring-yellow-100
+              focus:ring-[#DCF8C6]
             "
           />
 
@@ -230,9 +230,9 @@ export default function TaskFilters({
               text-sm
               outline-none
               transition
-              focus:border-yellow-400
+              focus:border-[#25D366]
               focus:ring-2
-              focus:ring-yellow-100
+              focus:ring-[#DCF8C6]
             "
           >
             <option value="ALL">
@@ -267,13 +267,13 @@ export default function TaskFilters({
             justify-center
             gap-2
             rounded-xl
-            bg-yellow-400
+            bg-[#25D366]
             px-5
             py-3
             font-medium
             text-black
             transition
-            hover:bg-yellow-500
+            hover:bg-[#128C7E]
           "
         >
           <Plus size={18} />

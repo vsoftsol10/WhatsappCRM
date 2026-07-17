@@ -1,14 +1,19 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   MoreVertical,
   Pencil,
   Trash2,
+  PhoneCall,
+  BadgeCheck,
+  Trophy,
+  UserPlus,
+  CheckCircle2,
 } from "lucide-react";
 
 function statusBadge(status) {
   switch ((status || "").toUpperCase()) {
     case "NEW":
-      return "bg-yellow-100 text-yellow-800";
+      return "bg-[#DCF8C6] text-[#128C7E]";
 
     case "CONTACTED":
       return "bg-blue-100 text-blue-700";
@@ -58,71 +63,97 @@ export default function LeadTable({
 }) {
   const [openMenu, setOpenMenu] = useState(null);
 
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        menuRef.current &&
+        !menuRef.current.contains(event.target)
+      ) {
+        setOpenMenu(null);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
   if (!leads || leads.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
+      <div className="crm-page-surface p-8 text-center text-gray-500 sm:p-10">
         No leads found
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200">
-      <table className="min-w-full">
-        <thead className="bg-yellow-400 text-black">
+    <div className="crm-table-shell overflow-visible">
+      <div className="crm-table-scroll">
+      <table className="w-full min-w-[820px]">
+        <thead className="bg-[#25D366] text-black">
           <tr>
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase">
+            <th className="crm-th min-w-[220px]">
               Lead
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase">
+            <th className="crm-th">
               Phone
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase">
+            <th className="crm-th">
               Source
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase">
+            <th className="crm-th">
               Status
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase">
+            <th className="crm-th">
               Created
             </th>
 
-            <th className="px-5 py-4 text-center text-sm font-bold uppercase">
+            <th className="crm-th text-center">
               Actions
             </th>
           </tr>
         </thead>
 
         <tbody>
-          {leads.map((lead) => (
+          {leads.map((lead, index) => {
+          const isLastRows = index >= leads.length - 3;
+
+          return (
             <tr
               key={lead.id}
-              className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+              className="border-b border-gray-100 last:border-b-0 hover:bg-[#DCF8C6] transition"
             >
               {/* Lead */}
-              <td className="px-5 py-4">
-                <div className="font-semibold text-slate-800">
+              <td className="crm-td">
+                <div className="break-words font-semibold text-slate-800">
                   {lead.name}
                 </div>
 
-                <div className="text-xs text-gray-500">
+                <div className="break-all text-xs text-gray-500">
                   {lead.email || "-"}
                 </div>
               </td>
 
               {/* Phone */}
-              <td className="px-5 py-4 text-sm text-slate-700">
+              <td className="crm-td">
                 {lead.phone || "-"}
               </td>
 
               {/* Source */}
-              <td className="px-5 py-4">
+              <td className="crm-td">
                 <span
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${sourceBadge(
+                  className={`crm-badge ${sourceBadge(
                     lead.source
                   )}`}
                 >
@@ -131,13 +162,18 @@ export default function LeadTable({
               </td>
 
               {/* Status */}
-              <td className="px-5 py-4">
+              <td className="crm-td">
                 <select
                   value={lead.status}
+                  disabled={lead.isConverted}
                   onChange={(e) =>
                     onStatusChange(lead.id, e.target.value)
                   }
-                  className="rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-yellow-400 focus:ring-2 focus:ring-yellow-200 outline-none"
+                  className={`w-full max-w-[150px] rounded-lg border px-3 py-2 text-sm outline-none focus:border-[#25D366] focus:ring-2 focus:ring-[#DCF8C6] ${
+                    lead.isConverted
+                      ? "cursor-not-allowed bg-gray-100 text-gray-500"
+                      : "border-gray-300"
+                  }`}
                 >
                   <option value="NEW">NEW</option>
                   <option value="CONTACTED">CONTACTED</option>
@@ -147,7 +183,7 @@ export default function LeadTable({
               </td>
 
               {/* Date */}
-              <td className="px-5 py-4 text-sm text-slate-600">
+              <td className="crm-td whitespace-nowrap text-slate-600">
                 {lead.createdAt
                   ? new Date(
                       lead.createdAt
@@ -156,8 +192,8 @@ export default function LeadTable({
               </td>
 
               {/* Actions */}
-              <td className="px-5 py-4">
-                <div className="relative flex justify-center">
+              <td className="crm-td">
+                <div ref={menuRef} className="relative flex justify-center">
                   <button
                     onClick={() =>
                       setOpenMenu(
@@ -172,44 +208,104 @@ export default function LeadTable({
                   </button>
 
                   {openMenu === lead.id && (
-                    <div className="absolute right-0 top-10 z-50 w-40 rounded-xl border border-gray-200 bg-white shadow-lg">
-                      <button
-                        onClick={() => onEdit(lead)}
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
-                      >
-                        <Pencil size={16} />
-                        Edit
-                      </button>
+  <div
+    className={`absolute right-0 z-50 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ${
+      isLastRows ? "bottom-10" : "top-10"
+    }`}
+  >
+    <button
+      onClick={() => {
+        onEdit(lead);
+        setOpenMenu(null);
+      }}
+      className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+    >
+      <Pencil size={16} />
+      Edit Lead
+    </button>
 
-                      {lead.status === "WON" && !lead.isConverted && (
-                        <button
-                          onClick={() => {
-                            onConvert(lead.id);
-                            setOpenMenu(null);
-                          }}
-                          className="flex w-full items-center gap-3 px-4 py-3 text-sm text-green-600 hover:bg-green-50"
-                        >
-                          Convert to Customer
-                        </button>
-                      )}
+    <button
+      onClick={() => {
+        onDelete(lead.id);
+        setOpenMenu(null);
+      }}
+      className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+    >
+      <Trash2 size={16} />
+      Delete Lead
+    </button>
 
-                      <button
-                        onClick={() =>
-                          onDelete(lead.id)
-                        }
-                        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 hover:bg-red-50"
-                      >
-                        <Trash2 size={16} />
-                        Delete
-                      </button>
-                    </div>
-                  )}
+    <div className="border-t" />
+
+    {!lead.isConverted && lead.status === "NEW" && (
+      <button
+        onClick={() => {
+          onStatusChange(lead.id, "CONTACTED");
+          setOpenMenu(null);
+        }}
+        className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+      >
+        <PhoneCall size={16} />
+        Mark Contacted
+      </button>
+    )}
+
+    {!lead.isConverted && lead.status === "CONTACTED" && (
+      <button
+        onClick={() => {
+          onStatusChange(lead.id, "QUALIFIED");
+          setOpenMenu(null);
+        }}
+        className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+      >
+        <BadgeCheck size={16} />
+        Mark Qualified
+      </button>
+    )}
+
+    {!lead.isConverted && lead.status === "QUALIFIED" && (
+      <button
+        onClick={() => {
+          onStatusChange(lead.id, "WON");
+          setOpenMenu(null);
+        }}
+        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#128C7E] hover:bg-[#DCF8C6]"
+      >
+        <Trophy size={16} />
+        Mark Won
+      </button>
+    )}
+
+    {lead.status === "WON" && !lead.isConverted && (
+      <button
+        onClick={() => {
+          console.log("Table Convert", lead.id);
+          onConvert(lead.id);
+          setOpenMenu(null);
+        }}
+        className="flex w-full items-center gap-3 px-4 py-3 text-sm text-[#128C7E] hover:bg-[#DCF8C6]"
+      >
+        <UserPlus size={16} />
+        Convert to Customer
+      </button>
+    )}
+
+    {lead.isConverted && (
+      <div className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-[#128C7E]">
+        <CheckCircle2 size={16} />
+        Converted
+      </div>
+    )}
+  </div>
+)}
                 </div>
               </td>
             </tr>
-          ))}
+          );
+          })}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

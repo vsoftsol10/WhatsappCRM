@@ -186,7 +186,7 @@
 //               onClick={() => setViewMode("grid")}
 //               className={`px-4 py-3 flex items-center gap-2 transition ${
 //                 viewMode === "grid"
-//                   ? "bg-yellow-400 font-semibold text-black"
+//                   ? "bg-[#25D366] font-semibold text-black"
 //                   : "hover:bg-gray-100 text-gray-600"
 //               }`}
 //             >
@@ -198,7 +198,7 @@
 //               onClick={() => setViewMode("list")}
 //               className={`px-4 py-3 flex items-center gap-2 transition ${
 //                 viewMode === "list"
-//                   ? "bg-yellow-400 font-semibold text-black"
+//                   ? "bg-[#25D366] font-semibold text-black"
 //                   : "hover:bg-gray-100 text-gray-600"
 //               }`}
 //             >
@@ -210,7 +210,7 @@
 
 //           <button
 //             onClick={() => navigate("/employees/add")}
-//             className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-3 rounded-xl shadow transition"
+//             className="flex items-center gap-2 bg-[#25D366] hover:bg-[#128C7E] text-black font-semibold px-5 py-3 rounded-xl shadow transition"
 //           >
 //             <FiUserPlus />
 //             Add Employee
@@ -233,7 +233,7 @@
 //           onChange={(e) =>
 //             setSearchTerm(e.target.value)
 //           }
-//           className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+//           className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-[#25D366]"
 //         />
 
 //       </div>
@@ -267,7 +267,7 @@
 //               className="bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
 //             >
 //               {/* Header */}
-//               <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 p-6 flex justify-between items-start">
+//               <div className="bg-gradient-to-r from-[#25D366] to-[#128C7E] p-6 flex justify-between items-start">
 //                 <div className="flex items-center gap-4">
 //                   <div className="w-16 h-16 rounded-full bg-black text-white flex items-center justify-center text-2xl font-bold">
 //                     {emp.name?.charAt(0).toUpperCase()}
@@ -313,7 +313,7 @@
 //                         }}
 //                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 transition"
 //                       >
-//                         <FiEdit2 className="text-yellow-500" />
+//                         <FiEdit2 className="text-[#25D366]" />
 //                         Edit
 //                       </button>
 
@@ -335,7 +335,7 @@
 //               {/* Body */}
 //               <div className="p-6 space-y-4">
 //                 <div className="flex items-center gap-3 text-gray-700">
-//                   <FiMail className="text-yellow-500" />
+//                   <FiMail className="text-[#25D366]" />
 
 //                   <span className="text-sm break-all">
 //                     {emp.email}
@@ -361,7 +361,7 @@
 //                     className={`px-3 py-1 rounded-full text-xs font-semibold ${
 //                       emp.role === "ADMIN"
 //                         ? "bg-red-100 text-red-600"
-//                         : "bg-green-100 text-green-600"
+//                         : "bg-green-100 text-[#128C7E]"
 //                     }`}
 //                   >
 //                     {emp.role}
@@ -544,25 +544,25 @@ const handleDelete = async (id) => {
 };
 
     return (
-    <div className="p-6 space-y-6">
+    <div className="crm-page space-y-6">
 
       {/* ================= HEADER ================= */}
 
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 
-        <div>
-          <h1 className="text-4xl font-bold">
+        <div className="min-w-0">
+          <h1 className="crm-title">
             Manage Employees
           </h1>
 
-          <p className="text-gray-500">
+          <p className="crm-subtitle">
             Manage your employees, roles and department information.
           </p>
         </div>
 
         <button
           onClick={() => navigate("/employees/add")}
-          className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-5 py-3 rounded-xl shadow transition"
+          className="crm-primary-button w-full sm:w-auto"
         >
           <FiUserPlus />
           Add Employee
@@ -592,7 +592,7 @@ const handleDelete = async (id) => {
             placeholder="Search employee by name or email..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+            className="crm-input pl-11"
           />
         </div>
 
@@ -606,13 +606,13 @@ const handleDelete = async (id) => {
       {/* ================= CONTENT ================= */}
 
           {loading ? (
-  <div className="bg-white rounded-2xl p-16 text-center shadow-sm">
+  <div className="crm-page-surface p-8 text-center sm:p-16">
     <p className="text-gray-500 text-lg">
       Loading employees...
     </p>
   </div>
 ) : filteredEmployees.length === 0 ? (
-  <div className="bg-white rounded-2xl p-16 text-center shadow-sm">
+  <div className="crm-page-surface p-8 text-center sm:p-16">
     <h3 className="text-xl font-semibold text-gray-700">
       No Employees Found
     </h3>

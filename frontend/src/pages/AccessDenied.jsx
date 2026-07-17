@@ -6,7 +6,7 @@ const AccessDenied = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen ml-8.5 w-full flex flex-col items-center justify-center bg-[#0B141A] text-slate-100 p-6 font-sans relative overflow-hidden">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#0B141A] text-slate-100 p-6 font-sans relative overflow-hidden">
       {/* Decorative Glow Elements */}
       <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full bg-red-900/10 blur-[120px] pointer-events-none" />
       <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-orange-950/10 blur-[120px] pointer-events-none" />

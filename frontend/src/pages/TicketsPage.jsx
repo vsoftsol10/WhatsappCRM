@@ -28,6 +28,7 @@ function TicketsPage() {
     addTicket,
     editTicket,
     removeTicket,
+    changeTicketStatus,
   } = useTicketStore();
 
   // ===========================
@@ -200,6 +201,21 @@ function TicketsPage() {
     }
   };
 
+  const handleStatusChange = async (id, status) => {
+  try {
+    await changeTicketStatus(id, status);
+
+    toast.success("Ticket status updated");
+  } catch (error) {
+    console.error(error);
+
+    toast.error(
+      error?.response?.data?.message ||
+      "Failed to update ticket status"
+    );
+  }
+};
+
   // ===========================
   // FILTER TICKETS
   // ===========================
@@ -266,7 +282,7 @@ const paginatedTickets =
   // ===========================
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div className="crm-page bg-slate-100">
       <TicketHeader
         setShowForm={setShowForm}
         setIsEditing={setIsEditing}
@@ -295,6 +311,7 @@ const paginatedTickets =
         setOpenMenu={setOpenMenu}
         handleEdit={handleEditTicket}
         handleDelete={handleDeleteTicket}
+        onStatusChange={handleStatusChange}
       />
 
       {filteredTickets.length > 0 && (

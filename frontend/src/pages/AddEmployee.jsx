@@ -47,7 +47,7 @@
 //       <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
 
 //         {/* Header */}
-//         <div className="bg-yellow-400 px-8 py-6 flex items-center gap-4">
+//         <div className="bg-[#25D366] px-8 py-6 flex items-center gap-4">
 
 //           <button
 //             type="button"
@@ -77,7 +77,7 @@
 //           {/* Personal Information */}
 //           <div>
 
-//             <h2 className="text-xl font-bold text-black border-b-2 border-yellow-400 pb-2 mb-5">
+//             <h2 className="text-xl font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
 //               Personal Information
 //             </h2>
 
@@ -89,7 +89,7 @@
 //                 value={formData.name}
 //                 onChange={handleChange}
 //                 placeholder="Full Name"
-//                 className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none"
+//                 className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none"
 //               />
 
 //               <input
@@ -98,7 +98,7 @@
 //                 value={formData.email}
 //                 onChange={handleChange}
 //                 placeholder="Email Address"
-//                 className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none"
+//                 className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none"
 //               />
 
 //               <input
@@ -107,7 +107,7 @@
 //                 value={formData.phone}
 //                 onChange={handleChange}
 //                 placeholder="Phone Number"
-//                 className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none"
+//                 className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none"
 //               />
 
 //             </div>
@@ -117,7 +117,7 @@
 //           {/* Work Information */}
 //           <div>
 
-//             <h2 className="text-xl font-bold text-black border-b-2 border-yellow-400 pb-2 mb-5">
+//             <h2 className="text-xl font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
 //               Work Information
 //             </h2>
 
@@ -129,14 +129,14 @@
 //                 value={formData.department}
 //                 onChange={handleChange}
 //                 placeholder="Department"
-//                 className="border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none"
+//                 className="border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none"
 //               />
 
 //               <select
 //                 name="designation"
 //                 value={formData.designation}
 //                 onChange={handleChange}
-//                 className="border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none"
+//                 className="border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none"
 //               >
 //                 <option value="">Select Designation</option>
 //                 <option value="Sales Agent">Sales Agent</option>
@@ -147,7 +147,7 @@
 //                 name="role"
 //                 value={formData.role}
 //                 onChange={handleChange}
-//                 className="md:col-span-2 border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none"
+//                 className="md:col-span-2 border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none"
 //               >
 //                 <option value="USER">USER</option>
 //                 <option value="ADMIN">ADMIN</option>
@@ -160,7 +160,7 @@
 //                     {/* Additional Information */}
 //           <div>
 
-//             <h2 className="text-xl font-bold text-black border-b-2 border-yellow-400 pb-2 mb-5">
+//             <h2 className="text-xl font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
 //               Address
 //             </h2>
 
@@ -170,7 +170,7 @@
 //               onChange={handleChange}
 //               rows="4"
 //               placeholder="Address"
-//               className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-yellow-400 outline-none resize-none"
+//               className="w-full border-2 border-gray-300 rounded-xl px-4 py-3 focus:border-[#25D366] outline-none resize-none"
 //             />
 
 //           </div>
@@ -188,7 +188,7 @@
 
 //             <button
 //               type="submit"
-//               className="px-6 py-3 rounded-xl bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition"
+//               className="px-6 py-3 rounded-xl bg-[#25D366] text-black font-semibold hover:bg-[#128C7E] transition"
 //             >
 //               Create Employee
 //             </button>
@@ -208,7 +208,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiArrowLeft } from "react-icons/fi";
-import useEmployeeStore from "../store/employeeStore";
 import { createEmployee } from "../api/employeeApi";
 import toast from "react-hot-toast";
 
@@ -345,11 +344,11 @@ function AddEmployee() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 ml-8 p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="crm-page bg-gray-100">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
         {/* Header */}
-        <div className="bg-yellow-400 px-8 py-6 flex items-center gap-4">
+        <div className="flex flex-col gap-4 bg-[#25D366] px-5 py-5 sm:flex-row sm:items-center sm:px-8 sm:py-6">
 
           <button
             type="button"
@@ -359,12 +358,12 @@ function AddEmployee() {
             <FiArrowLeft size={20} />
           </button>
 
-          <div>
-            <h1 className="text-3xl font-bold text-black">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-black sm:text-3xl">
               Add Employee
             </h1>
 
-            <p className="text-gray-800 mt-1">
+            <p className="mt-1 break-words text-gray-800">
               Create a new employee account
             </p>
           </div>
@@ -372,14 +371,14 @@ function AddEmployee() {
         </div>
 
         <form
-          className="p-8 space-y-8"
+          className="space-y-8 p-5 sm:p-8"
           onSubmit={handleSubmit}
         >
 
           {/* Personal Information */}
           <div>
 
-            <h2 className="text-xl font-bold text-black border-b-2 border-yellow-400 pb-2 mb-5">
+            <h2 className="text-xl font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
               Personal Information
             </h2>
 
@@ -396,7 +395,7 @@ function AddEmployee() {
                   className={`w-full border-2 rounded-xl px-4 py-3 outline-none transition ${
                     errors.name
                       ? "border-red-500"
-                      : "border-gray-300 focus:border-yellow-400"
+                      : "border-gray-300 focus:border-[#25D366]"
                   }`}
                 />
 
@@ -418,7 +417,7 @@ function AddEmployee() {
                   className={`w-full border-2 rounded-xl px-4 py-3 outline-none transition ${
                     errors.email
                       ? "border-red-500"
-                      : "border-gray-300 focus:border-yellow-400"
+                      : "border-gray-300 focus:border-[#25D366]"
                   }`}
                 />
 
@@ -440,7 +439,7 @@ function AddEmployee() {
                   className={`w-full border-2 rounded-xl px-4 py-3 outline-none transition ${
                     errors.phone
                       ? "border-red-500"
-                      : "border-gray-300 focus:border-yellow-400"
+                      : "border-gray-300 focus:border-[#25D366]"
                   }`}
                 />
 
@@ -459,11 +458,11 @@ function AddEmployee() {
 
                     <div>
 
-            <h2 className="text-xl font-bold text-black border-b-2 border-yellow-400 pb-2 mb-5">
+            <h2 className="text-xl font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
               Work Information
             </h2>
 
-            <div className="grid md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
 
               {/* Department */}
               <div>
@@ -476,7 +475,7 @@ function AddEmployee() {
                   className={`w-full border-2 rounded-xl px-4 py-3 outline-none transition ${
                     errors.department
                       ? "border-red-500"
-                      : "border-gray-300 focus:border-yellow-400"
+                      : "border-gray-300 focus:border-[#25D366]"
                   }`}
                 />
 
@@ -496,7 +495,7 @@ function AddEmployee() {
                 className={`w-full border-2 rounded-xl px-4 py-3 outline-none transition ${
                   errors.designation
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               >
                 <option value="">Select Designation</option>
@@ -527,7 +526,7 @@ function AddEmployee() {
                   className={`w-full border-2 rounded-xl px-4 py-3 outline-none transition ${
                     errors.role
                       ? "border-red-500"
-                      : "border-gray-300 focus:border-yellow-400"
+                      : "border-gray-300 focus:border-[#25D366]"
                   }`}
                 >
                   <option value="USER">
@@ -553,7 +552,7 @@ function AddEmployee() {
           {/* Address */}
           <div>
 
-            <h2 className="text-xl font-bold text-black border-b-2 border-yellow-400 pb-2 mb-5">
+            <h2 className="text-xl font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
               Address
             </h2>
 
@@ -567,7 +566,7 @@ function AddEmployee() {
                 className={`w-full resize-none border-2 rounded-xl px-4 py-3 outline-none transition ${
                   errors.address
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
 
@@ -581,21 +580,21 @@ function AddEmployee() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:gap-4">
 
             <button
               type="button"
               onClick={() =>
                 navigate("/employees")
               }
-              className="px-6 py-3 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition"
+              className="crm-secondary-button"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition"
+              className="crm-primary-button"
             >
               Create Employee
             </button>

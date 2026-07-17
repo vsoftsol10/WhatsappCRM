@@ -42,7 +42,7 @@
 //   return (
 //     <form className="min-h-screen ml-8.5 bg-black text-white p-8" onSubmit={handleSubmit}>
 //       <div className="max-w-3xl mx-auto">
-//         <h1 className="text-4xl font-bold text-yellow-400 mb-2">
+//         <h1 className="text-4xl font-bold text-[#25D366] mb-2">
 //           Add Customer
 //         </h1>
 
@@ -64,7 +64,7 @@
 //                 value={formData.name}
 //                 onChange={handleChange}
 //                 placeholder="Enter customer name"
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -80,7 +80,7 @@
 //                 value={formData.phone}
 //                 onChange={handleChange}
 //                 placeholder="Enter phone number"
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -96,7 +96,7 @@
 //                 value={formData.email}
 //                 onChange={handleChange}
 //                 placeholder="Enter email"
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -112,7 +112,7 @@
 //                 value={formData.company}
 //                 onChange={handleChange}
 //                 placeholder="Enter company name"
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               />
 //             </div>
 
@@ -126,7 +126,7 @@
 //                 name="status"
 //                 value={formData.status}
 //                 onChange={handleChange}
-//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+//                 className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
 //               >
 //                 <option value="ACTIVE">ACTIVE</option>
 //                 <option value="INACTIVE">INACTIVE</option>
@@ -136,7 +136,7 @@
 //             {/* Button */}
 //            <button
 //               type="submit"
-//               className="w-full bg-yellow-400 text-black py-3 rounded-lg font-bold hover:bg-yellow-300 transition"
+//               className="w-full bg-[#25D366] text-black py-3 rounded-lg font-bold hover:bg-[#128C7E] transition"
 //             >
 //               Create Customer
 //             </button>
@@ -243,12 +243,12 @@ function AddCustomer() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 ml-8 p-8">
+    <div className="crm-page bg-gray-100">
 
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="mx-auto max-w-4xl overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
 
         {/* Header */}
-        <div className="bg-yellow-400 px-8 py-6 flex items-center gap-4">
+        <div className="flex flex-col gap-4 bg-[#25D366] px-5 py-5 sm:flex-row sm:items-center sm:px-8 sm:py-6">
 
           <button
             type="button"
@@ -258,12 +258,12 @@ function AddCustomer() {
             <FiArrowLeft size={20} />
           </button>
 
-          <div>
-            <h1 className="text-3xl font-bold text-black">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold text-black sm:text-3xl">
               Add Customer
             </h1>
 
-            <p className="text-gray-800 mt-1">
+            <p className="mt-1 break-words text-gray-800">
               Create a new customer record
             </p>
           </div>
@@ -272,7 +272,7 @@ function AddCustomer() {
 
         <form
           onSubmit={handleSubmit}
-          className="p-8 space-y-6"
+          className="space-y-6 p-5 sm:p-8"
         >
 
           {/* Customer Name */}
@@ -290,7 +290,7 @@ function AddCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.name
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -316,7 +316,7 @@ function AddCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.phone
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -342,7 +342,7 @@ function AddCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.email
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -368,7 +368,7 @@ function AddCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.company
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             />
 
@@ -391,7 +391,7 @@ function AddCustomer() {
               value={formData.source}
               onChange={handleChange}
               placeholder="Enter source (e.g. WhatsApp, Instagram)"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366]"
             />
           </div>
 
@@ -407,7 +407,7 @@ function AddCustomer() {
               onChange={handleChange}
               rows={4}
               placeholder="Enter customer requirements"
-              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-yellow-400 resize-none"
+              className="w-full border border-gray-300 rounded-lg px-4 py-3 outline-none focus:border-[#25D366] resize-none"
             />
           </div>
 
@@ -424,7 +424,7 @@ function AddCustomer() {
               className={`w-full border rounded-lg px-4 py-3 outline-none ${
                 errors.status
                   ? "border-red-500"
-                  : "border-gray-300 focus:border-yellow-400"
+                  : "border-gray-300 focus:border-[#25D366]"
               }`}
             >
               <option value="ACTIVE">ACTIVE</option>
@@ -439,19 +439,19 @@ function AddCustomer() {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex justify-end gap-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col-reverse gap-3 border-t border-gray-200 pt-4 sm:flex-row sm:justify-end sm:gap-4">
 
             <button
               type="button"
               onClick={() => navigate("/customers")}
-              className="px-6 py-3 rounded-xl border border-gray-300 bg-white text-gray-700 font-semibold hover:bg-gray-100 transition"
+              className="crm-secondary-button"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-yellow-400 text-black font-semibold hover:bg-yellow-500 transition"
+              className="crm-primary-button"
             >
               Create Customer
             </button>

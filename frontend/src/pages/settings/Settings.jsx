@@ -1,87 +1,3 @@
-// import { Link } from "react-router-dom";
-// import { useAuthStore } from "../../store/authStore";
-
-// function Settings() {
-//   const { user } = useAuthStore();
-
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-8 space-y-8">
-//       {/* Page Header */}
-//       <div>
-//         <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-//         <p className="mt-2 text-gray-500">
-//           Manage your account settings and security.
-//         </p>
-//       </div>
-
-//       {/* Profile Information */}
-//       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
-//         <div className="flex items-center justify-between mb-6">
-//           <h2 className="text-xl font-semibold text-gray-900">
-//             Profile Information
-//           </h2>
-
-//           <div className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center text-lg font-bold text-black">
-//             {user?.name?.charAt(0).toUpperCase() || "U"}
-//           </div>
-//         </div>
-
-//         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-//           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-//             <p className="text-sm text-gray-500">Name</p>
-//             <p className="mt-1 font-semibold text-gray-900">
-//               {user?.name || "-"}
-//             </p>
-//           </div>
-
-//           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-//             <p className="text-sm text-gray-500">Email</p>
-//             <p className="mt-1 font-semibold text-gray-900 break-all">
-//               {user?.email || "-"}
-//             </p>
-//           </div>
-
-//           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-//             <p className="text-sm text-gray-500">Department</p>
-//             <p className="mt-1 font-semibold text-gray-900">
-//               {user?.department || "-"}
-//             </p>
-//           </div>
-
-//           <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-//             <p className="text-sm text-gray-500">Role</p>
-//             <p className="mt-1 font-semibold text-gray-900">
-//               {user?.role || "-"}
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Security */}
-//       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-//         <div>
-//           <h2 className="text-xl font-semibold text-gray-900">
-//             Security
-//           </h2>
-
-//           <p className="mt-1 text-sm text-gray-500">
-//             Update your account password to keep your account secure.
-//           </p>
-//         </div>
-
-//         <Link
-//           to="/change-password"
-//           className="inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-6 py-3 rounded-xl transition"
-//         >
-//           Change Password
-//         </Link>
-//       </div>
-//     </div>
-//   );
-// }
-
-// export default Settings;
-
 import { Link } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import {
@@ -89,196 +5,287 @@ import {
   Mail,
   Building2,
   ShieldCheck,
+  Shield,
   Lock,
+  ChevronRight,
 } from "lucide-react";
 
 function Settings() {
   const { user } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-slate-100 p-6">
+    <div className="crm-page bg-slate-50">
 
       {/* ================= HEADER ================= */}
 
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-slate-900">
+        <h1 className="crm-title text-slate-900">
           Settings
         </h1>
 
-        <p className="mt-2 text-gray-500">
+        <p className="mt-2 text-slate-500">
           Manage your profile information and account security.
         </p>
       </div>
 
-      {/* ================= PROFILE CARD ================= */}
+      {/* ================= MAIN GRID ================= */}
 
-      <div className="rounded-3xl bg-white border border-gray-200 shadow-sm overflow-hidden">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
 
-        {/* Yellow Header */}
+        {/* ================= LEFT PROFILE CARD ================= */}
 
-        <div className="bg-yellow-400 px-8 py-8 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="xl:col-span-1">
 
-          <div className="flex items-center gap-5">
+          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
 
-            <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center text-black text-3xl font-bold shadow">
-              {user?.name?.charAt(0).toUpperCase() || "U"}
+            {/* Banner */}
+
+            <div className="h-28 bg-gradient-to-r from-[#25D366] via-[#25D366] to-[#128C7E]"></div>
+
+            <div className="relative px-6 pb-6">
+
+              {/* Avatar */}
+
+              <div className="-mt-12 flex justify-center">
+
+                <div className="flex h-24 w-24 items-center justify-center rounded-3xl border-4 border-white bg-[#25D366] text-4xl font-bold text-black shadow-lg">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+
+              </div>
+
+              {/* User */}
+
+              <div className="mt-5 text-center">
+
+                <h2 className="text-2xl font-bold text-slate-900">
+                  {user?.name || "User"}
+                </h2>
+
+                <p className="mt-1 break-all text-sm text-slate-500">
+                  {user?.email || "-"}
+                </p>
+
+              </div>
+
+              {/* Info */}
+
+              <div className="mt-8 space-y-4">
+
+                {/* Department */}
+
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+
+                  <div className="flex items-center gap-3">
+
+                    <div className="rounded-xl bg-[#DCF8C6] p-2">
+
+                      <Building2
+                        size={18}
+                        className="text-[#25D366]"
+                      />
+
+                    </div>
+
+                    <span className="text-sm text-slate-500">
+                      Department
+                    </span>
+
+                  </div>
+
+                  <span className="font-semibold text-slate-800">
+                    {user?.department || "-"}
+                  </span>
+
+                </div>
+
+                {/* Role */}
+
+                <div className="flex items-center justify-between rounded-2xl bg-slate-50 p-4">
+
+                  <div className="flex items-center gap-3">
+
+                    <div className="rounded-xl bg-green-100 p-2">
+
+                      <Shield
+                        size={18}
+                        className="text-[#128C7E]"
+                      />
+
+                    </div>
+
+                    <span className="text-sm text-slate-500">
+                      Role
+                    </span>
+
+                  </div>
+
+                  <span className="rounded-full bg-[#DCF8C6] px-3 py-1 text-xs font-semibold text-[#128C7E]">
+                    {user?.role || "-"}
+                  </span>
+
+                </div>
+
+              </div>
+
             </div>
 
-            <div>
-
-              <h2 className="text-2xl font-bold text-black">
-                {user?.name || "User"}
-              </h2>
-
-              <p className="text-gray-800">
-                {user?.email}
-              </p>
-
-            </div>
-
-          </div>
-
-          <div className="bg-white rounded-xl px-5 py-3 shadow">
-            <p className="text-xs text-gray-500">
-              Role
-            </p>
-
-            <p className="font-bold text-black">
-              {user?.role || "-"}
-            </p>
           </div>
 
         </div>
 
-        {/* Details */}
+        {/* ================= RIGHT CONTENT ================= */}
 
-        <div className="p-8">
+        <div className="space-y-6 xl:col-span-2">
+                    {/* ================= PROFILE INFORMATION ================= */}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
 
-            {/* Name */}
+            <div className="mb-8 flex items-center justify-between">
 
-            <div className="rounded-2xl border border-gray-200 p-5 hover:border-yellow-400 transition">
+              <div>
 
-              <div className="flex items-center gap-3 mb-2">
-                <User
-                  className="text-yellow-500"
-                  size={20}
-                />
+                <h2 className="text-xl font-bold text-slate-900">
+                  Profile Information
+                </h2>
 
-                <span className="text-sm text-gray-500">
+                <p className="mt-1 text-sm text-slate-500">
+                  Your personal account information.
+                </p>
+
+              </div>
+
+            </div>
+
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+
+              {/* Full Name */}
+
+              <div>
+
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600">
+
+                  <User size={16} />
+
                   Full Name
-                </span>
+
+                </label>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
+                  {user?.name || "-"}
+                </div>
+
               </div>
 
-              <p className="text-lg font-semibold text-slate-800">
-                {user?.name || "-"}
-              </p>
+              {/* Email */}
 
-            </div>
+              <div>
 
-            {/* Email */}
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600">
 
-            <div className="rounded-2xl border border-gray-200 p-5 hover:border-yellow-400 transition">
+                  <Mail size={16} />
 
-              <div className="flex items-center gap-3 mb-2">
-                <Mail
-                  className="text-yellow-500"
-                  size={20}
-                />
-
-                <span className="text-sm text-gray-500">
                   Email Address
-                </span>
+
+                </label>
+
+                <div className="break-all rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
+                  {user?.email || "-"}
+                </div>
+
               </div>
 
-              <p className="text-lg font-semibold text-slate-800 break-all">
-                {user?.email || "-"}
-              </p>
+              {/* Department */}
 
-            </div>
+              <div>
 
-            {/* Department */}
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600">
 
-            <div className="rounded-2xl border border-gray-200 p-5 hover:border-yellow-400 transition">
+                  <Building2 size={16} />
 
-              <div className="flex items-center gap-3 mb-2">
-                <Building2
-                  className="text-yellow-500"
-                  size={20}
-                />
-
-                <span className="text-sm text-gray-500">
                   Department
-                </span>
+
+                </label>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
+                  {user?.department || "-"}
+                </div>
+
               </div>
 
-              <p className="text-lg font-semibold text-slate-800">
-                {user?.department || "-"}
-              </p>
+              {/* Role */}
 
-            </div>
+              <div>
 
-            {/* Role */}
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600">
 
-            <div className="rounded-2xl border border-gray-200 p-5 hover:border-yellow-400 transition">
+                  <ShieldCheck size={16} />
 
-              <div className="flex items-center gap-3 mb-2">
-                <ShieldCheck
-                  className="text-yellow-500"
-                  size={20}
-                />
-
-                <span className="text-sm text-gray-500">
                   User Role
-                </span>
+
+                </label>
+
+                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
+
+                  <span className="inline-flex rounded-full bg-[#DCF8C6] px-3 py-1 text-sm font-semibold text-[#128C7E]">
+                    {user?.role || "-"}
+                  </span>
+
+                </div>
+
               </div>
 
-              <span className="inline-flex rounded-full bg-yellow-100 text-yellow-700 px-4 py-2 text-sm font-semibold">
-                {user?.role || "-"}
-              </span>
+            </div>
+
+          </div>
+
+                    {/* ================= SECURITY CARD ================= */}
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
+
+            <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+
+              <div className="flex items-start gap-4">
+
+                <div className="rounded-2xl bg-[#DCF8C6] p-4">
+
+                  <Lock
+                    size={26}
+                    className="text-[#25D366]"
+                  />
+
+                </div>
+
+                <div>
+
+                  <h2 className="text-xl font-bold text-slate-900">
+                    Password & Security
+                  </h2>
+
+                  <p className="mt-2 text-sm text-slate-500">
+                    Keep your account secure by updating your password
+                    regularly.
+                  </p>
+
+                </div>
+
+              </div>
+
+              <Link
+                to="/change-password"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25D366] px-6 py-3 font-semibold text-black transition hover:bg-[#128C7E]"
+              >
+                Change Password
+
+                <ChevronRight size={18} />
+
+              </Link>
 
             </div>
 
           </div>
 
         </div>
-
-      </div>
-
-      {/* ================= SECURITY ================= */}
-
-      <div className="mt-8 rounded-3xl bg-white border border-gray-200 shadow-sm p-8 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-
-        <div className="flex items-start gap-4">
-
-          <div className="w-14 h-14 rounded-2xl bg-yellow-100 flex items-center justify-center">
-            <Lock
-              className="text-yellow-600"
-              size={26}
-            />
-          </div>
-
-          <div>
-
-            <h2 className="text-2xl font-bold text-slate-900">
-              Security
-            </h2>
-
-            <p className="text-gray-500 mt-2 max-w-lg">
-              Keep your account secure by updating your password regularly.
-            </p>
-
-          </div>
-
-        </div>
-
-        <Link
-          to="/change-password"
-          className="inline-flex items-center justify-center rounded-xl bg-yellow-400 px-7 py-3 font-semibold text-black hover:bg-yellow-500 transition"
-        >
-          Change Password
-        </Link>
 
       </div>
 
@@ -287,3 +294,4 @@ function Settings() {
 }
 
 export default Settings;
+  

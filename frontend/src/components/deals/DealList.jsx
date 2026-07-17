@@ -113,7 +113,7 @@ export default function DealList({
     <div className="overflow-x-auto rounded-2xl bg-white shadow-sm border border-gray-200 mt-6">
       <table className="min-w-full">
         {/* Header */}
-        <thead className="bg-yellow-400 text-black">
+        <thead className="bg-[#25D366] text-black">
           <tr>
             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
               Customer
@@ -150,7 +150,7 @@ export default function DealList({
           {deals.map((deal) => (
             <tr
               key={deal.id}
-              className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+              className="border-b border-gray-100 last:border-b-0 hover:bg-[#DCF8C6] transition"
             >
               {/* Customer */}
               <td className="px-5 py-4">
@@ -211,7 +211,7 @@ export default function DealList({
                   onChange={(e) =>
                     onStageChange(deal.id, e.target.value)
                   }
-                  className={`rounded-lg px-3 py-2 text-sm font-semibold border outline-none focus:ring-2 focus:ring-yellow-400 ${stageBadge(
+                  className={`rounded-lg px-3 py-2 text-sm font-semibold border outline-none focus:ring-2 focus:ring-[#25D366] ${stageBadge(
                     deal.stage
                   )}`}
                 >

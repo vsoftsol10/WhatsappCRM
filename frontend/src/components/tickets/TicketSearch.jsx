@@ -34,8 +34,8 @@
 //             transition
 //             focus:outline-none
 //             focus:ring-2
-//             focus:ring-yellow-400
-//             focus:border-yellow-400
+//             focus:ring-[#25D366]
+//             focus:border-[#25D366]
 //           "
 //         />
 //       </div>
@@ -81,8 +81,8 @@ function TicketSearch({
             transition
             focus:outline-none
             focus:ring-2
-            focus:ring-yellow-400
-            focus:border-yellow-400
+            focus:ring-[#25D366]
+            focus:border-[#25D366]
           "
         />
       </div>

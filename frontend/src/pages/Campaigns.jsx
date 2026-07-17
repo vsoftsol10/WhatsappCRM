@@ -1,4 +1,6 @@
 // import { useEffect, useMemo, useState } from "react";
+// import toast from "react-hot-toast";
+// import { Sparkles } from "lucide-react";
 
 // import useCampaignStore from "../store/campaignStore";
 
@@ -7,7 +9,10 @@
 // import CampaignCard from "../components/campaigns/CampaignCard";
 // import CreateCampaignModal from "../components/campaigns/CreateCampaignModal";
 // import EditCampaignModal from "../components/campaigns/EditCampaignModal";
-// import toast from "react-hot-toast";
+// import AICampaignModal from "../components/campaigns/AICampaignModal";
+// import ViewCampaignModal from "../components/campaigns/ViewCampaignModal";
+// import SendCampaignModal from "../components/campaigns/SendCampaignModal";
+// import Pagination from "../components/common/Pagination";
 
 // export default function Campaigns() {
 //   const {
@@ -22,21 +27,34 @@
 //   const [statusFilter, setStatusFilter] = useState("ALL");
 
 //   const [showCreateModal, setShowCreateModal] = useState(false);
-
 //   const [showEditModal, setShowEditModal] = useState(false);
+//   const [showAIModal, setShowAIModal] = useState(false);
+
+//   // NEW
+//   const [showViewModal, setShowViewModal] = useState(false);
+//   const [showSendModal, setShowSendModal] = useState(false);
 
 //   const [selectedCampaign, setSelectedCampaign] = useState(null);
+
+//   const [aiCampaign, setAiCampaign] = useState(null);
+
+//   const [currentPage, setCurrentPage] = useState(1);
+
+//   const itemsPerPage = 10;
 
 //   useEffect(() => {
 //     fetchCampaigns();
 //   }, []);
 
+//   useEffect(() => {
+//     setCurrentPage(1);
+//   }, [search, statusFilter]);
+
 //   const filteredCampaigns = useMemo(() => {
 //     return campaigns.filter((campaign) => {
-//       const matchesSearch =
-//         campaign.name
-//           ?.toLowerCase()
-//           .includes(search.toLowerCase());
+//       const matchesSearch = campaign.name
+//         ?.toLowerCase()
+//         .includes(search.toLowerCase());
 
 //       const matchesStatus =
 //         statusFilter === "ALL"
@@ -45,73 +63,143 @@
 
 //       return matchesSearch && matchesStatus;
 //     });
-//   }, [
-//     campaigns,
-//     search,
-//     statusFilter,
-//   ]);
+//   }, [campaigns, search, statusFilter]);
 
-//   const handleEdit = (campaign) => {
-//   setSelectedCampaign(campaign);
-//   setShowEditModal(true);
+//   // =========================
+//   // PAGINATION
+//   // =========================
+
+//   const totalPages = Math.ceil(
+//     filteredCampaigns.length / itemsPerPage
+//   );
+
+//   const startIndex =
+//     (currentPage - 1) * itemsPerPage;
+
+//   const paginatedCampaigns =
+//     filteredCampaigns.slice(
+//       startIndex,
+//       startIndex + itemsPerPage
+//     );
+
+//   // ===============================
+//   // VIEW
+//   // ===============================
+
+//   const handleView = (campaign) => {
+//     setSelectedCampaign(campaign);
+//     setShowViewModal(true);
 //   };
 
+//   // ===============================
+//   // SEND
+//   // ===============================
+
+//   const handleSend = (campaign) => {
+//     setSelectedCampaign(campaign);
+//     setShowSendModal(true);
+//   };
+
+//   // ===============================
+//   // EDIT
+//   // ===============================
+
+//   const handleEdit = (campaign) => {
+//     setSelectedCampaign(campaign);
+//     setShowEditModal(true);
+//   };
+
+//   // ===============================
+//   // DELETE
+//   // ===============================
+
 //   const handleDelete = async (id) => {
+//     if (!window.confirm("Are you sure you want to delete this campaign?"))
+//       return;
+
 //     try {
 //       await removeCampaign(id);
-//       toast.success("Campaign deleted successfully!");
+
+//       toast.success("Campaign deleted successfully");
 //     } catch (error) {
-//       console.error(error);
-//       toast.error("Failed to delete campaign. Please try again.");
+//       toast.error("Delete failed");
 //     }
 //   };
 
-//  const handleStatusChange = async (id, status) => {
-//   try {
-//     await editCampaign(id, {
-//       status,
-//     });
+//   // ===============================
+//   // STATUS
+//   // ===============================
 
-//     toast.success(`Campaign status updated to ${status}.`);
-//   } catch (error) {
-//     console.error("STATUS UPDATE ERROR", error);
+//   const handleStatusChange = async (id, status) => {
+//     try {
+//       await editCampaign(id, {
+//         status,
+//       });
 
-//     toast.error(
-//       "Failed to update campaign status. Please try again."
-//     );
-//   }
-// };
+//       toast.success("Campaign status updated");
+//     } catch (error) {
+//       toast.error("Unable to update campaign");
+//     }
+//   };
+
+//   // ===============================
+//   // AI → CREATE
+//   // ===============================
+
+//   const handleUseCampaign = (campaign) => {
+//     setAiCampaign(campaign);
+
+//     setShowAIModal(false);
+
+//     setShowCreateModal(true);
+//   };
 
 //   return (
-//     <div className="p-6 ml-8.5">
-//       {/* HEADER */}
+//     <div className="crm-page">
 
-//       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
-//         <div>
-//           <h1 className="text-3xl font-bold">
+//       {/* Header */}
+
+//       <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+
+//         <div className="min-w-0">
+
+//           <h1 className="crm-title">
 //             Campaigns
 //           </h1>
 
-//           <p className="text-gray-500">
-//             Manage and monitor your campaigns
+//           <p className="crm-subtitle">
+//             Manage your marketing campaigns
 //           </p>
+
 //         </div>
 
-//         <button
-//           onClick={() =>
-//             setShowCreateModal(true)
-//           }
-//           className="bg-blue-600 text-white px-5 py-3 rounded-xl font-medium"
-//         >
-//           Create Campaign
-//         </button>
+//         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+
+//           <button
+//             onClick={() => setShowAIModal(true)}
+//             className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-300 bg-white px-5 py-3 font-semibold text-gray-800 transition hover:bg-[#DCF8C6]"
+//           >
+//             <Sparkles size={18} />
+
+//             AI Generate
+//           </button>
+
+//           <button
+//             onClick={() => setShowCreateModal(true)}
+//             className="crm-primary-button"
+//           >
+//             Create Campaign
+//           </button>
+
+//         </div>
+
 //       </div>
 
-//       {/* STATS */}
+//       {/* Stats */}
 
 //       <CampaignStats campaigns={campaigns} />
 
-//       {/* FILTERS */}
+//       {/* Filters */}
 
 //       <CampaignFilters
 //         search={search}
@@ -120,65 +208,147 @@
 //         setStatusFilter={setStatusFilter}
 //       />
 
-//       {/* LOADING */}
+//       {/* Loading */}
 
 //       {isLoading && (
-//         <div className="mt-8 text-center">
+//         <div className="text-center mt-10">
 //           Loading campaigns...
 //         </div>
 //       )}
 
-//       {/* EMPTY */}
+//       {/* Empty */}
 
 //       {!isLoading &&
 //         filteredCampaigns.length === 0 && (
-//           <div className="bg-white rounded-xl p-10 text-center mt-6">
-//             <h3 className="font-semibold text-lg">
+//           <div className="crm-page-surface mt-6 p-8 text-center sm:p-10">
+
+//             <h2 className="font-semibold text-lg">
 //               No Campaigns Found
-//             </h3>
+//             </h2>
 
 //             <p className="text-gray-500 mt-2">
 //               Create your first campaign.
 //             </p>
+
 //           </div>
 //         )}
 
-//       {/* GRID */}
+//       {/* Campaign Grid */}
 
 //       {!isLoading &&
 //         filteredCampaigns.length > 0 && (
-//           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-6">
-//             {filteredCampaigns.map(
-//               (campaign) => (
-//                 <CampaignCard
-//                   key={campaign.id}
-//                   campaign={campaign}
-//                   onEdit={handleEdit}
-//                   onDelete={handleDelete}
-//                   onStatusChange={handleStatusChange}
-//                 />
-//               )
-//             )}
+
+//           <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6">
+
+//             {paginatedCampaigns.map((campaign) => (
+
+//               <CampaignCard
+//                 key={campaign.id}
+//                 campaign={campaign}
+
+//                 onView={handleView}
+
+//                 onSend={handleSend}
+
+//                 onEdit={handleEdit}
+
+//                 onDelete={handleDelete}
+
+//                 onStatusChange={handleStatusChange}
+//               />
+
+//             ))}
+
 //           </div>
+
 //         )}
 
-//       {/* MODAL */}
+//         {!isLoading && filteredCampaigns.length > 0 && (
+//           <Pagination
+//             currentPage={currentPage}
+//             totalPages={totalPages}
+//             totalItems={filteredCampaigns.length}
+//             itemsPerPage={itemsPerPage}
+//             onPageChange={setCurrentPage}
+//           />
+//         )}
+
+//       {/* ========================= */}
+
+//       {/* AI */}
+
+//       {/* ========================= */}
+
+//       <AICampaignModal
+//         isOpen={showAIModal}
+//         onClose={() => setShowAIModal(false)}
+//         onUseCampaign={handleUseCampaign}
+//       />
+
+//       {/* ========================= */}
+
+//       {/* CREATE */}
+
+//       {/* ========================= */}
 
 //       <CreateCampaignModal
 //         isOpen={showCreateModal}
-//         onClose={() =>
-//           setShowCreateModal(false)
-//         }
+//         onClose={() => {
+//           setShowCreateModal(false);
+
+//           setAiCampaign(null);
+//         }}
+//         aiCampaign={aiCampaign}
 //       />
+
+//       {/* ========================= */}
+
+//       {/* VIEW */}
+
+//       {/* ========================= */}
+
+//       <ViewCampaignModal
+//         isOpen={showViewModal}
+//         campaign={selectedCampaign}
+//         onClose={() => {
+//           setShowViewModal(false);
+
+//           setSelectedCampaign(null);
+//         }}
+//       />
+
+//       {/* ========================= */}
+
+//       {/* SEND */}
+
+//       {/* ========================= */}
+
+//       <SendCampaignModal
+//         isOpen={showSendModal}
+//         campaign={selectedCampaign}
+//         onClose={() => {
+//           setShowSendModal(false);
+
+//           setSelectedCampaign(null);
+//         }}
+//       />
+
+//       {/* ========================= */}
+
+//       {/* EDIT */}
+
+//       {/* ========================= */}
 
 //       <EditCampaignModal
 //         isOpen={showEditModal}
 //         onClose={() => {
 //           setShowEditModal(false);
+
 //           setSelectedCampaign(null);
 //         }}
 //         campaign={selectedCampaign}
 //       />
+
 //     </div>
 //   );
 // }
@@ -371,7 +541,7 @@ export default function Campaigns() {
 
           <button
             onClick={() => setShowCreateModal(true)}
-            className="bg-yellow-400 text-black px-5 py-3 rounded-xl hover:bg-yellow-500"
+            className="bg-[#25D366] text-black px-5 py-3 rounded-xl hover:bg-[#128C7E]"
           >
             Create Campaign
           </button>

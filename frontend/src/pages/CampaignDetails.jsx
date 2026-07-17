@@ -37,25 +37,25 @@ export default function CampaignDetails() {
 
   if (!selectedCampaign) {
     return (
-      <div className="p-6">
+      <div className="crm-page">
         <p>Campaign not found.</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 space-y-6 ml-8.5">
+    <div className="crm-page space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <button
           onClick={() => navigate("/campaigns")}
-          className="flex items-center gap-2 text-sm font-medium hover:text-blue-600"
+          className="inline-flex items-center gap-2 text-sm font-medium hover:text-[#128C7E]"
         >
           <ArrowLeft size={18} />
           Back
         </button>
 
-        <h1 className="text-3xl font-bold">
+        <h1 className="break-words text-2xl font-bold sm:text-3xl">
           {selectedCampaign.name}
         </h1>
       </div>
@@ -63,28 +63,28 @@ export default function CampaignDetails() {
       {/* Campaign Info */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="crm-page-surface p-5">
           <h2 className="font-semibold mb-4">
             Campaign Information
           </h2>
 
           <div className="space-y-3">
 
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span>Status</span>
               <span className="font-semibold">
                 {selectedCampaign.status}
               </span>
             </div>
 
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span>Type</span>
               <span className="font-semibold">
                 {selectedCampaign.type}
               </span>
             </div>
 
-            <div className="flex justify-between">
+            <div className="flex flex-wrap justify-between gap-2">
               <span>Audience</span>
               <span className="font-semibold">
                 {selectedCampaign.audienceCount}
@@ -94,14 +94,14 @@ export default function CampaignDetails() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow p-5">
+        <div className="crm-page-surface p-5">
           <h2 className="font-semibold mb-4">
             Schedule
           </h2>
 
           <div className="space-y-3">
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 break-words">
               <User size={18} />
               <span>
                 {selectedCampaign.createdBy?.name}
@@ -134,7 +134,7 @@ export default function CampaignDetails() {
       </div>
 
       {/* Message */}
-      <div className="bg-white rounded-xl shadow p-5">
+        <div className="crm-page-surface p-5">
         <div className="flex items-center gap-2 mb-4">
           <MessageSquare size={20} />
           <h2 className="font-semibold">
@@ -142,13 +142,13 @@ export default function CampaignDetails() {
           </h2>
         </div>
 
-        <div className="border rounded-lg p-4 whitespace-pre-wrap">
+        <div className="whitespace-pre-wrap break-words rounded-lg border p-4">
           {selectedCampaign.messageContent}
         </div>
       </div>
 
       {/* Audience */}
-      <div className="bg-white rounded-xl shadow p-5">
+      <div className="crm-page-surface p-5">
         <div className="flex items-center gap-2 mb-4">
           <Users size={20} />
           <h2 className="font-semibold">
@@ -158,7 +158,7 @@ export default function CampaignDetails() {
 
         <div className="overflow-x-auto">
 
-          <table className="min-w-full border">
+          <table className="w-full min-w-[640px] border">
 
             <thead className="bg-gray-100">
 

@@ -43,16 +43,16 @@ export default function AICampaignModal({
 
   return (
     // ✅ OUTER LAYER SCROLL FIX
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-start overflow-y-auto py-10 z-50">
+    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-3 py-8 sm:p-4 sm:py-10">
 
       {/* MODAL */}
-      <div className="bg-white rounded-2xl w-full max-w-2xl p-6">
+      <div className="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
 
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-5">
-          <div className="flex items-center gap-2">
-            <Sparkles className="text-yellow-500" />
-            <h2 className="text-2xl font-bold">
+        <div className="mb-5 flex items-start justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-2">
+            <Sparkles className="text-[#25D366]" />
+            <h2 className="break-words text-xl font-bold sm:text-2xl">
               Generate Campaign with AI
             </h2>
           </div>
@@ -68,14 +68,14 @@ export default function AICampaignModal({
           placeholder="Example: Create a Diwali sale campaign for existing customers with 30% discount."
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          className="w-full border rounded-xl p-4"
+          className="crm-input min-h-36"
         />
 
         {/* BUTTON */}
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="mt-4 bg-yellow-400 hover:bg-yellow-500 rounded-xl px-5 py-3 font-semibold flex items-center gap-2"
+          className="crm-primary-button mt-4"
         >
           {loading ? (
             <>
@@ -92,7 +92,7 @@ export default function AICampaignModal({
 
         {/* PREVIEW */}
         {campaign && (
-          <div className="mt-6 border rounded-xl p-5 max-h-[50vh] overflow-y-auto">
+          <div className="mt-6 max-h-[50vh] overflow-y-auto rounded-xl border p-4 sm:p-5">
             
             <h3 className="font-bold text-xl mb-4">
               AI Generated Campaign
@@ -114,22 +114,22 @@ export default function AICampaignModal({
 
             <div>
               <p className="text-sm text-gray-500 mb-2">Message</p>
-              <div className="border rounded-xl p-4 whitespace-pre-wrap">
+              <div className="whitespace-pre-wrap break-words rounded-xl border p-4">
                 {campaign.messageContent}
               </div>
             </div>
 
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 onClick={handleGenerate}
-                className="border px-4 py-2 rounded-xl"
+                className="crm-secondary-button"
               >
                 Generate Again
               </button>
 
               <button
                 onClick={handleUseCampaign}
-                className="bg-green-600 text-white px-5 py-2 rounded-xl"
+                className="crm-primary-button"
               >
                 Use Campaign
               </button>

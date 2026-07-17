@@ -42,7 +42,7 @@
 //       <table className="min-w-full">
 //         {/* Header */}
 
-//         <thead className="bg-yellow-400 text-black">
+//         <thead className="bg-[#25D366] text-black">
 //           <tr>
 //             <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
 //               Employee
@@ -76,13 +76,13 @@
 //           {employees.map((employee) => (
 //             <tr
 //               key={employee.id}
-//               className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+//               className="border-b border-gray-100 last:border-b-0 hover:bg-[#DCF8C6] transition"
 //             >
 //               {/* Employee */}
 
 //               <td className="px-5 py-4">
 //                 <div className="flex items-center gap-3">
-//                   <div className="w-11 h-11 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+//                   <div className="w-11 h-11 rounded-full bg-[#25D366] text-black flex items-center justify-center font-bold">
 //                     {employee.name
 //                       ?.charAt(0)
 //                       .toUpperCase()}
@@ -271,45 +271,46 @@ export default function EmployeeTable({
 
   if (!employees || employees.length === 0) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-10 text-center text-gray-500">
+      <div className="crm-page-surface p-8 text-center text-gray-500 sm:p-10">
         No employees found
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto overflow-y-visible rounded-2xl bg-white shadow-sm border border-gray-200">
-      <table className="min-w-full">
+    <div className="crm-table-shell overflow-visible">
+      <div className="crm-table-scroll">
+      <table className="w-full min-w-[980px]">
 
         {/* Header */}
 
-        <thead className="bg-yellow-400 text-black">
+        <thead className="bg-[#25D366] text-black">
           <tr>
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th min-w-[240px]">
               Employee
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th">
               Phone
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th">
               Department
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th">
               Designation
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th">
               Status
             </th>
 
-            <th className="px-5 py-4 text-left text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th">
               Role
             </th>
 
-            <th className="px-5 py-4 text-center text-sm font-bold uppercase tracking-wide">
+            <th className="crm-th text-center">
               Actions
             </th>
           </tr>
@@ -321,22 +322,22 @@ export default function EmployeeTable({
           {employees.map((employee, index) => (
             <tr
               key={employee.id}
-              className="border-b border-gray-100 last:border-b-0 hover:bg-yellow-50 transition"
+              className="border-b border-gray-100 last:border-b-0 hover:bg-[#DCF8C6] transition"
             >
               {/* Employee */}
 
-              <td className="px-5 py-4">
+              <td className="crm-td">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-yellow-400 text-black flex items-center justify-center font-bold">
+                  <div className="w-11 h-11 rounded-full bg-[#25D366] text-black flex items-center justify-center font-bold">
                     {employee.name?.charAt(0).toUpperCase()}
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <div className="font-semibold text-slate-800">
                       {employee.name}
                     </div>
 
-                    <div className="text-xs text-gray-500">
+                    <div className="break-all text-xs text-gray-500">
                       {employee.email}
                     </div>
                   </div>
@@ -345,27 +346,27 @@ export default function EmployeeTable({
 
               {/* Phone */}
 
-              <td className="px-5 py-4 text-sm text-slate-700">
+              <td className="crm-td">
                 {employee.phone || "-"}
               </td>
 
               {/* Department */}
 
-              <td className="px-5 py-4 text-sm text-slate-700">
+              <td className="crm-td">
                 {employee.department || "-"}
               </td>
 
               {/* Designation */}
 
-              <td className="px-5 py-4 text-sm text-slate-700">
+              <td className="crm-td">
                 {employee.designation || "-"}
               </td>
 
               {/* Status */}
 
-              <td className="px-5 py-4">
+              <td className="crm-td">
                 <span
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${statusBadge(
+                  className={`crm-badge ${statusBadge(
                     employee.status
                   )}`}
                 >
@@ -375,9 +376,9 @@ export default function EmployeeTable({
 
               {/* Role */}
 
-              <td className="px-5 py-4">
+              <td className="crm-td">
                 <span
-                  className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${roleBadge(
+                  className={`crm-badge ${roleBadge(
                     employee.role
                   )}`}
                 >
@@ -387,7 +388,7 @@ export default function EmployeeTable({
 
               {/* Actions */}
 
-              <td className="px-5 py-4">
+              <td className="crm-td">
                 <div
                   ref={
                     openMenu === employee.id
@@ -459,6 +460,7 @@ export default function EmployeeTable({
           ))}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

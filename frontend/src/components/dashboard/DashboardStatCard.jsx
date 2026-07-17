@@ -5,9 +5,9 @@
 //   value,
 //   subtitle,
 //   icon: Icon,
-//   iconBg = "bg-yellow-100",
-//   iconColor = "text-yellow-600",
-//   borderColor = "from-yellow-500 to-orange-500",
+//   iconBg = "bg-[#DCF8C6]",
+//   iconColor = "text-[#25D366]",
+//   borderColor = "from-[#25D366] to-[#128C7E]",
 // }) {
 //   return (
 //     <div
@@ -101,9 +101,9 @@ export default function DashboardStatCard({
   value,
   subtitle,
   icon: Icon,
-  iconBg = "bg-yellow-100",
-  iconColor = "text-yellow-600",
-  borderColor = "from-yellow-500 to-orange-500",
+  iconBg = "bg-[#DCF8C6]",
+  iconColor = "text-[#25D366]",
+  borderColor = "from-[#25D366] to-[#128C7E]",
   path,
 }) {
   const navigate = useNavigate();

@@ -62,7 +62,7 @@
 //           Review
 //         </p>
 
-//         <h2 className="text-3xl font-bold mt-2 text-amber-600">
+//         <h2 className="text-3xl font-bold mt-2 text-[#25D366]">
 //           {reviewTasks}
 //         </h2>
 //       </div>
@@ -74,7 +74,7 @@
 //           Completed
 //         </p>
 
-//         <h2 className="text-3xl font-bold mt-2 text-green-600">
+//         <h2 className="text-3xl font-bold mt-2 text-[#128C7E]">
 //           {completedTasks}
 //         </h2>
 //       </div>
@@ -154,8 +154,8 @@ export default function TaskStats({ tasks }) {
               shadow-sm
               transition-all
               duration-200
-              hover:border-yellow-300
-              hover:bg-yellow-50
+              hover:border-[#25D366]
+              hover:bg-[#DCF8C6]
               hover:shadow-lg
             "
           >
@@ -170,10 +170,10 @@ export default function TaskStats({ tasks }) {
                 </h2>
               </div>
 
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DCF8C6]">
                 <Icon
                   size={24}
-                  className="text-yellow-600"
+                  className="text-[#25D366]"
                 />
               </div>
             </div>

@@ -44,6 +44,8 @@ model User {
 
   templates Template[]
 
+  notifications Notification[]
+
   createdTasks Task[] @relation("CreatedTasks")
 
   assignedTasks Task[] @relation("AssignedTasks")
@@ -225,6 +227,16 @@ enum DealStage {
   LOST
 }
 
+enum NotificationType {
+  LEAD
+  TASK
+  TICKET
+  CUSTOMER
+  DEAL
+  CAMPAIGN
+  SYSTEM
+}
+
 model Campaign {
   id String @id @default(uuid())
 
@@ -388,4 +400,24 @@ model DealActivity {
   createdBy User @relation("CreatedDealActivities", fields: [createdById], references: [id])
 
   createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+
+  title     String
+  message   String
+
+  type      NotificationType
+
+  isRead    Boolean  @default(false)
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt])
 }

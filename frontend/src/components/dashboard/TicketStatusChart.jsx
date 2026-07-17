@@ -9,7 +9,7 @@ import {
 
 const COLORS = [
   "#3B82F6", // Todo
-  "#F59E0B", // In Progress
+  "#25D366", // In Progress
   "#8B5CF6", // Review
   "#10B981", // Completed
 ];

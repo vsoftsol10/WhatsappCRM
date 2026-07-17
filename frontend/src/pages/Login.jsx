@@ -42,13 +42,13 @@
 
 //         {/* HEADER */}
 //         <div className="text-center mb-8">
-//           {/* <div className="w-12 h-12 mx-auto bg-yellow-400 text-black font-bold text-sm flex items-center justify-center rounded-xl mb-3 shadow-md">
+//           {/* <div className="w-12 h-12 mx-auto bg-[#25D366] text-black font-bold text-sm flex items-center justify-center rounded-xl mb-3 shadow-md">
 //             WhatsApp CRM
 //           </div> */}
 //           <div className="text-center mb-6">
 
 //             <h1 className="text-xl font-bold tracking-wide text-white">
-//               WhatsApp <span className="text-yellow-400">CRM</span>
+//               WhatsApp <span className="text-[#25D366]">CRM</span>
 //             </h1>
 
 //             <p className="text-xs text-gray-500 mt-1">
@@ -92,7 +92,7 @@
 //                   setValidationError('');
 //                   clearError();
 //                 }}
-//                 className="w-full pl-10 pr-3 py-2 bg-black border border-gray-700 rounded-lg focus:border-yellow-400 outline-none"
+//                 className="w-full pl-10 pr-3 py-2 bg-black border border-gray-700 rounded-lg focus:border-[#25D366] outline-none"
 //               />
 //             </div>
 //           </div>
@@ -113,7 +113,7 @@
 //                   setValidationError('');
 //                   clearError();
 //                 }}
-//                 className="w-full pl-10 pr-10 py-2 bg-black border border-gray-700 rounded-lg focus:border-yellow-400 outline-none"
+//                 className="w-full pl-10 pr-10 py-2 bg-black border border-gray-700 rounded-lg focus:border-[#25D366] outline-none"
 //               />
 
 //               <button
@@ -134,7 +134,7 @@
 //                   console.log("Forgot clicked");
 //                   navigate("/forgot-password")
 //                 }}
-//               className="text-sm text-yellow-400 hover:underline"
+//               className="text-sm text-[#25D366] hover:underline"
 //             >
 //               Forgot Password?
 //             </button>
@@ -144,7 +144,7 @@
 //           <button
 //             type="submit"
 //             disabled={isLoading}
-//             className="w-full bg-yellow-400 text-black py-2 rounded-lg font-semibold hover:bg-yellow-300 flex items-center justify-center gap-2"
+//             className="w-full bg-[#25D366] text-black py-2 rounded-lg font-semibold hover:bg-[#128C7E] flex items-center justify-center gap-2"
 //           >
 //             {isLoading ? (
 //               <>
@@ -273,7 +273,7 @@ const Login = ({ onLoginSuccess }) => {
           <div className="text-center mb-6">
             <h1 className="text-xl font-bold tracking-wide text-white">
               WhatsApp{" "}
-              <span className="text-yellow-400">
+              <span className="text-[#25D366]">
                 CRM
               </span>
             </h1>
@@ -322,7 +322,7 @@ const Login = ({ onLoginSuccess }) => {
                 className={`w-full pl-10 pr-3 py-2 bg-black border rounded-lg outline-none transition-colors ${
                   errors.email
                     ? "border-red-500"
-                    : "border-gray-700 focus:border-yellow-400"
+                    : "border-gray-700 focus:border-[#25D366]"
                 }`}
               />
             </div>
@@ -364,7 +364,7 @@ const Login = ({ onLoginSuccess }) => {
                 className={`w-full pl-10 pr-10 py-2 bg-black border rounded-lg outline-none transition-colors ${
                   errors.password
                     ? "border-red-500"
-                    : "border-gray-700 focus:border-yellow-400"
+                    : "border-gray-700 focus:border-[#25D366]"
                 }`}
               />
 
@@ -404,7 +404,7 @@ const Login = ({ onLoginSuccess }) => {
                   "/forgot-password"
                 );
               }}
-              className="text-sm text-yellow-400 hover:underline"
+              className="text-sm text-[#25D366] hover:underline"
             >
               Forgot Password?
             </button>
@@ -414,7 +414,7 @@ const Login = ({ onLoginSuccess }) => {
           <button
             type="submit"
             disabled={isLoading}
-            className="flex w-full items-center justify-center gap-2 rounded-lg bg-yellow-400 py-2 font-semibold text-black transition hover:bg-yellow-300 disabled:cursor-not-allowed disabled:opacity-70"
+            className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#25D366] py-2 font-semibold text-black transition hover:bg-[#128C7E] disabled:cursor-not-allowed disabled:opacity-70"
           >
             {isLoading ? (
               <>

@@ -176,7 +176,7 @@
 
 //           <button
 //             type="submit"
-//             className="px-4 py-2 bg-yellow-400 rounded font-semibold hover:bg-yellow-500"
+//             className="px-4 py-2 bg-[#25D366] rounded font-semibold hover:bg-[#128C7E]"
 //           >
 //             Update Deal
 //           </button>
@@ -289,7 +289,7 @@ export default function EditDealModal({
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-yellow-400 px-6 py-5 flex justify-between items-center">
+          <div className="bg-[#25D366] px-6 py-5 flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">
               Edit Deal
             </h2>
@@ -297,7 +297,7 @@ export default function EditDealModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-yellow-500 transition"
+              className="p-2 rounded-full hover:bg-[#128C7E] transition"
             >
               <X size={22} />
             </button>
@@ -318,7 +318,7 @@ export default function EditDealModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.title
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
                 value={form.title}
                 onChange={(e) =>
@@ -342,7 +342,7 @@ export default function EditDealModal({
               <textarea
                 placeholder="Enter description"
                 rows={4}
-                className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-yellow-400 resize-none"
+                className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-[#25D366] resize-none"
                 value={form.description}
                 onChange={(e) =>
                   handleChange("description", e.target.value)
@@ -360,7 +360,7 @@ export default function EditDealModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.customerId
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
                 value={form.customerId}
                 onChange={(e) =>
@@ -395,7 +395,7 @@ export default function EditDealModal({
               </label>
 
               <select
-                className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-yellow-400"
+                className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-[#25D366]"
                 value={form.assignedToId}
                 onChange={(e) =>
                   handleChange("assignedToId", e.target.value)
@@ -428,7 +428,7 @@ export default function EditDealModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.value
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
                 value={form.value}
                 onChange={(e) =>
@@ -453,7 +453,7 @@ export default function EditDealModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.stage
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
                 value={form.stage}
                 onChange={(e) =>
@@ -486,7 +486,7 @@ export default function EditDealModal({
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold transition"
+                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition"
               >
                 Update Deal
               </button>

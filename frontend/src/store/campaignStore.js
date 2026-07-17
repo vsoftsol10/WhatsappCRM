@@ -1,168 +1,3 @@
-// import { create } from "zustand";
-
-// import {
-//   getCampaigns,
-//   getCampaignById,
-//   createCampaign,
-//   updateCampaign,
-//   deleteCampaign,
-// } from "../api/campaignApi";
-
-// const useCampaignStore = create((set) => ({
-//   campaigns: [],
-//   selectedCampaign: null,
-
-//   isLoading: false,
-//   error: null,
-
-//   // ================= FETCH ALL =================
-//   fetchCampaigns: async () => {
-//     set({
-//       isLoading: true,
-//       error: null,
-//     });
-
-//     try {
-//       const data = await getCampaigns();
-
-//       set({
-//         campaigns: data.data,
-//         isLoading: false,
-//       });
-//     } catch (error) {
-//       set({
-//         error: error.message,
-//         isLoading: false,
-//       });
-//     }
-//   },
-
-//   // ================= FETCH ONE =================
-//   fetchCampaignById: async (id) => {
-//     set({
-//       isLoading: true,
-//       error: null,
-//     });
-
-//     try {
-//       const data = await getCampaignById(id);
-
-//       set({
-//         selectedCampaign: data.data,
-//         isLoading: false,
-//       });
-//     } catch (error) {
-//       set({
-//         error: error.message,
-//         isLoading: false,
-//       });
-//     }
-//   },
-
-//   // ================= CREATE =================
-//   addCampaign: async (campaignData) => {
-//     set({
-//       isLoading: true,
-//       error: null,
-//     });
-
-//     try {
-//       const data = await createCampaign(
-//         campaignData
-//       );
-
-//       set((state) => ({
-//         campaigns: [
-//           data.data,
-//           ...state.campaigns,
-//         ],
-//         isLoading: false,
-//       }));
-
-//       return data;
-//     } catch (error) {
-//       set({
-//         error: error.message,
-//         isLoading: false,
-//       });
-
-//       throw error;
-//     }
-//   },
-
-//   // ================= UPDATE =================
-//   editCampaign: async (
-//     id,
-//     campaignData
-//   ) => {
-//     set({
-//       isLoading: true,
-//       error: null,
-//     });
-
-//     try {
-//       const data = await updateCampaign(
-//         id,
-//         campaignData
-//       );
-
-//       set((state) => ({
-//         campaigns: state.campaigns.map(
-//           (campaign) =>
-//             campaign.id === id
-//               ? data.data
-//               : campaign
-//         ),
-//         isLoading: false,
-//       }));
-
-//       return data;
-//     } catch (error) {
-//       set({
-//         error: error.message,
-//         isLoading: false,
-//       });
-
-//       throw error;
-//     }
-//   },
-
-//   // ================= DELETE =================
-//   removeCampaign: async (id) => {
-//     set({
-//       isLoading: true,
-//       error: null,
-//     });
-
-//     try {
-//       await deleteCampaign(id);
-
-//       set((state) => ({
-//         campaigns: state.campaigns.filter(
-//           (campaign) =>
-//             campaign.id !== id
-//         ),
-//         isLoading: false,
-//       }));
-//     } catch (error) {
-//       set({
-//         error: error.message,
-//         isLoading: false,
-//       });
-
-//       throw error;
-//     }
-//   },
-
-//   // ================= CLEAR ERROR =================
-//   clearError: () =>
-//     set({
-//       error: null,
-//     }),
-// }));
-
-// export default useCampaignStore;
-
 import { create } from "zustand";
 
 import {
@@ -175,7 +10,7 @@ import {
   sendCampaign,
 } from "../api/campaignApi";
 
-const useCampaignStore = create((set) => ({
+const useCampaignStore = create((set, get) => ({
   campaigns: [],
   selectedCampaign: null,
 
@@ -195,7 +30,7 @@ const useCampaignStore = create((set) => ({
       const response = await getCampaigns();
 
       set({
-        campaigns: response.data,
+        campaigns: response.data || [],
         isLoading: false,
       });
     } catch (error) {
@@ -243,10 +78,7 @@ const useCampaignStore = create((set) => ({
       const response = await createCampaign(campaignData);
 
       set((state) => ({
-        campaigns: [
-          response.data,
-          ...state.campaigns,
-        ],
+        campaigns: [response.data, ...state.campaigns],
         isLoading: false,
       }));
 
@@ -278,7 +110,7 @@ const useCampaignStore = create((set) => ({
 
       set((state) => ({
         campaigns: state.campaigns.map((campaign) =>
-          campaign.id === id
+          campaign.id === response.data.id
             ? response.data
             : campaign
         ),
@@ -369,6 +201,7 @@ const useCampaignStore = create((set) => ({
         campaignId,
         customerIds
       );
+      await get().fetchCampaigns();
 
       set({
         isLoading: false,

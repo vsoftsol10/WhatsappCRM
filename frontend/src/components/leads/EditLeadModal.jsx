@@ -137,7 +137,7 @@
 
 //             <button
 //               type="submit"
-//               className="bg-yellow-400 text-black px-4 py-2 rounded-xl font-semibold"
+//               className="bg-[#25D366] text-black px-4 py-2 rounded-xl font-semibold"
 //             >
 //               Update Lead
 //             </button>
@@ -282,7 +282,7 @@ export default function EditLeadModal({
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-yellow-400 px-6 py-5 flex justify-between items-center">
+          <div className="bg-[#25D366] px-6 py-5 flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">
               Edit Lead
             </h2>
@@ -290,7 +290,7 @@ export default function EditLeadModal({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-full hover:bg-yellow-500 transition"
+              className="p-2 rounded-full hover:bg-[#128C7E] transition"
             >
               <X size={22} />
             </button>
@@ -315,7 +315,7 @@ export default function EditLeadModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.name
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
               {errors.name && (
@@ -340,7 +340,7 @@ export default function EditLeadModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.email
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
               {errors.email && (
@@ -365,7 +365,7 @@ export default function EditLeadModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.phone
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
               {errors.phone && (
@@ -387,7 +387,7 @@ export default function EditLeadModal({
                 value={formData.company}
                 onChange={handleChange}
                 placeholder="Enter company name"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-yellow-400"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#25D366]"
               />
             </div>
 
@@ -406,7 +406,7 @@ export default function EditLeadModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.source
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
               {errors.source && (
@@ -431,7 +431,7 @@ export default function EditLeadModal({
                 className={`w-full rounded-lg border px-4 py-3 outline-none resize-none ${
                   errors.requirements
                     ? "border-red-500"
-                    : "border-gray-300 focus:border-yellow-400"
+                    : "border-gray-300 focus:border-[#25D366]"
                 }`}
               />
               {errors.requirements && (
@@ -453,7 +453,7 @@ export default function EditLeadModal({
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-yellow-400 hover:bg-yellow-500 text-gray-800 font-semibold transition"
+                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition"
               >
                 Update Lead
               </button>

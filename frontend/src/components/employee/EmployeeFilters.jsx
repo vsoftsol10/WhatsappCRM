@@ -44,8 +44,8 @@ function EmployeeFilters({
               transition-all
               ${
                 isActive
-                  ? "border-yellow-400 bg-yellow-400 text-black shadow-md"
-                  : "border-gray-300 bg-white text-slate-700 hover:bg-yellow-50 hover:border-yellow-300"
+                  ? "border-[#25D366] bg-[#25D366] text-black shadow-md"
+                  : "border-gray-300 bg-white text-slate-700 hover:bg-[#DCF8C6] hover:border-[#25D366]"
               }
             `}
           >

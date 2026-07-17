@@ -32,7 +32,7 @@
 //       </p>
 
 //       {/* VALUE */}
-//       <p className="text-sm font-bold text-yellow-600 mt-1">
+//       <p className="text-sm font-bold text-[#25D366] mt-1">
 //         ₹ {Number(deal?.value || 0).toLocaleString()}
 //       </p>
 
@@ -77,7 +77,7 @@ export default function DealCard({
     LEAD: "bg-blue-50 border-blue-200 text-blue-700",
     PROPOSAL: "bg-purple-50 border-purple-200 text-purple-700",
     NEGOTIATION: "bg-orange-50 border-orange-200 text-orange-700",
-    WON: "bg-green-50 border-green-200 text-green-700",
+    WON: "bg-[#DCF8C6] border-green-200 text-green-700",
     LOST: "bg-red-50 border-red-200 text-red-700",
   };
 
@@ -107,7 +107,7 @@ export default function DealCard({
       </div>
 
       {/* Value */}
-      <div className="mt-3 flex items-center gap-2 text-yellow-600">
+      <div className="mt-3 flex items-center gap-2 text-[#25D366]">
         <IndianRupee size={16} />
         <span className="font-bold">
           {Number(deal?.value || 0).toLocaleString()}

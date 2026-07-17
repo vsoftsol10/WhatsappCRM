@@ -46,7 +46,7 @@ export default function TemplateFilters({
             }
             className={`px-4 py-2 rounded-xl text-sm font-medium transition ${
               statusFilter === status
-                ? "bg-yellow-400 text-black"
+                ? "bg-[#25D366] text-black"
                 : "bg-gray-100 text-gray-700 hover:bg-gray-200"
             }`}
           >

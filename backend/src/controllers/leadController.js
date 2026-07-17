@@ -101,6 +101,19 @@ const updateLead = async (req, res) => {
       status,
     } = req.body;
 
+    const existingLead = await prisma.lead.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
     const updatedLead = await prisma.lead.update({
       where: {
         id: Number(id),
@@ -112,7 +125,9 @@ const updateLead = async (req, res) => {
         company,
         source,
         requirements,
-        status,
+        status: existingLead.isConverted
+          ? existingLead.status
+          : status,
       },
     });
 
@@ -131,6 +146,7 @@ const updateLead = async (req, res) => {
     });
   }
 };
+
 
 
 // ================= UPDATE LEAD STATUS =================
@@ -152,6 +168,28 @@ const updateLeadStatus = async (req, res) => {
       return res.status(400).json({
         success: false,
         message: "Invalid status",
+      });
+    }
+
+    const existingLead = await prisma.lead.findUnique({
+      where: {
+        id: Number(id),
+      },
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    // Prevent status changes after conversion
+    if (existingLead.isConverted) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Converted leads cannot change status.",
       });
     }
 

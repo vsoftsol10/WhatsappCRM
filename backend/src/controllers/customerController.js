@@ -195,7 +195,8 @@ const deleteCustomer = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const existingCustomer = await prisma.customer.findFirst({
+    // Check customer exists
+    const existingCustomer = await prisma.customer.findUnique({
       where: {
         id,
       },
@@ -208,6 +209,44 @@ const deleteCustomer = async (req, res) => {
       });
     }
 
+    // Check if customer has any tickets
+    const ticket = await prisma.ticket.findFirst({
+      where: {
+        customerId: id,
+      },
+    });
+
+    if (ticket) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Cannot delete customer. Delete associated tickets first.",
+      });
+    }
+
+    // Find customer's conversation
+    const conversation = await prisma.conversation.findUnique({
+      where: {
+        customerId: id,
+      },
+    });
+
+    // Delete messages first, then conversation
+    if (conversation) {
+      await prisma.message.deleteMany({
+        where: {
+          conversationId: conversation.id,
+        },
+      });
+
+      await prisma.conversation.delete({
+        where: {
+          id: conversation.id,
+        },
+      });
+    }
+
+    // Delete customer
     await prisma.customer.delete({
       where: {
         id,

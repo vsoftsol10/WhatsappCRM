@@ -151,6 +151,9 @@ convertLead: async (id) => {
     return response;
   } catch (error) {
     set({
+      error:
+        error.response?.data?.message ||
+        "Failed to convert lead",
       isLoading: false,
     });
 

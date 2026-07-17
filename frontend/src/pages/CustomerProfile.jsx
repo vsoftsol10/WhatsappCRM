@@ -40,10 +40,10 @@
 //             onClick={() => navigate("/customers")}
 //             className="bg-gray-800 hover:bg-gray-700 p-3 rounded-lg transition"
 //           >
-//             <FaArrowLeft className="text-yellow-400" />
+//             <FaArrowLeft className="text-[#25D366]" />
 //           </button>
 
-//           <h1 className="text-4xl font-bold text-yellow-400">
+//           <h1 className="text-4xl font-bold text-[#25D366]">
 //             Customer Profile
 //           </h1>
 //         </div>
@@ -99,7 +99,7 @@
 
 //           <div className="space-y-4">
 
-//             <div className="border-l-4 border-yellow-400 pl-4">
+//             <div className="border-l-4 border-[#25D366] pl-4">
 //               <h3 className="font-semibold">
 //                 Customer Created
 //               </h3>
@@ -153,18 +153,18 @@ function CustomerProfile() {
 
   if (!customer) {
     return (
-      <div className="min-h-screen bg-gray-50 text-gray-700 flex justify-center items-center">
+      <div className="crm-page flex items-center justify-center text-gray-700">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen ml-8.5 bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto">
+    <div className="crm-page">
+      <div className="mx-auto max-w-5xl">
 
         {/* Header */}
-        <div className="flex items-center gap-4 mb-8">
+        <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center">
 
           <button
             onClick={() => navigate("/customers")}
@@ -179,10 +179,10 @@ function CustomerProfile() {
               shadow-sm
             "
           >
-            <FaArrowLeft className="text-yellow-500" />
+            <FaArrowLeft className="text-[#25D366]" />
           </button>
 
-          <h1 className="text-4xl font-bold text-gray-900">
+          <h1 className="crm-title">
             Customer Profile
           </h1>
 
@@ -190,20 +190,20 @@ function CustomerProfile() {
 
 
         {/* Customer Information */}
-        <div className="bg-white rounded-2xl p-8 mb-8 shadow-sm border border-gray-100">
+        <div className="crm-page-surface mb-8 p-5 sm:p-8">
 
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Customer Information
           </h2>
 
 
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
 
             <div>
               <p className="text-gray-500 text-sm">
                 Name
               </p>
-              <p className="font-semibold text-gray-900">
+              <p className="break-all font-semibold text-gray-900">
                 {customer.name}
               </p>
             </div>
@@ -248,12 +248,12 @@ function CustomerProfile() {
               </p>
             </div>
 
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <p className="text-gray-500 text-sm">
                 Requirements
               </p>
 
-              <p className="font-semibold text-gray-900 whitespace-pre-wrap">
+              <p className="whitespace-pre-wrap break-words font-semibold text-gray-900">
                 {customer.requirements || "-"}
               </p>
             </div>
@@ -299,7 +299,7 @@ function CustomerProfile() {
 
 
         {/* Activity Timeline */}
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+        <div className="crm-page-surface p-5 sm:p-8">
 
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
             Activity Timeline
@@ -309,7 +309,7 @@ function CustomerProfile() {
           <div className="space-y-5">
 
 
-            <div className="border-l-4 border-yellow-400 pl-4">
+            <div className="border-l-4 border-[#25D366] pl-4">
 
               <h3 className="font-semibold text-gray-900">
                 Customer Created

@@ -1,7 +1,12 @@
-// const prisma = require("../config/prisma");
+// const { PrismaClient } = require("@prisma/client");
 
-// // ================= CREATE CAMPAIGN =================
-// const createCampaign = async (req, res) => {
+// const prisma = new PrismaClient();
+// const { generateCampaign } = require("../services/geminiService");
+
+// // =========================
+// // CREATE CAMPAIGN
+// // =========================
+// exports.createCampaign = async (req, res) => {
 //   try {
 //     const {
 //       name,
@@ -14,91 +19,35 @@
 //     if (!name || !messageContent) {
 //       return res.status(400).json({
 //         success: false,
-//         message: "Name and message content are required",
+//         message: "Campaign name and message are required.",
 //       });
 //     }
 
-//     // const campaign = await prisma.campaign.create({
-//     //   data: {
-//     //     name,
-//     //     type,
-//     //     messageContent,
-//     //     scheduledAt: scheduledAt
-//     //       ? new Date(scheduledAt)
-//     //       : null,
-//     //     audienceCount: customerIds.length,
+//     console.log("req.user =", req.user);
 
-//     //     createdById: req.user.userId,
+//     const campaign = await prisma.campaign.create({
+//       data: {
+//         name,
+//         type,
+//         messageContent,
 
-//     //     recipients: {
-//     //       create: customerIds.map((customerId) => ({
-//     //         customerId,
-//     //       })),
-//     //     },
-//     //   },
-//     //   include: {
-//     //     recipients: true,
-//     //   },
-//     // });
+//         scheduledAt: scheduledAt
+//           ? new Date(scheduledAt)
+//           : null,
 
+//         audienceCount: customerIds.length,
 
-// // const campaign = await prisma.campaign.update({
-// //   where: {
-// //     id,
-// //   },
-// //   data: {
-// //     name,
-// //     type,
-// //     messageContent,
-// //     status,
-// //     scheduledAt: scheduledAt
-// //       ? new Date(scheduledAt)
-// //       : null,
-// //   },
-// // });
+//         // Change this if your auth middleware uses req.user.id
+//         createdById: req.user.userId,
 
-//   const campaign = await prisma.campaign.create({
-//     data: {
-//       name,
-//       type,
-//       messageContent,
-//       scheduledAt: scheduledAt
-//         ? new Date(scheduledAt)
-//         : null,
-//       audienceCount: customerIds.length,
-
-//       createdById: req.user.userId,
-
-//       recipients: {
-//         create: customerIds.map((customerId) => ({
-//           customerId,
-//         })),
+//         recipients: {
+//           create: customerIds.map((customerId) => ({
+//             customerId,
+//           })),
+//         },
 //       },
-//     },
-// });
 
-//     return res.status(201).json({
-//       success: true,
-//       message: "Campaign created successfully",
-//       data: campaign,
-//     });
-//   } catch (error) {
-//     console.error("Create Campaign Error:", error);
-
-//     return res.status(500).json({
-//       success: false,
-//       message: "Failed to create campaign",
-//       error: error.message,
-//     });
-//   }
-// };
-
-// // ================= GET ALL CAMPAIGNS =================
-// const getCampaigns = async (req, res) => {
-//   try {
-//     const campaigns = await prisma.campaign.findMany({
 //       include: {
-//         recipients: true,
 //         createdBy: {
 //           select: {
 //             id: true,
@@ -106,7 +55,53 @@
 //             email: true,
 //           },
 //         },
+
+//         recipients: {
+//           include: {
+//             customer: true,
+//           },
+//         },
 //       },
+//     });
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Campaign created successfully.",
+//       data: campaign,
+//     });
+//   } catch (error) {
+//     console.error("Create Campaign Error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to create campaign.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// // =========================
+// // GET ALL CAMPAIGNS
+// // =========================
+// exports.getCampaigns = async (req, res) => {
+//   try {
+//     const campaigns = await prisma.campaign.findMany({
+//       include: {
+//         createdBy: {
+//           select: {
+//             id: true,
+//             name: true,
+//             email: true,
+//           },
+//         },
+
+//         recipients: {
+//           include: {
+//             customer: true,
+//           },
+//         },
+//       },
+
 //       orderBy: {
 //         createdAt: "desc",
 //       },
@@ -122,23 +117,33 @@
 
 //     return res.status(500).json({
 //       success: false,
-//       message: "Failed to fetch campaigns",
+//       message: "Failed to fetch campaigns.",
 //       error: error.message,
 //     });
 //   }
 // };
 
-// // ================= GET SINGLE CAMPAIGN =================
-// const getCampaignById = async (req, res) => {
+// // =========================
+// // GET CAMPAIGN BY ID
+// // =========================
+// exports.getCampaignById = async (req, res) => {
 //   try {
-//     const { id } = req.params;
+//     const id = Number(req.params.id);
 
 //     const campaign = await prisma.campaign.findUnique({
 //       where: {
 //         id,
 //       },
+
 //       include: {
-//         createdBy: true,
+//         createdBy: {
+//           select: {
+//             id: true,
+//             name: true,
+//             email: true,
+//           },
+//         },
+
 //         recipients: {
 //           include: {
 //             customer: true,
@@ -150,7 +155,7 @@
 //     if (!campaign) {
 //       return res.status(404).json({
 //         success: false,
-//         message: "Campaign not found",
+//         message: "Campaign not found.",
 //       });
 //     }
 
@@ -163,16 +168,18 @@
 
 //     return res.status(500).json({
 //       success: false,
-//       message: "Failed to fetch campaign",
+//       message: "Failed to fetch campaign.",
 //       error: error.message,
 //     });
 //   }
 // };
 
-// // ================= UPDATE CAMPAIGN =================
-// const updateCampaign = async (req, res) => {
+// // =========================
+// // UPDATE CAMPAIGN
+// // =========================
+// exports.updateCampaign = async (req, res) => {
 //   try {
-//     const { id } = req.params;
+//     const {id} = req.params;
 
 //     const {
 //       name,
@@ -186,20 +193,25 @@
 //       where: {
 //         id,
 //       },
+
 //       data: {
-//         name,
-//         type,
-//         messageContent,
-//         status,
-//         scheduledAt: scheduledAt
-//           ? new Date(scheduledAt)
-//           : null,
+//         ...(name && { name }),
+//         ...(type && { type }),
+//         ...(messageContent && { messageContent }),
+//         ...(status && { status }),
+
+//         scheduledAt:
+//           scheduledAt !== undefined
+//             ? scheduledAt
+//               ? new Date(scheduledAt)
+//               : null
+//             : undefined,
 //       },
 //     });
 
 //     return res.status(200).json({
 //       success: true,
-//       message: "Campaign updated successfully",
+//       message: "Campaign updated successfully.",
 //       data: campaign,
 //     });
 //   } catch (error) {
@@ -207,16 +219,18 @@
 
 //     return res.status(500).json({
 //       success: false,
-//       message: "Failed to update campaign",
+//       message: "Failed to update campaign.",
 //       error: error.message,
 //     });
 //   }
 // };
 
-// // ================= DELETE CAMPAIGN =================
-// const deleteCampaign = async (req, res) => {
+// // =========================
+// // DELETE CAMPAIGN
+// // =========================
+// exports.deleteCampaign = async (req, res) => {
 //   try {
-//     const { id } = req.params;
+//     const {id} = req.params;
 
 //     await prisma.campaign.delete({
 //       where: {
@@ -226,35 +240,207 @@
 
 //     return res.status(200).json({
 //       success: true,
-//       message: "Campaign deleted successfully",
+//       message: "Campaign deleted successfully.",
 //     });
 //   } catch (error) {
 //     console.error("Delete Campaign Error:", error);
 
 //     return res.status(500).json({
 //       success: false,
-//       message: "Failed to delete campaign",
+//       message: "Failed to delete campaign.",
 //       error: error.message,
 //     });
 //   }
 // };
 
-// module.exports = {
-//   createCampaign,
-//   getCampaigns,
-//   getCampaignById,
-//   updateCampaign,
-//   deleteCampaign,
+// // =========================
+// // GENERATE AI CAMPAIGN
+// // =========================
+// exports.generateAICampaign = async (req, res) => {
+//   try {
+//     const { prompt } = req.body;
+
+//     if (!prompt || prompt.trim() === "") {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Prompt is required.",
+//       });
+//     }
+
+//     const campaign = await generateCampaign(prompt);
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "AI campaign generated successfully.",
+//       data: campaign,
+//     });
+
+//   } catch (error) {
+//     console.error("Generate AI Campaign Error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to generate AI campaign.",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// // =========================
+// // SEND CAMPAIGN TO CUSTOMERS
+// // =========================
+// exports.sendCampaign = async (req, res) => {
+//   try {
+//     const { campaignId, customerIds } = req.body;
+
+//     // =========================
+//     // Validation
+//     // =========================
+//     if (!campaignId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Campaign ID is required.",
+//       });
+//     }
+
+//     if (!customerIds || customerIds.length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Please select at least one customer.",
+//       });
+//     }
+
+//     // =========================
+//     // Find Campaign
+//     // =========================
+//     const campaign = await prisma.campaign.findUnique({
+//       where: {
+//         id: campaignId,
+//       },
+//     });
+
+//     if (!campaign) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Campaign not found.",
+//       });
+//     }
+
+//     let successCount = 0;
+
+//     // =========================
+//     // Send to each customer
+//     // =========================
+//     for (const customerId of customerIds) {
+
+//       // Find customer
+//       const customer = await prisma.customer.findUnique({
+//         where: {
+//           id: customerId,
+//         },
+//       });
+
+//       if (!customer) {
+//         continue;
+//       }
+
+//       // =========================
+//       // Find Conversation
+//       // =========================
+//       let conversation =
+//         await prisma.conversation.findFirst({
+//           where: {
+//             customerId: customer.id,
+//           },
+//         });
+
+//       // =========================
+//       // Create Conversation
+//       // =========================
+//       if (!conversation) {
+
+//         conversation =
+//           await prisma.conversation.create({
+//             data: {
+//               customerId: customer.id,
+//               status: "OPEN",
+//               lastMessage: "",
+//               unreadCount: 0,
+//             },
+//           });
+
+//       }
+
+//       // =========================
+//       // Create Message
+//       // =========================
+//       await prisma.message.create({
+//         data: {
+//           conversationId: conversation.id,
+//           sender: "ADMIN",
+//           content: campaign.messageContent,
+//         },
+//       });
+
+//       // =========================
+//       // Update Conversation
+//       // =========================
+//       await prisma.conversation.update({
+//         where: {
+//           id: conversation.id,
+//         },
+//         data: {
+//           lastMessage: campaign.messageContent,
+//           updatedAt: new Date(),
+//         },
+//       });
+
+//       successCount++;
+//     }
+
+//     // =========================
+//     // Update Campaign Status
+//     // =========================
+//     await prisma.campaign.update({
+//   where: {
+//     id: campaignId,
+//   },
+//   data: {
+//     status: "COMPLETED",
+//   },
+// });
+
+//     // =========================
+//     // Success
+//     // =========================
+//     return res.status(200).json({
+//       success: true,
+//       totalSent: successCount,
+//       message: `${successCount} customer(s) received the campaign.`,
+//     });
+
+//   } catch (error) {
+
+//     console.error("Send Campaign Error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to send campaign.",
+//       error: error.message,
+//     });
+
+//   }
 // };
 
 const { PrismaClient } = require("@prisma/client");
-
 const prisma = new PrismaClient();
-const { generateCampaign } = require("../services/geminiService");
 
-// =========================
+const { generateCampaign } = require("../services/geminiService");
+const { notifyAdmins } = require("../services/notificationService");
+
+// =====================================================
 // CREATE CAMPAIGN
-// =========================
+// =====================================================
 exports.createCampaign = async (req, res) => {
   try {
     const {
@@ -272,8 +458,6 @@ exports.createCampaign = async (req, res) => {
       });
     }
 
-    console.log("req.user =", req.user);
-
     const campaign = await prisma.campaign.create({
       data: {
         name,
@@ -286,7 +470,6 @@ exports.createCampaign = async (req, res) => {
 
         audienceCount: customerIds.length,
 
-        // Change this if your auth middleware uses req.user.id
         createdById: req.user.userId,
 
         recipients: {
@@ -313,12 +496,21 @@ exports.createCampaign = async (req, res) => {
       },
     });
 
+    // Notify all admins
+    await notifyAdmins({
+      title: "New Campaign",
+      message: `${campaign.name} has been created.`,
+      type: "CAMPAIGN",
+    });
+
     return res.status(201).json({
       success: true,
       message: "Campaign created successfully.",
       data: campaign,
     });
+
   } catch (error) {
+
     console.error("Create Campaign Error:", error);
 
     return res.status(500).json({
@@ -326,16 +518,20 @@ exports.createCampaign = async (req, res) => {
       message: "Failed to create campaign.",
       error: error.message,
     });
+
   }
 };
 
-// =========================
+// =====================================================
 // GET ALL CAMPAIGNS
-// =========================
+// =====================================================
 exports.getCampaigns = async (req, res) => {
   try {
+
     const campaigns = await prisma.campaign.findMany({
+
       include: {
+
         createdBy: {
           select: {
             id: true,
@@ -349,11 +545,13 @@ exports.getCampaigns = async (req, res) => {
             customer: true,
           },
         },
+
       },
 
       orderBy: {
         createdAt: "desc",
       },
+
     });
 
     return res.status(200).json({
@@ -361,7 +559,9 @@ exports.getCampaigns = async (req, res) => {
       count: campaigns.length,
       data: campaigns,
     });
+
   } catch (error) {
+
     console.error("Get Campaigns Error:", error);
 
     return res.status(500).json({
@@ -369,22 +569,26 @@ exports.getCampaigns = async (req, res) => {
       message: "Failed to fetch campaigns.",
       error: error.message,
     });
+
   }
 };
 
-// =========================
+// =====================================================
 // GET CAMPAIGN BY ID
-// =========================
+// =====================================================
 exports.getCampaignById = async (req, res) => {
   try {
-    const id = Number(req.params.id);
+
+    const { id } = req.params;
 
     const campaign = await prisma.campaign.findUnique({
+
       where: {
         id,
       },
 
       include: {
+
         createdBy: {
           select: {
             id: true,
@@ -398,7 +602,9 @@ exports.getCampaignById = async (req, res) => {
             customer: true,
           },
         },
+
       },
+
     });
 
     if (!campaign) {
@@ -412,7 +618,9 @@ exports.getCampaignById = async (req, res) => {
       success: true,
       data: campaign,
     });
+
   } catch (error) {
+
     console.error("Get Campaign Error:", error);
 
     return res.status(500).json({
@@ -420,15 +628,15 @@ exports.getCampaignById = async (req, res) => {
       message: "Failed to fetch campaign.",
       error: error.message,
     });
+
   }
 };
-
-// =========================
+// =====================================================
 // UPDATE CAMPAIGN
-// =========================
+// =====================================================
 exports.updateCampaign = async (req, res) => {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const {
       name,
@@ -437,6 +645,17 @@ exports.updateCampaign = async (req, res) => {
       status,
       scheduledAt,
     } = req.body;
+
+    const existingCampaign = await prisma.campaign.findUnique({
+      where: { id },
+    });
+
+    if (!existingCampaign) {
+      return res.status(404).json({
+        success: false,
+        message: "Campaign not found.",
+      });
+    }
 
     const campaign = await prisma.campaign.update({
       where: {
@@ -456,6 +675,22 @@ exports.updateCampaign = async (req, res) => {
               : null
             : undefined,
       },
+
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+
+        recipients: {
+          include: {
+            customer: true,
+          },
+        },
+      },
     });
 
     return res.status(200).json({
@@ -463,7 +698,9 @@ exports.updateCampaign = async (req, res) => {
       message: "Campaign updated successfully.",
       data: campaign,
     });
+
   } catch (error) {
+
     console.error("Update Campaign Error:", error);
 
     return res.status(500).json({
@@ -471,15 +708,28 @@ exports.updateCampaign = async (req, res) => {
       message: "Failed to update campaign.",
       error: error.message,
     });
+
   }
 };
 
-// =========================
+// =====================================================
 // DELETE CAMPAIGN
-// =========================
+// =====================================================
 exports.deleteCampaign = async (req, res) => {
   try {
-    const {id} = req.params;
+
+    const { id } = req.params;
+
+    const campaign = await prisma.campaign.findUnique({
+      where: { id },
+    });
+
+    if (!campaign) {
+      return res.status(404).json({
+        success: false,
+        message: "Campaign not found.",
+      });
+    }
 
     await prisma.campaign.delete({
       where: {
@@ -491,7 +741,9 @@ exports.deleteCampaign = async (req, res) => {
       success: true,
       message: "Campaign deleted successfully.",
     });
+
   } catch (error) {
+
     console.error("Delete Campaign Error:", error);
 
     return res.status(500).json({
@@ -499,14 +751,16 @@ exports.deleteCampaign = async (req, res) => {
       message: "Failed to delete campaign.",
       error: error.message,
     });
+
   }
 };
 
-// =========================
+// =====================================================
 // GENERATE AI CAMPAIGN
-// =========================
+// =====================================================
 exports.generateAICampaign = async (req, res) => {
   try {
+
     const { prompt } = req.body;
 
     if (!prompt || prompt.trim() === "") {
@@ -525,6 +779,7 @@ exports.generateAICampaign = async (req, res) => {
     });
 
   } catch (error) {
+
     console.error("Generate AI Campaign Error:", error);
 
     return res.status(500).json({
@@ -532,19 +787,16 @@ exports.generateAICampaign = async (req, res) => {
       message: "Failed to generate AI campaign.",
       error: error.message,
     });
+
   }
 };
-
-// =========================
+// =====================================================
 // SEND CAMPAIGN TO CUSTOMERS
-// =========================
+// =====================================================
 exports.sendCampaign = async (req, res) => {
   try {
     const { campaignId, customerIds } = req.body;
 
-    // =========================
-    // Validation
-    // =========================
     if (!campaignId) {
       return res.status(400).json({
         success: false,
@@ -559,9 +811,6 @@ exports.sendCampaign = async (req, res) => {
       });
     }
 
-    // =========================
-    // Find Campaign
-    // =========================
     const campaign = await prisma.campaign.findUnique({
       where: {
         id: campaignId,
@@ -577,94 +826,122 @@ exports.sendCampaign = async (req, res) => {
 
     let successCount = 0;
 
-    // =========================
-    // Send to each customer
-    // =========================
     for (const customerId of customerIds) {
 
-      // Find customer
+      // =============================
+      // Find Customer
+      // =============================
       const customer = await prisma.customer.findUnique({
         where: {
           id: customerId,
         },
       });
 
-      if (!customer) {
-        continue;
-      }
+      if (!customer) continue;
 
-      // =========================
-      // Find Conversation
-      // =========================
-      let conversation =
-        await prisma.conversation.findFirst({
+      // =============================
+      // Save Campaign Recipient
+      // =============================
+      const existingRecipient =
+        await prisma.campaignRecipient.findUnique({
           where: {
-            customerId: customer.id,
+            campaignId_customerId: {
+              campaignId,
+              customerId,
+            },
           },
         });
 
-      // =========================
-      // Create Conversation
-      // =========================
-      if (!conversation) {
+      if (!existingRecipient) {
+        await prisma.campaignRecipient.create({
+          data: {
+            campaignId,
+            customerId,
+          },
+        });
+      }
 
+      // =============================
+      // Find Conversation
+      // =============================
+      let conversation =
+        await prisma.conversation.findUnique({
+          where: {
+            customerId,
+          },
+        });
+
+      // =============================
+      // Create Conversation
+      // =============================
+      if (!conversation) {
         conversation =
           await prisma.conversation.create({
             data: {
-              customerId: customer.id,
+              customerId,
               status: "OPEN",
+              channel: "WHATSAPP",
               lastMessage: "",
               unreadCount: 0,
             },
           });
-
       }
 
-      // =========================
+      // =============================
       // Create Message
-      // =========================
+      // =============================
       await prisma.message.create({
         data: {
           conversationId: conversation.id,
-          sender: "ADMIN",
+          sender: "AGENT",
           content: campaign.messageContent,
+          messageType: "TEXT",
+          status: "SENT",
         },
       });
 
-      // =========================
+      // =============================
       // Update Conversation
-      // =========================
+      // =============================
       await prisma.conversation.update({
         where: {
           id: conversation.id,
         },
         data: {
           lastMessage: campaign.messageContent,
-          updatedAt: new Date(),
         },
       });
 
       successCount++;
     }
 
-    // =========================
-    // Update Campaign Status
-    // =========================
-    await prisma.campaign.update({
-  where: {
-    id: campaignId,
-  },
-  data: {
-    status: "COMPLETED",
-  },
-});
+    // =============================
+    // Audience Count
+    // =============================
+    const audienceCount =
+      await prisma.campaignRecipient.count({
+        where: {
+          campaignId,
+        },
+      });
 
-    // =========================
-    // Success
-    // =========================
+    // =============================
+    // Update Campaign
+    // =============================
+    await prisma.campaign.update({
+      where: {
+        id: campaignId,
+      },
+      data: {
+        status: "COMPLETED",
+        audienceCount,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       totalSent: successCount,
+      audienceCount,
       message: `${successCount} customer(s) received the campaign.`,
     });
 
@@ -675,6 +952,51 @@ exports.sendCampaign = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Failed to send campaign.",
+      error: error.message,
+    });
+
+  }
+};
+
+// =====================================================
+// GET CAMPAIGN RECIPIENTS
+// =====================================================
+exports.getCampaignRecipients = async (req, res) => {
+  try {
+
+    const { id } = req.params;
+
+    const recipients =
+      await prisma.campaignRecipient.findMany({
+
+        where: {
+          campaignId: id,
+        },
+
+        select: {
+          customerId: true,
+        },
+
+      });
+
+    return res.status(200).json({
+      success: true,
+      data: recipients.map(
+        (recipient) => recipient.customerId
+      ),
+    });
+
+  } catch (error) {
+
+    console.error(
+      "Get Campaign Recipients Error:",
+      error
+    );
+
+    return res.status(500).json({
+      success: false,
+      message:
+        "Failed to fetch campaign recipients.",
       error: error.message,
     });
 
