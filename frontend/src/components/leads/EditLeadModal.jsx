@@ -1,157 +1,3 @@
-// import { useState, useEffect } from "react";
-// import { X } from "lucide-react";
-// import useLeadStore from "../../store/leadStore";
-
-// export default function EditLeadModal({
-//   isOpen,
-//   onClose,
-//   lead,
-// }) {
-//   if (!isOpen) return null;
-
-//   const { editLead } = useLeadStore();
-
-//   const [formData, setFormData] = useState({
-//     name: "",
-//     email: "",
-//     phone: "",
-//     source: "",
-//     requirements: "",
-//     status: "NEW",
-//   });
-
-//   useEffect(() => {
-//     if (lead) {
-//       setFormData({
-//         name: lead.name || "",
-//         email: lead.email || "",
-//         phone: lead.phone || "",
-//         source: lead.source || "",
-//         requirements: lead.requirements || "",
-//         status: lead.status || "NEW",
-//       });
-//     }
-//   }, [lead]);
-
-//   if(!isOpen) return null;
-
-//   const handleChange = (e) => {
-//   setFormData({
-//     ...formData,
-//     [e.target.name]: e.target.value,
-//   });
-// };
-
-// const handleSubmit = async (e) => {
-//   e.preventDefault();
-
-//   try {
-//     await editLead(lead.id, formData);
-
-//     setFormData({
-//       name: "",
-//       email: "",
-//       phone: "",
-//       source: "",
-//       requirements: "",
-//       status: "NEW",
-//     });
-
-//     onClose();
-//   } catch (error) {
-//     console.error(error);
-//   }
-// };
-
-//   return (
-//     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      
-//       <div className="bg-white rounded-2xl w-full max-w-lg p-6">
-        
-//         <div className="flex justify-between items-center mb-6">
-//           <h2 className="text-2xl font-bold">
-//             Edit Lead
-//           </h2>
-
-//           <button onClick={onClose}>
-//             <X />
-//           </button>
-//         </div>
-
-//         <form onSubmit={handleSubmit} className="space-y-4">
-          
-//           <input
-//             name="name"
-//             value={formData.name}
-//             onChange={handleChange}
-//             type="text"
-//             placeholder="Name"
-//             className="w-full border rounded-xl p-3"
-//           />
-
-//           <input
-//             type="email"
-//             name="email"
-//             value={formData.email}
-//             onChange={handleChange}
-//             placeholder="Email"
-//             className="w-full border rounded-xl p-3"
-//           />
-
-//           <input
-//             type="text"
-//             name="phone"
-//             value={formData.phone}
-//             onChange={handleChange}
-//             placeholder="Phone"
-//             className="w-full border rounded-xl p-3"
-//           />
-
-//           <input
-//             type="text"
-//             name="source"
-//             value={formData.source}
-//             onChange={handleChange}
-//             placeholder="Source"
-//             className="w-full border rounded-xl p-3"
-//           />
-
-//           <textarea
-//             rows="4"
-//             name="requirements"
-//             value={formData.requirements}
-//             onChange={handleChange}
-//             placeholder="Requirements"
-//             className="w-full border rounded-xl p-3"
-//           />
-
-//           <div className="flex justify-end gap-3">
-            
-//             <button
-//               type="button"
-//               onClick={onClose}
-//               className="border px-4 py-2 rounded-xl"
-//             >
-//               Cancel
-//             </button>
-
-//             <button
-//               type="submit"
-//               className="bg-[#25D366] text-black px-4 py-2 rounded-xl font-semibold"
-//             >
-//               Update Lead
-//             </button>
-
-//           </div>
-
-//         </form>
-
-//       </div>
-
-//     </div>
-//   );
-// }
-
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import useLeadStore from "../../store/leadStore";
@@ -162,8 +8,6 @@ export default function EditLeadModal({
   onClose,
   lead,
 }) {
-  if (!isOpen) return null;
-
   const { editLead } = useLeadStore();
 
   const [formData, setFormData] = useState({
@@ -193,6 +37,8 @@ export default function EditLeadModal({
       setErrors({});
     }
   }, [lead]);
+
+  if (!isOpen) return null;
 
   const validateForm = () => {
     const newErrors = {};
@@ -397,7 +243,7 @@ export default function EditLeadModal({
                 Source <span className="text-red-500">*</span>
               </label>
 
-              <input
+              {/* <input
                 type="text"
                 name="source"
                 value={formData.source}
@@ -408,13 +254,50 @@ export default function EditLeadModal({
                     ? "border-red-500"
                     : "border-gray-300 focus:border-[#25D366]"
                 }`}
-              />
+              /> */}
+
+              <select
+                name="source"
+                value={formData.source}
+                onChange={handleChange}
+                className={`w-full rounded-lg border px-4 py-3 outline-none ${
+                  errors.source
+                    ? "border-red-500"
+                    : "border-gray-300 focus:border-[#25D366]"
+                }`}
+              >
+                <option value="">Select Source</option>
+                <option value="Website">Website</option>
+                <option value="WhatsApp">WhatsApp</option>
+                <option value="Facebook">Facebook</option>
+                <option value="Instagram">Instagram</option>
+                <option value="Referral">Referral</option>
+              </select>
               {errors.source && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.source}
                 </p>
               )}
             </div>
+
+            {/* Status */}
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Status <span className="text-red-500">*</span>
+                </label>
+
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#25D366]"
+                >
+                  <option value="NEW">New</option>
+                  <option value="CONTACTED">Contacted</option>
+                  <option value="QUALIFIED">Qualified</option>
+                  <option value="WON">Won</option>
+                </select>
+              </div>
 
             {/* Requirements */}
             <div>

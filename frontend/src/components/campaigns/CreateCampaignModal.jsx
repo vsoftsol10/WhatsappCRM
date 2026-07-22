@@ -8,14 +8,13 @@
 // export default function CreateCampaignModal({
 //   isOpen,
 //   onClose,
-//   aiCampaign, // ⭐ NEW ADDED PROP
+//   aiCampaign,
 // }) {
 //   const { addCampaign } = useCampaignStore();
 
 //   const [customers, setCustomers] = useState([]);
-
-//   const [selectedCustomers, setSelectedCustomers] =
-//     useState([]);
+//   const [selectedCustomers, setSelectedCustomers] = useState([]);
+//   const [loadingCustomers, setLoadingCustomers] = useState(false);
 
 //   const [formData, setFormData] = useState({
 //     name: "",
@@ -25,75 +24,122 @@
 //   });
 
 //   // =========================
-//   // FETCH CUSTOMERS
+//   // RESET MODAL
 //   // =========================
+
+//   const resetForm = () => {
+//     setFormData({
+//       name: "",
+//       type: "PROMOTIONAL",
+//       messageContent: "",
+//       scheduledAt: "",
+//     });
+
+//     setSelectedCustomers([]);
+//   };
+
+//   // =========================
+//   // LOAD WHEN MODAL OPENS
+//   // =========================
+
 //   useEffect(() => {
 //     if (!isOpen) return;
+
 //     fetchCustomers();
+
+//     if (!aiCampaign) {
+//       resetForm();
+//     }
 //   }, [isOpen]);
+
+//   // =========================
+//   // AUTO FILL FROM AI
+//   // =========================
+
+//   useEffect(() => {
+//     if (!aiCampaign) return;
+
+//     setFormData({
+//       name: aiCampaign.name || "",
+//       type: aiCampaign.type || "PROMOTIONAL",
+//       messageContent: aiCampaign.messageContent || "",
+//       scheduledAt: "",
+//     });
+//   }, [aiCampaign]);
+
+//     // =========================
+//   // FETCH CUSTOMERS
+//   // =========================
 
 //   const fetchCustomers = async () => {
 //     try {
+//       setLoadingCustomers(true);
+
 //       const response = await getCustomers();
+
 //       console.log("Customers Response:", response);
 
+//       let customerList = [];
+
 //       if (Array.isArray(response)) {
-//         setCustomers(response);
+//         customerList = response;
+//       } else if (Array.isArray(response.data)) {
+//         customerList = response.data;
 //       } else if (Array.isArray(response.customers)) {
-//         setCustomers(response.customers);
-//       } else {
-//         setCustomers([]);
+//         customerList = response.customers;
+//       } else if (Array.isArray(response.data?.customers)) {
+//         customerList = response.data.customers;
 //       }
+
+//       setCustomers(customerList);
 //     } catch (error) {
-//       console.log(error);
+//       console.error(error);
+//       toast.error("Failed to load customers.");
 //       setCustomers([]);
+//     } finally {
+//       setLoadingCustomers(false);
 //     }
 //   };
 
 //   // =========================
-//   // ⭐ AI AUTO FILL EFFECT
-//   // =========================
-//   useEffect(() => {
-//     if (aiCampaign) {
-//       setFormData((prev) => ({
-//         ...prev,
-//         name: aiCampaign.name || "",
-//         type: aiCampaign.type || "PROMOTIONAL",
-//         messageContent: aiCampaign.messageContent || "",
-//       }));
-//     }
-//   }, [aiCampaign]);
-
-//   if (!isOpen) return null;
-
-//   // =========================
 //   // HANDLE INPUT CHANGE
 //   // =========================
+
 //   const handleChange = (e) => {
+//     const { name, value } = e.target;
+
 //     setFormData((prev) => ({
 //       ...prev,
-//       [e.target.name]: e.target.value,
+//       [name]: value,
 //     }));
 //   };
 
 //   // =========================
 //   // TOGGLE CUSTOMER
 //   // =========================
+
 //   const toggleCustomer = (id) => {
-//     if (selectedCustomers.includes(id)) {
-//       setSelectedCustomers(
-//         selectedCustomers.filter((item) => item !== id)
-//       );
-//     } else {
-//       setSelectedCustomers([...selectedCustomers, id]);
-//     }
+//     setSelectedCustomers((prev) =>
+//       prev.includes(id)
+//         ? prev.filter((customerId) => customerId !== id)
+//         : [...prev, id]
+//     );
 //   };
 
 //   // =========================
 //   // SUBMIT CAMPAIGN
 //   // =========================
+
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
+
+//     if (!formData.name.trim()) {
+//       return toast.error("Campaign name is required.");
+//     }
+
+//     if (!formData.messageContent.trim()) {
+//       return toast.error("Campaign message is required.");
+//     }
 
 //     if (selectedCustomers.length === 0) {
 //       return toast.error(
@@ -107,106 +153,146 @@
 //         customerIds: selectedCustomers,
 //       });
 
-//       toast.success("Campaign Created");
+//       toast.success("Campaign created successfully.");
 
-//       // reset form
-//       setFormData({
-//         name: "",
-//         type: "PROMOTIONAL",
-//         messageContent: "",
-//         scheduledAt: "",
-//       });
-
-//       setSelectedCustomers([]);
+//       resetForm();
 
 //       onClose();
 //     } catch (error) {
-//       toast.error("Unable to create campaign");
+//       console.error(error);
+
+//       toast.error(
+//         error?.response?.data?.message ||
+//           "Unable to create campaign."
+//       );
 //     }
 //   };
 
-//   // =========================
+//   if (!isOpen) return null;
+
+//     // =========================
 //   // UI
 //   // =========================
+
 //   return (
-//     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
-//       <div className="flex min-h-screen items-center justify-center p-3 sm:p-4">
+//     <div className="fixed inset-0 z-50 bg-black/50 overflow-y-auto">
+//       <div className="flex min-h-screen items-center justify-center p-4">
+
 //         <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+
 //           {/* Header */}
-//           <div className="flex items-center justify-between gap-4 bg-[#25D366] px-5 py-4 sm:px-6 sm:py-5">
-//             <h2 className="break-words text-xl font-bold text-gray-800 sm:text-2xl">
-//               Create Campaign
-//             </h2>
+
+//           <div className="flex items-center justify-between bg-[#25D366] px-6 py-5">
+
+//             <div>
+
+//               <h2 className="text-2xl font-bold text-gray-800">
+//                 Create Campaign
+//               </h2>
+
+//               <p className="mt-1 text-sm text-gray-700">
+//                 Create and schedule a marketing campaign
+//               </p>
+
+//             </div>
 
 //             <button
 //               type="button"
 //               onClick={onClose}
-//               className="p-2 rounded-full hover:bg-[#128C7E] transition"
+//               className="rounded-full p-2 transition hover:bg-[#128C7E]"
 //             >
 //               <X size={22} />
 //             </button>
+
 //           </div>
+
+//           {/* Form */}
 
 //           <form
 //             onSubmit={handleSubmit}
-//             className="max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6"
+//             className="max-h-[75vh] space-y-5 overflow-y-auto p-6"
 //           >
-//             {/* Name */}
+
+//             {/* Campaign Name */}
+
 //             <div>
-//               <label className="block mb-2 font-medium text-gray-700">
-//                 Campaign Name <span className="text-red-500">*</span>
+
+//               <label className="mb-2 block font-medium text-gray-700">
+//                 Campaign Name
+//                 <span className="text-red-500"> *</span>
 //               </label>
 
 //               <input
 //                 type="text"
 //                 name="name"
-//                 placeholder="Enter campaign name"
 //                 value={formData.name}
 //                 onChange={handleChange}
+//                 placeholder="Enter campaign name"
 //                 required
-//                 className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-[#25D366]"
+//                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
 //               />
+
 //             </div>
 
-//             {/* Type */}
+//             {/* Campaign Type */}
+
 //             <div>
-//               <label className="block mb-2 font-medium text-gray-700">
-//                 Type <span className="text-red-500">*</span>
+
+//               <label className="mb-2 block font-medium text-gray-700">
+//                 Campaign Type
 //               </label>
 
 //               <select
 //                 name="type"
 //                 value={formData.type}
 //                 onChange={handleChange}
-//                 className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-[#25D366]"
+//                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
 //               >
-//                 <option value="PROMOTIONAL">Promotional</option>
-//                 <option value="BROADCAST">Broadcast</option>
-//                 <option value="FOLLOW_UP">Follow Up</option>
-//                 <option value="ANNOUNCEMENT">Announcement</option>
+//                 <option value="PROMOTIONAL">
+//                   Promotional
+//                 </option>
+
+//                 <option value="BROADCAST">
+//                   Broadcast
+//                 </option>
+
+//                 <option value="FOLLOW_UP">
+//                   Follow Up
+//                 </option>
+
+//                 <option value="ANNOUNCEMENT">
+//                   Announcement
+//                 </option>
+
 //               </select>
+
 //             </div>
 
 //             {/* Message */}
+
 //             <div>
-//               <label className="block mb-2 font-medium text-gray-700">
-//                 Message Content
+
+//               <label className="mb-2 block font-medium text-gray-700">
+//                 Campaign Message
 //               </label>
 
 //               <textarea
-//                 rows="5"
+//                 rows={5}
 //                 name="messageContent"
-//                 placeholder="Enter campaign message"
 //                 value={formData.messageContent}
 //                 onChange={handleChange}
-//                 className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-[#25D366] resize-none"
+//                 placeholder="Type your campaign message..."
+//                 className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
 //               />
+
 //             </div>
 
 //             {/* Schedule */}
+
 //             <div>
-//               <label className="block mb-2 font-medium text-gray-700">
-//                 Scheduled At
+
+//               <label className="mb-2 block font-medium text-gray-700">
+//                 Schedule Date & Time
 //               </label>
 
 //               <input
@@ -214,73 +300,121 @@
 //                 name="scheduledAt"
 //                 value={formData.scheduledAt}
 //                 onChange={handleChange}
-//                 className="w-full rounded-lg border px-4 py-3 outline-none border-gray-300 focus:border-[#25D366]"
+//                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
 //               />
-//             </div>
 
-//             {/* Customers */}
+//             </div>
+//                         {/* Customers */}
+
 //             <div>
-//               <label className="block mb-2 font-medium text-gray-700">
-//                 Select Customers <span className="text-red-500">*</span>
+
+//               <label className="mb-2 block font-medium text-gray-700">
+//                 Select Customers
+//                 <span className="text-red-500"> *</span>
 //               </label>
 
-//               <div className="border rounded-lg p-4 bg-gray-50 border-gray-300">
-//                 <div className="max-h-52 overflow-y-auto space-y-2">
-//                   {Array.isArray(customers) &&
-//                     customers.map((customer) => (
-//                       <label
-//                         key={customer.id}
-//                         className="flex items-center gap-3 cursor-pointer"
-//                       >
-//                         <input
-//                           type="checkbox"
-//                           checked={selectedCustomers.includes(
-//                             customer.id
-//                           )}
-//                           onChange={() =>
-//                             toggleCustomer(customer.id)
-//                           }
-//                           className="w-4 h-4 rounded text-[#25D366] focus:ring-[#25D366]"
-//                         />
+//               <div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
 
-//                         <span className="break-words text-gray-700">
-//                           {customer.name}
-//                         </span>
-//                       </label>
-//                     ))}
-//                 </div>
+//                 {loadingCustomers ? (
 
-//                 <p className="text-[#25D366] font-semibold mt-3 text-sm">
-//                   Selected: {selectedCustomers.length}
-//                 </p>
+//                   <div className="py-8 text-center text-gray-500">
+//                     Loading customers...
+//                   </div>
+
+//                 ) : customers.length === 0 ? (
+
+//                   <div className="py-8 text-center text-gray-500">
+//                     No customers found.
+//                   </div>
+
+//                 ) : (
+
+//                   <>
+//                     <div className="max-h-56 space-y-2 overflow-y-auto">
+
+//                       {customers.map((customer) => (
+
+//                         <label
+//                           key={customer.id}
+//                           className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-white"
+//                         >
+
+//                           <input
+//                             type="checkbox"
+//                             checked={selectedCustomers.includes(customer.id)}
+//                             onChange={() => toggleCustomer(customer.id)}
+//                             className="h-4 w-4 accent-[#25D366]"
+//                           />
+
+//                           <div>
+
+//                             <p className="font-medium text-gray-800">
+//                               {customer.name}
+//                             </p>
+
+//                             <p className="text-sm text-gray-500">
+//                               {customer.phone || "No Phone"}
+//                             </p>
+
+//                           </div>
+
+//                         </label>
+
+//                       ))}
+
+//                     </div>
+
+//                     <div className="mt-4 flex items-center justify-between border-t pt-3">
+
+//                       <span className="text-sm font-medium text-gray-600">
+//                         Selected Customers
+//                       </span>
+
+//                       <span className="rounded-full bg-[#DCF8C6] px-3 py-1 text-sm font-semibold text-[#128C7E]">
+//                         {selectedCustomers.length}
+//                       </span>
+
+//                     </div>
+//                   </>
+
+//                 )}
+
 //               </div>
+
 //             </div>
 
-//             {/* Buttons */}
-//             <div className="mt-6 flex flex-col-reverse gap-3 border-t pt-4 sm:flex-row sm:justify-end">
+//             {/* Footer */}
+
+//             <div className="mt-6 flex justify-end gap-3 border-t pt-5">
+
 //               <button
 //                 type="button"
 //                 onClick={onClose}
-//                 className="crm-secondary-button"
+//                 className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 transition hover:bg-gray-100"
 //               >
 //                 Cancel
 //               </button>
 
 //               <button
 //                 type="submit"
-//                 className="crm-primary-button"
+//                 className="rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-gray-800 transition hover:bg-[#128C7E]"
 //               >
 //                 Create Campaign
 //               </button>
+
 //             </div>
+
 //           </form>
+
 //         </div>
+
 //       </div>
+
 //     </div>
 //   );
 // }
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -292,12 +426,18 @@ export default function CreateCampaignModal({
   onClose,
   aiCampaign,
 }) {
-  const { addCampaign } = useCampaignStore();
+  const {
+  addCampaign,
+  sendCampaign,
+} = useCampaignStore();
 
   const [customers, setCustomers] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [image, setImage] = useState(null);
+const [imagePreview, setImagePreview] = useState("");
 
+const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: "",
     type: "PROMOTIONAL",
@@ -309,16 +449,23 @@ export default function CreateCampaignModal({
   // RESET MODAL
   // =========================
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      type: "PROMOTIONAL",
-      messageContent: "",
-      scheduledAt: "",
-    });
+const resetForm = () => {
+  setFormData({
+    name: "",
+    type: "PROMOTIONAL",
+    messageContent: "",
+    scheduledAt: "",
+  });
 
-    setSelectedCustomers([]);
-  };
+  setSelectedCustomers([]);
+
+  setImage(null);
+  setImagePreview("");
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
 
   // =========================
   // LOAD WHEN MODAL OPENS
@@ -396,6 +543,37 @@ export default function CreateCampaignModal({
     }));
   };
 
+
+  // =========================
+// IMAGE UPLOAD
+// =========================
+
+const handleImageChange = (e) => {
+  const file = e.target.files[0];
+
+  if (!file) return;
+
+  if (!file.type.startsWith("image/")) {
+    return toast.error("Please select an image.");
+  }
+
+  if (file.size > 5 * 1024 * 1024) {
+    return toast.error("Maximum image size is 5MB.");
+  }
+
+  setImage(file);
+  setImagePreview(URL.createObjectURL(file));
+};
+
+const removeImage = () => {
+  setImage(null);
+  setImagePreview("");
+
+  if (fileInputRef.current) {
+    fileInputRef.current.value = "";
+  }
+};
+
   // =========================
   // TOGGLE CUSTOMER
   // =========================
@@ -430,16 +608,24 @@ export default function CreateCampaignModal({
     }
 
     try {
-      await addCampaign({
-        ...formData,
-        customerIds: selectedCustomers,
-      });
+   const campaign = await addCampaign({
+  ...formData,
+  customerIds: selectedCustomers,
+  image,
+});
 
-      toast.success("Campaign created successfully.");
+console.log("Campaign:", campaign);
 
-      resetForm();
+await sendCampaign(
+  campaign.id,
+  selectedCustomers
+);
 
-      onClose();
+toast.success("Campaign sent successfully.");
+
+resetForm();
+
+onClose();
     } catch (error) {
       console.error(error);
 
@@ -456,218 +642,313 @@ export default function CreateCampaignModal({
   // UI
   // =========================
 
-  return (
-    <div className="fixed inset-0 z-50 bg-black/50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
+return (
+  <div className="fixed inset-0 z-50 bg-black/50 overflow-y-auto">
+    <div className="flex min-h-screen items-center justify-center p-4">
 
-        <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
+      <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white shadow-2xl">
 
-          {/* Header */}
+        {/* Header */}
 
-          <div className="flex items-center justify-between bg-[#25D366] px-6 py-5">
+        <div className="flex items-center justify-between bg-[#25D366] px-6 py-5">
 
-            <div>
+          <div>
 
-              <h2 className="text-2xl font-bold text-gray-800">
-                Create Campaign
-              </h2>
+            <h2 className="text-2xl font-bold text-gray-800">
+              Create Campaign
+            </h2>
 
-              <p className="mt-1 text-sm text-gray-700">
-                Create and schedule a marketing campaign
-              </p>
-
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full p-2 transition hover:bg-[#128C7E]"
-            >
-              <X size={22} />
-            </button>
+            <p className="mt-1 text-sm text-gray-700">
+              Create and schedule a marketing campaign
+            </p>
 
           </div>
 
-          {/* Form */}
-
-          <form
-            onSubmit={handleSubmit}
-            className="max-h-[75vh] space-y-5 overflow-y-auto p-6"
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 transition hover:bg-[#128C7E]"
           >
+            <X size={22} />
+          </button>
 
-            {/* Campaign Name */}
+        </div>
 
-            <div>
+        {/* Form */}
 
-              <label className="mb-2 block font-medium text-gray-700">
-                Campaign Name
-                <span className="text-red-500"> *</span>
-              </label>
+        <form
+          onSubmit={handleSubmit}
+          className="max-h-[75vh] space-y-5 overflow-y-auto p-6"
+        >
 
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                placeholder="Enter campaign name"
-                required
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
-              />
+          {/* Campaign Name */}
 
-            </div>
+          <div>
 
-            {/* Campaign Type */}
+            <label className="mb-2 block font-medium text-gray-700">
+              Campaign Name
+              <span className="text-red-500"> *</span>
+            </label>
 
-            <div>
+            <input
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Enter campaign name"
+              required
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+            />
 
-              <label className="mb-2 block font-medium text-gray-700">
-                Campaign Type
-              </label>
+          </div>
 
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+          {/* Campaign Type */}
+
+          <div>
+
+            <label className="mb-2 block font-medium text-gray-700">
+              Campaign Type
+            </label>
+
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+            >
+              <option value="PROMOTIONAL">
+                Promotional
+              </option>
+
+              <option value="BROADCAST">
+                Broadcast
+              </option>
+
+              <option value="FOLLOW_UP">
+                Follow Up
+              </option>
+
+              <option value="ANNOUNCEMENT">
+                Announcement
+              </option>
+
+            </select>
+
+          </div>
+
+          {/* Message */}
+
+          <div>
+
+            <label className="mb-2 block font-medium text-gray-700">
+              Campaign Message
+            </label>
+
+            <textarea
+              rows={5}
+              name="messageContent"
+              value={formData.messageContent}
+              onChange={handleChange}
+              placeholder="Type your campaign message..."
+              className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+            />
+
+          </div>
+
+          {/* Schedule */}
+
+          <div>
+
+            <label className="mb-2 block font-medium text-gray-700">
+              Schedule Date & Time
+            </label>
+
+            <input
+              type="datetime-local"
+              name="scheduledAt"
+              value={formData.scheduledAt}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+            />
+
+          </div>
+
+          {/* Campaign Image */}
+
+          <div>
+
+            <label className="mb-2 block font-medium text-gray-700">
+              Campaign Image
+            </label>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+
+            {!imagePreview ? (
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current.click()}
+                className="flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#25D366] bg-green-50 p-8 transition hover:bg-green-100"
               >
-                <option value="PROMOTIONAL">
-                  Promotional
-                </option>
 
-                <option value="BROADCAST">
-                  Broadcast
-                </option>
+                <div className="text-6xl">🖼️</div>
 
-                <option value="FOLLOW_UP">
-                  Follow Up
-                </option>
+                <h3 className="mt-4 text-lg font-semibold text-gray-800">
+                  Upload Campaign Image
+                </h3>
 
-                <option value="ANNOUNCEMENT">
-                  Announcement
-                </option>
+                <p className="mt-2 text-sm text-gray-500">
+                  JPG, PNG or WEBP
+                </p>
 
-              </select>
+                <p className="text-xs text-gray-400">
+                  Maximum size: 5 MB
+                </p>
 
-            </div>
+              </button>
 
-            {/* Message */}
+            ) : (
 
-            <div>
+              <div className="rounded-xl border border-gray-300 p-4">
 
-              <label className="mb-2 block font-medium text-gray-700">
-                Campaign Message
-              </label>
+                <img
+                  src={imagePreview}
+                  alt="Campaign Preview"
+                  className="max-h-72 w-full rounded-lg object-contain"
+                />
 
-              <textarea
-                rows={5}
-                name="messageContent"
-                value={formData.messageContent}
-                onChange={handleChange}
-                placeholder="Type your campaign message..."
-                className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
-              />
+                <div className="mt-4 flex gap-3">
 
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current.click()}
+                    className="rounded-lg bg-[#25D366] px-5 py-2 font-semibold text-white hover:bg-[#128C7E]"
+                  >
+                    Change Image
+                  </button>
 
-            {/* Schedule */}
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="rounded-lg bg-red-500 px-5 py-2 font-semibold text-white hover:bg-red-600"
+                  >
+                    Remove Image
+                  </button>
 
-            <div>
-
-              <label className="mb-2 block font-medium text-gray-700">
-                Schedule Date & Time
-              </label>
-
-              <input
-                type="datetime-local"
-                name="scheduledAt"
-                value={formData.scheduledAt}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
-              />
-
-            </div>
-                        {/* Customers */}
-
-            <div>
-
-              <label className="mb-2 block font-medium text-gray-700">
-                Select Customers
-                <span className="text-red-500"> *</span>
-              </label>
-
-              <div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
-
-                {loadingCustomers ? (
-
-                  <div className="py-8 text-center text-gray-500">
-                    Loading customers...
-                  </div>
-
-                ) : customers.length === 0 ? (
-
-                  <div className="py-8 text-center text-gray-500">
-                    No customers found.
-                  </div>
-
-                ) : (
-
-                  <>
-                    <div className="max-h-56 space-y-2 overflow-y-auto">
-
-                      {customers.map((customer) => (
-
-                        <label
-                          key={customer.id}
-                          className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-white"
-                        >
-
-                          <input
-                            type="checkbox"
-                            checked={selectedCustomers.includes(customer.id)}
-                            onChange={() => toggleCustomer(customer.id)}
-                            className="h-4 w-4 accent-[#25D366]"
-                          />
-
-                          <div>
-
-                            <p className="font-medium text-gray-800">
-                              {customer.name}
-                            </p>
-
-                            <p className="text-sm text-gray-500">
-                              {customer.phone || "No Phone"}
-                            </p>
-
-                          </div>
-
-                        </label>
-
-                      ))}
-
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between border-t pt-3">
-
-                      <span className="text-sm font-medium text-gray-600">
-                        Selected Customers
-                      </span>
-
-                      <span className="rounded-full bg-[#DCF8C6] px-3 py-1 text-sm font-semibold text-[#128C7E]">
-                        {selectedCustomers.length}
-                      </span>
-
-                    </div>
-                  </>
-
-                )}
+                </div>
 
               </div>
 
+            )}
+
+          </div>
+
+                    {/* Customers */}
+
+          <div>
+
+            <label className="mb-2 block font-medium text-gray-700">
+              Select Customers
+              <span className="text-red-500"> *</span>
+            </label>
+
+            <div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
+
+              {loadingCustomers ? (
+
+                <div className="py-8 text-center text-gray-500">
+                  Loading customers...
+                </div>
+
+              ) : customers.length === 0 ? (
+
+                <div className="py-8 text-center text-gray-500">
+                  No customers found.
+                </div>
+
+              ) : (
+
+                <>
+
+                  <div className="max-h-56 space-y-2 overflow-y-auto">
+
+                    {customers.map((customer) => (
+
+                      <label
+                        key={customer.id}
+                        className="flex cursor-pointer items-center gap-3 rounded-lg p-2 transition hover:bg-white"
+                      >
+
+                        <input
+                          type="checkbox"
+                          checked={selectedCustomers.includes(customer.id)}
+                          onChange={() => toggleCustomer(customer.id)}
+                          className="h-4 w-4 accent-[#25D366]"
+                        />
+
+                        <div className="flex-1">
+
+                          <p className="font-medium text-gray-800">
+                            {customer.name}
+                          </p>
+
+                          <p className="text-sm text-gray-500">
+                            {customer.phone || "No Phone"}
+                          </p>
+
+                        </div>
+
+                      </label>
+
+                    ))}
+
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between border-t pt-3">
+
+                    <span className="text-sm font-medium text-gray-600">
+                      Selected Customers
+                    </span>
+
+                    <span className="rounded-full bg-[#DCF8C6] px-3 py-1 text-sm font-semibold text-[#128C7E]">
+                      {selectedCustomers.length}
+                    </span>
+
+                  </div>
+
+                </>
+
+              )}
+
             </div>
 
-            {/* Footer */}
+          </div>
 
-            <div className="mt-6 flex justify-end gap-3 border-t pt-5">
+          {/* Footer */}
+
+          <div className="mt-6 flex items-center justify-between border-t pt-5">
+
+            <div>
+
+              {image && (
+
+                <div className="rounded-lg bg-green-50 px-4 py-2 text-sm text-green-700">
+
+                  ✓ Image Selected
+
+                </div>
+
+              )}
+
+            </div>
+
+            <div className="flex gap-3">
 
               <button
                 type="button"
@@ -679,19 +960,21 @@ export default function CreateCampaignModal({
 
               <button
                 type="submit"
-                className="rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-gray-800 transition hover:bg-[#128C7E]"
+                className="rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white transition hover:bg-[#128C7E]"
               >
                 Create Campaign
               </button>
 
             </div>
 
-          </form>
+          </div>
 
-        </div>
+        </form>
 
       </div>
 
     </div>
-  );
+
+  </div>
+);
 }

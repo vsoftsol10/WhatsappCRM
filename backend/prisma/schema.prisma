@@ -81,6 +81,8 @@ model Customer {
 
   campaignRecipients CampaignRecipient[]
 
+  templateRecipients TemplateRecipient[]
+
   tickets Ticket[]
 
   deals Deal[]
@@ -113,6 +115,7 @@ model Message {
   conversation   Conversation @relation(fields: [conversationId], references: [id])
 
   content     String
+  imageUrl String?
   sender      String // CUSTOMER or AGENT
   messageType String @default("TEXT")
   status      String @default("SENT")
@@ -246,6 +249,8 @@ model Campaign {
 
   messageContent String
 
+  imageUrl String?
+
   status CampaignStatus @default(DRAFT)
 
   scheduledAt DateTime?
@@ -281,6 +286,32 @@ model CampaignRecipient {
   @@unique([campaignId, customerId])
 }
 
+model TemplateRecipient {
+  id String @id @default(uuid())
+
+  templateId String
+  template   Template @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  status RecipientStatus @default(PENDING)
+
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  readAt      DateTime?
+
+  metaMessageId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([templateId, customerId])
+
+  @@index([templateId])
+  @@index([customerId])
+}
+
 model Template {
   id String @id @default(uuid())
 
@@ -296,6 +327,8 @@ model Template {
 
   createdById String
   createdBy   User   @relation(fields: [createdById], references: [id])
+
+  recipients TemplateRecipient[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

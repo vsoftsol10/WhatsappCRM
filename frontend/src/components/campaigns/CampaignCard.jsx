@@ -1,12 +1,18 @@
 // import {
 //   Calendar,
 //   Users,
-//   Megaphone,
 //   Eye,
 //   Send,
 //   Edit,
 //   Trash2,
+//   MoreVertical,
 // } from "lucide-react";
+
+// import {
+//   useEffect,
+//   useRef,
+//   useState,
+// } from "react";
 
 // import { useNavigate } from "react-router-dom";
 
@@ -18,6 +24,33 @@
 //   onDelete,
 // }) {
 //   const navigate = useNavigate();
+
+//   const [showMenu, setShowMenu] = useState(false);
+
+//   const menuRef = useRef(null);
+
+//   useEffect(() => {
+//     function handleClickOutside(event) {
+//       if (
+//         menuRef.current &&
+//         !menuRef.current.contains(event.target)
+//       ) {
+//         setShowMenu(false);
+//       }
+//     }
+
+//     document.addEventListener(
+//       "mousedown",
+//       handleClickOutside
+//     );
+
+//     return () => {
+//       document.removeEventListener(
+//         "mousedown",
+//         handleClickOutside
+//       );
+//     };
+//   }, []);
 
 //   const getStatusColor = (status) => {
 //     switch (status) {
@@ -61,23 +94,21 @@
 //   };
 
 //   return (
-//     <div className="bg-white rounded-2xl shadow border hover:shadow-lg transition-all duration-300 p-5">
-
+//     <div className="bg-white rounded-2xl shadow hover:shadow-lg transition-all duration-300 p-5">
 //       {/* Header */}
 
 //       <div className="flex justify-between items-start">
-
 //         <div>
-
 //           <h2
-//             onClick={() => navigate(`/campaigns/${campaign.id}`)}
+//             onClick={() =>
+//               navigate(`/campaigns/${campaign.id}`)
+//             }
 //             className="text-lg font-semibold cursor-pointer hover:text-blue-600"
 //           >
 //             {campaign.name}
 //           </h2>
 
 //           <div className="flex gap-2 mt-3">
-
 //             <span
 //               className={`px-3 py-1 rounded-full text-xs font-medium ${getTypeColor(
 //                 campaign.type
@@ -93,117 +124,114 @@
 //             >
 //               {campaign.status}
 //             </span>
-
 //           </div>
-
 //         </div>
 
+//         {/* Three Dot Menu */}
+
+//         <div
+//           className="relative"
+//           ref={menuRef}
+//         >
+//           <button
+//             onClick={() =>
+//               setShowMenu(!showMenu)
+//             }
+//             className="p-2 rounded-lg hover:bg-gray-100 transition"
+//           >
+//             <MoreVertical size={20} />
+//           </button>
+
+//           {showMenu && (
+//             <div className="absolute right-0 mt-2 w-52 bg-white rounded-xl border border-gray-200 shadow-xl overflow-hidden z-50">
+//               <button
+//                 onClick={() => {
+//                   setShowMenu(false);
+//                   onView(campaign);
+//                 }}
+//                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition"
+//               >
+//                 <Eye size={18} />
+//                 View Campaign
+//               </button>
+
+//               <button
+//                 onClick={() => {
+//                   setShowMenu(false);
+//                   onSend(campaign);
+//                 }}
+//                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition"
+//               >
+//                 <Send size={18} />
+//                 Send Campaign
+//               </button>
+
+//               <button
+//                 onClick={() => {
+//                   setShowMenu(false);
+//                   onEdit(campaign);
+//                 }}
+//                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#DCF8C6] transition"
+//               >
+//                 <Edit size={18} />
+//                 Edit Campaign
+//               </button>
+
+//               <button
+//                 onClick={() => {
+//                   setShowMenu(false);
+//                   onDelete(campaign.id);
+//                 }}
+//                 className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition"
+//               >
+//                 <Trash2 size={18} />
+//                 Delete Campaign
+//               </button>
+//             </div>
+//           )}
+//         </div>
 //       </div>
 
-//       {/* Message Preview */}
+//       {/* Message */}
 
 //       <div className="mt-5">
-
 //         <p className="text-gray-600 line-clamp-3">
 //           {campaign.messageContent}
 //         </p>
-
 //       </div>
 
 //       {/* Audience */}
 
 //       <div className="flex items-center gap-2 mt-5">
-
-//         <Users size={16} className="text-gray-500" />
+//         <Users
+//           size={16}
+//           className="text-gray-500"
+//         />
 
 //         <span className="text-sm text-gray-700">
-//           Audience : {campaign.audienceCount || 0}
+//           Audience :{" "}
+//           {campaign.recipients?.length ||
+//             campaign.audienceCount ||
+//             0}
 //         </span>
-
 //       </div>
 
 //       {/* Schedule */}
 
 //       <div className="flex items-center gap-2 mt-3">
-
-//         <Calendar size={16} className="text-gray-500" />
+//         <Calendar
+//           size={16}
+//           className="text-gray-500"
+//         />
 
 //         <span className="text-sm text-gray-700">
-
 //           {campaign.scheduledAt
-//             ? new Date(campaign.scheduledAt).toLocaleString()
+//             ? new Date(
+//                 campaign.scheduledAt
+//               ).toLocaleString()
 //             : "Not Scheduled"}
-
 //         </span>
-
 //       </div>
-
-//       {/* Footer */}
-
-//       <div className="border-t mt-6 pt-5">
-
-//         <div className="flex items-center gap-2 mb-4">
-
-//           <Megaphone size={16} />
-
-//           <span className="text-sm font-medium">
-//             Campaign Actions
-//           </span>
-
-//         </div>
-
-//         {/* Action Buttons */}
-
-//         <div className="grid grid-cols-2 gap-3">
-
-//           {/* View */}
-
-//           <button
-//             onClick={() => onView(campaign)}
-//             className="flex items-center justify-center gap-2 border rounded-xl py-2 hover:bg-blue-50 hover:border-blue-400 transition"
-//           >
-//             <Eye size={18} />
-
-//             View
-//           </button>
-
-//           {/* Send */}
-
-//           <button
-//             onClick={() => onSend(campaign)}
-//             className="flex items-center justify-center gap-2 border rounded-xl py-2 hover:bg-blue-50 hover:border-blue-400 transition"
-//           >
-//             <Send size={18} />
-
-//             Send
-//           </button>
-
-//           {/* Edit */}
-
-//           <button
-//             onClick={() => onEdit(campaign)}
-//             className="flex items-center justify-center gap-2 border rounded-xl py-2 hover:bg-[#DCF8C6] hover:border-[#25D366] transition"
-//           >
-//             <Edit size={18} />
-
-//             Edit
-//           </button>
-
-//           {/* Delete */}
-
-//           <button
-//             onClick={() => onDelete(campaign.id)}
-//             className="flex items-center justify-center gap-2 border rounded-xl py-2 hover:bg-blue-50 hover:border-blue-400 transition"
-//           >
-//             <Trash2 size={18} />
-
-//             Delete
-//           </button>
-
-//         </div>
-
-//       </div>
-
 //     </div>
 //   );
 // }

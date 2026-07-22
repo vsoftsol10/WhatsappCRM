@@ -1,5 +1,6 @@
 const { GoogleGenAI } = require("@google/genai");
 const buildCampaignPrompt = require("../utils/promptBuilder");
+const buildTemplatePrompt = require("../utils/templatePromptBuilder");
 
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
@@ -29,6 +30,36 @@ const generateCampaign = async (userPrompt) => {
   }
 };
 
+const generateTemplate = async (
+  topic,
+  tone = "Professional"
+) => {
+  try {
+    const prompt = buildTemplatePrompt(
+      topic,
+      tone
+    );
+
+    const response =
+      await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
+
+    return response.text.trim();
+  } catch (error) {
+    console.error(
+      "Gemini Template Error:",
+      error
+    );
+
+    throw new Error(
+      "Failed to generate AI template."
+    );
+  }
+};
+
 module.exports = {
   generateCampaign,
+  generateTemplate,
 };

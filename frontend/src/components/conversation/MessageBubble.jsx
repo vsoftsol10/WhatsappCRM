@@ -24,27 +24,27 @@
 
 //   return (
 //     <div
-//       className={`flex mb-3 ${
+//       className={`mb-2 flex ${
 //         isSender ? "justify-end" : "justify-start"
 //       }`}
 //     >
 //       <div
-//         className={`max-w-[85%] rounded-xl px-4 py-2 shadow-sm sm:max-w-[70%] ${
+//         className={`max-w-[88%] rounded-2xl px-4 py-2 shadow-sm sm:max-w-[72%] ${
 //           isSender
-//             ? "bg-[#25D366] text-black rounded-br-none"
-//             : "bg-white text-gray-800 rounded-bl-none"
+//             ? "rounded-br-md bg-[#DCF8C6] text-[#111827]"
+//             : "rounded-bl-md bg-white text-gray-800"
 //         }`}
 //       >
-//         {/* Message Content */}
-//         <p className="break-words text-sm">
+//         {/* Message */}
+//         <p className="break-words text-sm leading-relaxed">
 //           {message.content}
 //         </p>
 
 //         {/* Time + Status */}
 //         <div
-//           className={`flex items-center gap-1 mt-1 text-xs ${
+//           className={`mt-1 flex items-center gap-1 text-[11px] ${
 //             isSender
-//               ? "justify-end text-gray-700"
+//               ? "justify-end text-[#6B7280]"
 //               : "justify-end text-gray-500"
 //           }`}
 //         >
@@ -101,10 +101,24 @@ function MessageBubble({ message }) {
             : "rounded-bl-md bg-white text-gray-800"
         }`}
       >
-        {/* Message */}
-        <p className="break-words text-sm leading-relaxed">
-          {message.content}
-        </p>
+        
+        {/* Campaign Image */}
+{message.imageUrl && (
+  <div className="mb-2 overflow-hidden rounded-xl border border-gray-200">
+    <img
+      src={message.imageUrl}
+      alt="Campaign"
+      className="w-full max-w-xs object-cover"
+    />
+  </div>
+)}
+
+{/* Message */}
+{message.content && (
+  <p className="break-words text-sm leading-relaxed">
+    {message.content}
+  </p>
+)}
 
         {/* Time + Status */}
         <div

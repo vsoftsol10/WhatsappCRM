@@ -86,6 +86,17 @@
 //   return response.data;
 // };
 
+// // ===============================
+// // GET CAMPAIGN RECIPIENTS
+// // ===============================
+// export const getCampaignRecipients = async (campaignId) => {
+//   const response = await apiClient.get(
+//     `/api/campaigns/${campaignId}/recipients`
+//   );
+
+//   return response.data;
+// };
+
 import apiClient from "./apiClient";
 
 // ===============================
@@ -108,9 +119,34 @@ export const getCampaignById = async (id) => {
 // CREATE CAMPAIGN
 // ===============================
 export const createCampaign = async (campaignData) => {
+  const formData = new FormData();
+
+  formData.append("name", campaignData.name);
+  formData.append("type", campaignData.type);
+  formData.append("messageContent", campaignData.messageContent);
+
+  if (campaignData.scheduledAt) {
+    formData.append("scheduledAt", campaignData.scheduledAt);
+  }
+
+  // Customer IDs
+  campaignData.customerIds.forEach((id) => {
+    formData.append("customerIds", id);
+  });
+
+  // Image
+  if (campaignData.image) {
+    formData.append("image", campaignData.image);
+  }
+
   const response = await apiClient.post(
     "/api/campaigns",
-    campaignData
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
 
   return response.data;
@@ -145,6 +181,9 @@ export const deleteCampaign = async (id) => {
 // ===============================
 // GENERATE AI CAMPAIGN
 // ===============================
+// ===============================
+// GENERATE AI CAMPAIGN
+// ===============================
 export const generateAICampaign = async (prompt) => {
   const response = await apiClient.post(
     "/api/campaigns/generate-ai",
@@ -163,6 +202,11 @@ export const sendCampaign = async (
   campaignId,
   customerIds
 ) => {
+
+  console.log("Sending Campaign...");
+  console.log("Campaign:", campaignId);
+  console.log("Customers:", customerIds);
+
   const response = await apiClient.post(
     "/api/campaigns/send",
     {
@@ -170,6 +214,8 @@ export const sendCampaign = async (
       customerIds,
     }
   );
+
+  console.log(response.data);
 
   return response.data;
 };

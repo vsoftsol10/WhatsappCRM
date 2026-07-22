@@ -12,12 +12,17 @@
 //   deleteCampaign,
 //   generateAICampaign,
 //   sendCampaign,
+//   getCampaignRecipients,
 // } = require("../controllers/campaignController");
 
 // // =====================================
 // // CREATE CAMPAIGN
 // // =====================================
-// router.post("/", authMiddleware, createCampaign);
+// router.post(
+//   "/",
+//   authMiddleware,
+//   createCampaign
+// );
 
 // // =====================================
 // // GENERATE AI CAMPAIGN
@@ -29,7 +34,7 @@
 // );
 
 // // =====================================
-// // SEND CAMPAIGN TO CUSTOMERS
+// // SEND CAMPAIGN
 // // =====================================
 // router.post(
 //   "/send",
@@ -40,22 +45,48 @@
 // // =====================================
 // // GET ALL CAMPAIGNS
 // // =====================================
-// router.get("/", authMiddleware, getCampaigns);
+// router.get(
+//   "/",
+//   authMiddleware,
+//   getCampaigns
+// );
+
+// // =====================================
+// // GET CAMPAIGN RECIPIENTS
+// // IMPORTANT: Keep this ABOVE "/:id"
+// // =====================================
+// router.get(
+//   "/:id/recipients",
+//   authMiddleware,
+//   getCampaignRecipients
+// );
 
 // // =====================================
 // // GET SINGLE CAMPAIGN
 // // =====================================
-// router.get("/:id", authMiddleware, getCampaignById);
+// router.get(
+//   "/:id",
+//   authMiddleware,
+//   getCampaignById
+// );
 
 // // =====================================
 // // UPDATE CAMPAIGN
 // // =====================================
-// router.put("/:id", authMiddleware, updateCampaign);
+// router.put(
+//   "/:id",
+//   authMiddleware,
+//   updateCampaign
+// );
 
 // // =====================================
 // // DELETE CAMPAIGN
 // // =====================================
-// router.delete("/:id", authMiddleware, deleteCampaign);
+// router.delete(
+//   "/:id",
+//   authMiddleware,
+//   deleteCampaign
+// );
 
 // module.exports = router;
 
@@ -64,6 +95,7 @@ const express = require("express");
 const router = express.Router();
 
 const authMiddleware = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 const {
   createCampaign,
@@ -82,6 +114,7 @@ const {
 router.post(
   "/",
   authMiddleware,
+  upload.single("image"),
   createCampaign
 );
 

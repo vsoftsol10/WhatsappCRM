@@ -75,11 +75,11 @@ export default function LeadTable({
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
 
     return () => {
       document.removeEventListener(
-        "mousedown",
+        "click",
         handleClickOutside
       );
     };
@@ -193,7 +193,7 @@ export default function LeadTable({
 
               {/* Actions */}
               <td className="crm-td">
-                <div ref={menuRef} className="relative flex justify-center">
+                <div ref={menuRef} onClick={(e) => e.stopPropagation()} className="relative flex justify-center">
                   <button
                     onClick={() =>
                       setOpenMenu(
@@ -215,6 +215,7 @@ export default function LeadTable({
   >
     <button
       onClick={() => {
+        console.log("Edit clicked", lead.id);
         onEdit(lead);
         setOpenMenu(null);
       }}
@@ -226,6 +227,7 @@ export default function LeadTable({
 
     <button
       onClick={() => {
+        console.log("Delete clicked", lead.id);
         onDelete(lead.id);
         setOpenMenu(null);
       }}
@@ -240,6 +242,7 @@ export default function LeadTable({
     {!lead.isConverted && lead.status === "NEW" && (
       <button
         onClick={() => {
+          console.log("Contacted clicked", lead.id);
           onStatusChange(lead.id, "CONTACTED");
           setOpenMenu(null);
         }}
@@ -253,6 +256,7 @@ export default function LeadTable({
     {!lead.isConverted && lead.status === "CONTACTED" && (
       <button
         onClick={() => {
+          console.log("Qualified clicked", lead.id);
           onStatusChange(lead.id, "QUALIFIED");
           setOpenMenu(null);
         }}
@@ -279,6 +283,7 @@ export default function LeadTable({
     {lead.status === "WON" && !lead.isConverted && (
       <button
         onClick={() => {
+          console.log("Convert clicked", lead.id);
           console.log("Table Convert", lead.id);
           onConvert(lead.id);
           setOpenMenu(null);
