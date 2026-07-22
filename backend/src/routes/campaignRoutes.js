@@ -170,6 +170,7 @@ router.get(
 router.put(
   "/:id",
   authMiddleware,
+  upload.single("image"),
   updateCampaign
 );
 

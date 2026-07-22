@@ -664,11 +664,11 @@ console.log("Is Array:", Array.isArray(customerIds));
       },
     });
 
-    await notifyAdmins({
-      title: "New Campaign",
-      message: `${campaign.name} has been created.`,
-      type: "CAMPAIGN",
-    });
+    notifyAdmins({
+  title: "New Campaign",
+  message: `${campaign.name} has been created.`,
+  type: "CAMPAIGN",
+}).catch(console.error);
 
     return res.status(201).json({
       success: true,
@@ -813,6 +813,7 @@ exports.updateCampaign = async (req, res) => {
       scheduledAt,
     } = req.body;
 
+    // Find campaign
     const existingCampaign = await prisma.campaign.findUnique({
       where: { id },
     });
@@ -822,6 +823,14 @@ exports.updateCampaign = async (req, res) => {
         success: false,
         message: "Campaign not found.",
       });
+    }
+
+    // Keep old image
+    let imageUrl = existingCampaign.imageUrl;
+
+    // Upload new image if selected
+    if (req.file) {
+      imageUrl = await uploadCampaignImage(req.file);
     }
 
     const campaign = await prisma.campaign.update({
@@ -834,6 +843,8 @@ exports.updateCampaign = async (req, res) => {
         ...(type && { type }),
         ...(messageContent && { messageContent }),
         ...(status && { status }),
+
+        imageUrl,
 
         scheduledAt:
           scheduledAt !== undefined

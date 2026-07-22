@@ -536,6 +536,26 @@ const fetchSentCustomers = async () => {
   };
 
   // ===========================
+// SELECT ALL
+// ===========================
+const handleSelectAll = () => {
+  const availableCustomers = filteredCustomers
+    .filter(
+      (customer) => !sentCustomers.includes(customer.id)
+    )
+    .map((customer) => customer.id);
+
+  setSelectedCustomers(availableCustomers);
+};
+
+// ===========================
+// CLEAR ALL
+// ===========================
+const handleClearAll = () => {
+  setSelectedCustomers([]);
+};
+
+  // ===========================
   // SEND CAMPAIGN
   // ===========================
   const handleSend = async () => {
@@ -618,19 +638,39 @@ const fetchSentCustomers = async () => {
 
         {/* Search */}
 
-        <div className="p-5">
+{/* Search */}
 
-          <input
-            type="text"
-            placeholder="Search customer..."
-            value={search}
-            onChange={(e) =>
-              setSearch(e.target.value)
-            }
-            className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-green-500 outline-none"
-          />
+<div className="p-5 space-y-3">
 
-        </div>
+  <input
+    type="text"
+    placeholder="Search customer..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-green-500 outline-none"
+  />
+
+  <div className="flex gap-3">
+
+    <button
+      type="button"
+      onClick={handleSelectAll}
+      className="px-4 py-2 rounded-lg bg-green-600 text-white hover:bg-green-700"
+    >
+      Select All
+    </button>
+
+    <button
+      type="button"
+      onClick={handleClearAll}
+      className="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100"
+    >
+      Clear All
+    </button>
+
+  </div>
+
+</div>
                 {/* Customer List */}
 
         <div className="flex-1 overflow-y-auto px-5">

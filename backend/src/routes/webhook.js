@@ -22,11 +22,12 @@ router.get("/", (req, res) => {
 });
 
 router.post("/", (req, res) => {
-
-    console.log(req.body);
+    console.log("====================================");
+    console.log("WHATSAPP WEBHOOK RECEIVED");
+    console.log(JSON.stringify(req.body, null, 2));
+    console.log("====================================");
 
     res.sendStatus(200);
-
 });
 
 module.exports = router;

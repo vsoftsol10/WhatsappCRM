@@ -159,9 +159,38 @@ export const updateCampaign = async (
   id,
   campaignData
 ) => {
+  const formData = new FormData();
+
+  formData.append("name", campaignData.name);
+  formData.append("type", campaignData.type);
+  formData.append(
+    "messageContent",
+    campaignData.messageContent
+  );
+
+  if (campaignData.scheduledAt) {
+    formData.append(
+      "scheduledAt",
+      campaignData.scheduledAt
+    );
+  }
+
+  if (campaignData.image) {
+    formData.append(
+      "image",
+      campaignData.image
+    );
+  }
+
   const response = await apiClient.put(
     `/api/campaigns/${id}`,
-    campaignData
+    formData,
+    {
+      headers: {
+        "Content-Type":
+          "multipart/form-data",
+      },
+    }
   );
 
   return response.data;
