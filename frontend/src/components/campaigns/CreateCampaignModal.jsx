@@ -587,6 +587,24 @@ const removeImage = () => {
   };
 
   // =========================
+  // SELECT ALL CUSTOMERS
+  // =========================
+  const handleSelectAll = () => {
+    const allCustomerIds = customers.map(
+      (customer) => customer.id
+    );
+
+    setSelectedCustomers(allCustomerIds);
+  };
+
+  // =========================
+  // CLEAR ALL CUSTOMERS
+  // =========================
+  const handleClearAll = () => {
+    setSelectedCustomers([]);
+  };
+
+  // =========================
   // SUBMIT CAMPAIGN
   // =========================
 
@@ -853,10 +871,34 @@ return (
 
           <div>
 
-            <label className="mb-2 block font-medium text-gray-700">
-              Select Customers
-              <span className="text-red-500"> *</span>
-            </label>
+            <div className="mb-2 flex items-center justify-between">
+
+              <label className="font-medium text-gray-700">
+                Select Customers
+                <span className="text-red-500"> *</span>
+              </label>
+
+              <div className="flex gap-2">
+
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  className="rounded-md bg-green-600 px-3 py-1 text-sm font-medium text-white hover:bg-green-700"
+                >
+                  Select All
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  className="rounded-md border border-gray-300 px-3 py-1 text-sm font-medium hover:bg-gray-100"
+                >
+                  Clear All
+                </button>
+
+              </div>
+
+            </div>
 
             <div className="rounded-lg border border-gray-300 bg-gray-50 p-4">
 
