@@ -1,83 +1,3 @@
-// import {
-//   FaCheck,
-//   FaCheckDouble,
-// } from "react-icons/fa";
-
-// function ConversationCard({
-//   conversation,
-//   isSelected,
-//   onSelect,
-// }) {
-//   // Prevent rendering if conversation is undefined
-//   if (!conversation) return null;
-
-//   const getStatusIcon = () => {
-//     switch (conversation?.messageStatus) {
-//       case "READ":
-//         return (
-//           <FaCheckDouble className="text-blue-500 text-xs" />
-//         );
-
-//       case "DELIVERED":
-//         return (
-//           <FaCheckDouble className="text-gray-400 text-xs" />
-//         );
-
-//       default:
-//         return (
-//           <FaCheck className="text-gray-400 text-xs" />
-//         );
-//     }
-//   };
-
-//   return (
-//     <div
-//       onClick={() => onSelect(conversation)}
-//       className={`flex items-center gap-3 p-3 cursor-pointer border-b border-gray-200 transition hover:bg-gray-100 ${
-//         isSelected ? "bg-[#DCF8C6]" : ""
-//       }`}
-//     >
-//       {/* Avatar */}
-//       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-lg font-semibold text-black">
-//         {conversation.customer?.name?.charAt(0)}
-//       </div>
-
-//       {/* Content */}
-//       <div className="flex-1 min-w-0">
-//         <div className="flex items-center justify-between gap-2">
-//           <h3 className="font-semibold text-gray-800 truncate">
-//             {conversation.customer?.name}
-//           </h3>
-
-//           <span className="shrink-0 text-xs text-gray-500">
-//             {new Date(conversation.updatedAt).toLocaleTimeString([], {
-//               hour: "2-digit",
-//               minute: "2-digit",
-//             })}
-//           </span>
-//         </div>
-
-//         <div className="mt-1 flex min-w-0 items-center gap-1">
-//           {getStatusIcon()}
-
-//           <p className="text-sm text-gray-500 truncate">
-//             {conversation.lastMessage}
-//           </p>
-//         </div>
-//       </div>
-
-//       {conversation.unreadCount > 0 && (
-//         <div className="flex h-6 min-w-6 items-center justify-center rounded-full bg-[#25D366] px-2 text-xs font-medium text-black">
-//           {conversation.unreadCount}
-//         </div>
-//       )}
-//     </div>
-//   );
-// }
-
-// export default ConversationCard;
-
-
 import {
   FaCheck,
   FaCheckDouble,
@@ -122,14 +42,18 @@ function ConversationCard({
     >
       {/* Avatar */}
       <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#25D366] text-lg font-semibold text-white">
-        {conversation.customer?.name?.charAt(0)}
+        {(
+          conversation.customer?.name ||
+          conversation.phone ||
+          "?"
+        ).charAt(0)}
       </div>
 
       {/* Content */}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <h3 className="truncate font-semibold text-gray-900">
-            {conversation.customer?.name}
+            {conversation.customer?.name || conversation.phone}
           </h3>
 
           <span className="shrink-0 text-xs text-gray-500">

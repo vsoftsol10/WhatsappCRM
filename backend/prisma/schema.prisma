@@ -94,8 +94,10 @@ model Customer {
 model Conversation {
   id String @id @default(uuid())
 
-  customerId String   @unique
-  customer   Customer @relation(fields: [customerId], references: [id])
+  phone String? @unique
+
+  customerId String?   @unique
+  customer   Customer? @relation(fields: [customerId], references: [id])
 
   status      String  @default("OPEN")
   channel     String  @default("WHATSAPP")
@@ -181,6 +183,11 @@ enum TemplateCategory {
   SALES
   UTILITY
   AUTHENTICATION
+}
+
+enum TemplatePurpose {
+  WELCOME
+  CUSTOM
 }
 
 enum MessageType {
@@ -329,6 +336,10 @@ model Template {
   createdBy   User   @relation(fields: [createdById], references: [id])
 
   recipients TemplateRecipient[]
+
+  purpose TemplatePurpose @default(CUSTOM)
+
+  autoSend Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

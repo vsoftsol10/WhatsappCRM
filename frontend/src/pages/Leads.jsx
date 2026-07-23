@@ -108,14 +108,23 @@ export default function Lead() {
 
   const filteredLeads = useMemo(() => {
     if (selectedStatus === "ALL") {
-      return searchedLeads;
+      return searchedLeads.filter(
+        (lead) => !lead.isConverted
+      );
+    }
+
+    if (selectedStatus === "CONVERTED") {
+      return searchedLeads.filter(
+        (lead) => lead.isConverted
+      );
     }
 
     return searchedLeads.filter(
-      (lead) => lead.status === selectedStatus
+      (lead) =>
+        lead.status === selectedStatus &&
+        !lead.isConverted
     );
   }, [searchedLeads, selectedStatus]);
-
       // =========================
     // PAGINATION
     // =========================

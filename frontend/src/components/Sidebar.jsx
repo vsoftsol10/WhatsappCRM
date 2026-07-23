@@ -176,7 +176,7 @@ export default function Sidebar({
       </div>
 
       {/* NAVIGATION */}
-      <div className="mt-6 flex-1 overflow-y-auto pr-1">
+      <div className="mt-6 flex-1 pr-1">
         <div className="space-y-5">
           {sections.map((section) => (
             <div

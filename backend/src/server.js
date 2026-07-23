@@ -40,7 +40,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/deals", dealRoutes);
 app.use("/api/deals", dealActivityRoutes);
-app.use("/webhook", webhookRoutes);
+app.use("/api/webhook", webhookRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 // Test route
