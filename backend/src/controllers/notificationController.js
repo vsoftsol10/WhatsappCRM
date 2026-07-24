@@ -9,7 +9,7 @@ exports.getNotifications = async (req, res) => {
   try {
     const notifications = await prisma.notification.findMany({
       where: {
-        userId: req.user.id,
+        userId: req.user.userId,
       },
       orderBy: {
         createdAt: "desc",
@@ -42,7 +42,7 @@ exports.markAsRead = async (req, res) => {
     const notification = await prisma.notification.findFirst({
       where: {
         id,
-        userId: req.user.id,
+        userId: req.user.userId,
       },
     });
 
@@ -85,7 +85,7 @@ exports.markAllAsRead = async (req, res) => {
   try {
     await prisma.notification.updateMany({
       where: {
-        userId: req.user.id,
+        userId: req.user.userId,
         isRead: false,
       },
       data: {
@@ -118,7 +118,7 @@ exports.deleteNotification = async (req, res) => {
     const notification = await prisma.notification.findFirst({
       where: {
         id,
-        userId: req.user.id,
+        userId: req.user.userId,
       },
     });
 
