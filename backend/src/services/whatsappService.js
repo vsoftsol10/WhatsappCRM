@@ -5,7 +5,7 @@ const GRAPH_API_VERSION = "v23.0";
 const sendTextMessage = async (to, message) => {
   try {
     const response = await axios.post(
-      `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.PHONE_NUMBER_ID}/messages`,
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
         messaging_product: "whatsapp",
         recipient_type: "individual",
