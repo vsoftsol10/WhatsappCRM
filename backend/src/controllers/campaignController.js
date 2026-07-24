@@ -1059,6 +1059,7 @@ exports.sendCampaign = async (req, res) => {
           await prisma.conversation.create({
             data: {
               customerId,
+              phone: customer.phone,
               status: "OPEN",
               channel: "WHATSAPP",
               lastMessage: "",

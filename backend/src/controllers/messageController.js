@@ -16,6 +16,9 @@ const sendMessage = async (req, res) => {
       where: {
         id: conversationId,
       },
+      include: {
+        customer: true,
+      },
     });
 
     if (!conversation) {
@@ -27,8 +30,18 @@ const sendMessage = async (req, res) => {
 
     // Send only AGENT messages to WhatsApp
     if (sender === "AGENT") {
+      const recipientPhone =
+        conversation.phone || conversation.customer?.phone;
+
+      if (!recipientPhone) {
+        return res.status(400).json({
+          success: false,
+          message: "Recipient phone number not found",
+        });
+      }
+
       const result = await sendTextMessage(
-        conversation.phone,
+        recipientPhone,
         content
       );
 

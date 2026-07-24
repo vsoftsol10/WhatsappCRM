@@ -58,7 +58,7 @@ const getOrCreateConversation = async (phone) => {
   // Create conversation
   conversation = await prisma.conversation.create({
     data: {
-      phone,
+      phone: customer ? customer.phone : phone,
       customerId: customer ? customer.id : null,
       status: "OPEN",
       channel: "WHATSAPP",

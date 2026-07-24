@@ -355,6 +355,8 @@ const sendTemplate = async (req, res) => {
 
               customerId,
 
+              phone: customer.phone,
+
               status: "OPEN",
 
               lastMessage: "",
