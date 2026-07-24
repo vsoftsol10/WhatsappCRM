@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { sendTextMessage } = require("../services/whatsappService");
 
 // SEND MESSAGE
 const sendMessage = async (req, res) => {
@@ -11,7 +12,6 @@ const sendMessage = async (req, res) => {
       status,
     } = req.body;
 
-    // Check if conversation exists
     const conversation = await prisma.conversation.findUnique({
       where: {
         id: conversationId,
@@ -25,7 +25,23 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    // Create message
+    // Send only AGENT messages to WhatsApp
+    if (sender === "AGENT") {
+      const result = await sendTextMessage(
+        conversation.phone,
+        content
+      );
+
+      if (!result.success) {
+        return res.status(500).json({
+          success: false,
+          message: "Failed to send WhatsApp message",
+          error: result.error,
+        });
+      }
+    }
+
+    // Save message after successful send
     const message = await prisma.message.create({
       data: {
         conversationId,
@@ -36,7 +52,6 @@ const sendMessage = async (req, res) => {
       },
     });
 
-    // Update conversation
     await prisma.conversation.update({
       where: {
         id: conversationId,
@@ -47,19 +62,20 @@ const sendMessage = async (req, res) => {
           unreadCount: {
             increment: 1,
           },
-        })
+        }),
       },
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Message sent successfully",
       data: message,
     });
+
   } catch (error) {
     console.error(error);
 
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Failed to send message",
     });

@@ -43,6 +43,7 @@ const createConversation = async (req, res) => {
     const conversation = await prisma.conversation.create({
       data: {
         customerId,
+        phone: customer.phone,
         status,
         channel,
         lastMessage,
