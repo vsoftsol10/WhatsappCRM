@@ -3,20 +3,39 @@
 
 // const { generateCampaign } = require("../services/geminiService");
 // const { notifyAdmins } = require("../services/notificationService");
+// const {
+//   uploadCampaignImage,
+// } = require("../services/storageService");
 
 // // =====================================================
 // // CREATE CAMPAIGN
 // // =====================================================
 // exports.createCampaign = async (req, res) => {
 //   try {
-//     const {
-//       name,
-//       type,
-//       messageContent,
-//       scheduledAt,
-//       customerIds = [],
-//     } = req.body;
+//     let {
+//   name,
+//   type,
+//   messageContent,
+//   scheduledAt,
+//   customerIds,
+// } = req.body;
 
+// // =============================
+// // Convert customerIds to array
+// // =============================
+// if (!customerIds) {
+//   customerIds = [];
+// } else if (!Array.isArray(customerIds)) {
+//   customerIds = [customerIds];
+// }
+
+// // Convert all ids to Number
+// customerIds = customerIds.map((id) => String(id));
+
+// console.log("Customer IDs:", customerIds);
+
+// console.log("Customer IDs:", customerIds);
+// console.log("Is Array:", Array.isArray(customerIds));
 //     if (!name || !messageContent) {
 //       return res.status(400).json({
 //         success: false,
@@ -24,11 +43,23 @@
 //       });
 //     }
 
+//     // ============================
+//     // Upload Image to Supabase
+//     // ============================
+//     let imageUrl = null;
+
+//     if (req.file) {
+//       imageUrl = await uploadCampaignImage(req.file);
+//     }
+
 //     const campaign = await prisma.campaign.create({
 //       data: {
 //         name,
 //         type,
 //         messageContent,
+
+//         // NEW FIELD
+//         imageUrl,
 
 //         scheduledAt: scheduledAt
 //           ? new Date(scheduledAt)
@@ -62,12 +93,11 @@
 //       },
 //     });
 
-//     // Notify all admins
-//     await notifyAdmins({
-//       title: "New Campaign",
-//       message: `${campaign.name} has been created.`,
-//       type: "CAMPAIGN",
-//     });
+//     notifyAdmins({
+//   title: "New Campaign",
+//   message: `${campaign.name} has been created.`,
+//   type: "CAMPAIGN",
+// }).catch(console.error);
 
 //     return res.status(201).json({
 //       success: true,
@@ -212,6 +242,7 @@
 //       scheduledAt,
 //     } = req.body;
 
+//     // Find campaign
 //     const existingCampaign = await prisma.campaign.findUnique({
 //       where: { id },
 //     });
@@ -221,6 +252,14 @@
 //         success: false,
 //         message: "Campaign not found.",
 //       });
+//     }
+
+//     // Keep old image
+//     let imageUrl = existingCampaign.imageUrl;
+
+//     // Upload new image if selected
+//     if (req.file) {
+//       imageUrl = await uploadCampaignImage(req.file);
 //     }
 
 //     const campaign = await prisma.campaign.update({
@@ -233,6 +272,8 @@
 //         ...(type && { type }),
 //         ...(messageContent && { messageContent }),
 //         ...(status && { status }),
+
+//         imageUrl,
 
 //         scheduledAt:
 //           scheduledAt !== undefined
@@ -361,6 +402,8 @@
 // // =====================================================
 // exports.sendCampaign = async (req, res) => {
 //   try {
+//       console.log("========== SEND CAMPAIGN ==========");
+//     console.log("Request Body:", req.body);
 //     const { campaignId, customerIds } = req.body;
 
 //     if (!campaignId) {
@@ -445,6 +488,7 @@
 //           await prisma.conversation.create({
 //             data: {
 //               customerId,
+//               phone: customer.phone,
 //               status: "OPEN",
 //               channel: "WHATSAPP",
 //               lastMessage: "",
@@ -456,15 +500,23 @@
 //       // =============================
 //       // Create Message
 //       // =============================
-//       await prisma.message.create({
-//         data: {
-//           conversationId: conversation.id,
-//           sender: "AGENT",
-//           content: campaign.messageContent,
-//           messageType: "TEXT",
-//           status: "SENT",
-//         },
-//       });
+//      await prisma.message.create({
+//   data: {
+//     conversationId: conversation.id,
+
+//     sender: "AGENT",
+
+//     content: campaign.messageContent,
+
+//     imageUrl: campaign.imageUrl,
+
+//     messageType: campaign.imageUrl
+//       ? "IMAGE"
+//       : "TEXT",
+
+//     status: "SENT",
+//   },
+// });
 
 //       // =============================
 //       // Update Conversation
@@ -571,7 +623,7 @@
 
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-
+const { sendTextMessage } = require("../services/whatsappService");
 const { generateCampaign } = require("../services/geminiService");
 const { notifyAdmins } = require("../services/notificationService");
 const {
@@ -1068,24 +1120,39 @@ exports.sendCampaign = async (req, res) => {
           });
       }
 
-      // =============================
-      // Create Message
-      // =============================
-     await prisma.message.create({
+// =============================
+// Send WhatsApp Message
+// =============================
+
+let sendStatus = "FAILED";
+
+try {
+  const result = await sendTextMessage(
+    customer.phone,
+    campaign.messageContent
+  );
+
+  console.log("WhatsApp Result:", result);
+
+  if (result.success) {
+    sendStatus = "SENT";
+  }
+} catch (err) {
+  console.error("WhatsApp Send Error:", err);
+}
+
+// =============================
+// Save Message
+// =============================
+
+await prisma.message.create({
   data: {
     conversationId: conversation.id,
-
     sender: "AGENT",
-
     content: campaign.messageContent,
-
     imageUrl: campaign.imageUrl,
-
-    messageType: campaign.imageUrl
-      ? "IMAGE"
-      : "TEXT",
-
-    status: "SENT",
+    messageType: campaign.imageUrl ? "IMAGE" : "TEXT",
+    status: sendStatus,
   },
 });
 
@@ -1101,7 +1168,9 @@ exports.sendCampaign = async (req, res) => {
         },
       });
 
-      successCount++;
+      if (sendStatus === "SENT") {
+  successCount++;
+}
     }
 
     // =============================
