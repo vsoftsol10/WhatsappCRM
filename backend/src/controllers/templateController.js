@@ -971,7 +971,7 @@ await prisma.message.create({
 
         conversationId: conversation.id,
 
-        sender: "ADMIN",
+        sender: "AGENT",
 
         content: template.content,
 
