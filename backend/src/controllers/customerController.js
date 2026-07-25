@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const { validateCustomer } = require("../validations/customerValidation");
+const { normalizeIndianPhone } = require("../utils/phoneUtils");
 
 const createCustomer = async (req, res) => {
   try {
@@ -16,12 +17,21 @@ const createCustomer = async (req, res) => {
 
     //console.log("req.user:", req.user);
 
+    const normalizedPhone = normalizeIndianPhone(phone);
+
+    if (!normalizedPhone) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid Indian mobile number.",
+      });
+    }
+
     const { userId } = req.user;
 
     const customer = await prisma.customer.create({
       data: {
         name,
-        phone,
+        phone: normalizedPhone,
         email,
         company,
         source,
