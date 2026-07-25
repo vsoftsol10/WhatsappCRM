@@ -68,6 +68,7 @@ model Conversation {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   phone       String?   @unique
+  welcomeSent Boolean   @default(false)
   customer    Customer? @relation(fields: [customerId], references: [id])
   messages    Message[]
 }
