@@ -103,9 +103,7 @@ const sendTextMessage = async (to, message) => {
     );
 
     console.log("WhatsApp API Response:", JSON.stringify(response.data, null, 2));
-
-    console.log("WhatsApp API Response:", JSON.stringify(response.data));
-
+    
     return {
       success: true,
       data: response.data,
@@ -170,7 +168,51 @@ const sendImageMessage = async (to, imageUrl, caption = "") => {
   }
 };
 
+const sendTemplateMessage = async (to, templateName, params = []) => {
+
+  if (!to || typeof to !== "string" || !to.trim()) {
+    return {
+      success: false,
+      error: {
+        message: "Recipient phone number is required",
+      },
+    };
+  }
+
+  try {
+    const response = await axios.post(
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to : to.trim(),
+        type: "template",
+        template: {
+          name: templateName,
+          language: { code: "en_US" },
+          components: params.length > 0 ? [
+            {
+              type: "body",
+              parameters: params.map(p => ({ type: "text", text: p }))
+            }
+          ] : []
+        },
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("WhatsApp Template Send Error:", error.response?.data || error.message);
+    return { success: false, error: error.response?.data || error.message };
+  }
+};
+
 module.exports = {
   sendTextMessage,
   sendImageMessage,
+  sendTemplateMessage,
 };
