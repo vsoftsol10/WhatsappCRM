@@ -104,6 +104,8 @@ const sendTextMessage = async (to, message) => {
 
     console.log("WhatsApp API Response:", JSON.stringify(response.data, null, 2));
 
+    console.log("WhatsApp API Response:", JSON.stringify(response.data));
+
     return {
       success: true,
       data: response.data,
