@@ -1,6 +1,6 @@
 // const prisma = require("../config/prisma");
 // const { generateTemplate } = require("../services/geminiService");
-
+// const { sendTextMessage } = require("../services/whatsappService");
 // // ================= CREATE TEMPLATE =================
 // const createTemplate = async (req, res) => {
 //   try {
@@ -370,25 +370,52 @@
 
 //       }
 
+// // =============================
+// // Send WhatsApp Template
+// // =============================
 
+// let sendStatus = "FAILED";
 
+// try {
 
+//     const result = await sendTextMessage(
+//         customer.phone,
+//         template.content
+//     );
 
-//       // Create message
+//     console.log("WhatsApp Result:", result);
 
-//       await prisma.message.create({
+//     if (result.success) {
+//         sendStatus = "SENT";
+//     }
 
-//         data: {
+// } catch (err) {
 
-//           conversationId: conversation.id,
+//     console.error("WhatsApp Send Error:", err);
 
-//           sender: "ADMIN",
+// }
 
-//           content: template.content,
+// // =============================
+// // Save Message
+// // =============================
 
-//         },
+// await prisma.message.create({
 
-//       });
+//     data: {
+
+//         conversationId: conversation.id,
+
+//         sender: "AGENT",
+
+//         content: template.content,
+
+//         messageType: "TEXT",
+
+//         status: sendStatus,
+
+//     },
+
+// });
 
 //       // Create or update template recipient history
 
@@ -567,6 +594,9 @@
 const prisma = require("../config/prisma");
 const { generateTemplate } = require("../services/geminiService");
 const { sendTextMessage } = require("../services/whatsappService");
+const {
+  getOrCreateConversation,
+} = require("../helpers/conversationHelper");
 // ================= CREATE TEMPLATE =================
 const createTemplate = async (req, res) => {
   try {
@@ -894,46 +924,18 @@ const sendTemplate = async (req, res) => {
 
 
 
-      // Find existing conversation
+      // Find or create conversation (by phone — avoids duplicate
+      // conversations / unique constraint crashes when a
+      // Conversation already exists for this phone but isn't
+      // linked to this customerId yet)
 
-      let conversation =
-        await prisma.conversation.findFirst({
+      let conversation = await getOrCreateConversation(customer.phone);
 
-          where: {
-            customerId,
-          },
-
+      if (conversation.customerId !== customerId) {
+        conversation = await prisma.conversation.update({
+          where: { id: conversation.id },
+          data: { customerId },
         });
-
-
-
-
-
-      // Create conversation if not exists
-
-      if (!conversation) {
-
-
-        conversation =
-          await prisma.conversation.create({
-
-            data: {
-
-              customerId,
-
-              phone: customer.phone,
-
-              status: "OPEN",
-
-              lastMessage: "",
-
-              unreadCount: 0,
-
-            },
-
-          });
-
-
       }
 
 // =============================

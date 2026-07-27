@@ -1,12 +1,14 @@
 // const { PrismaClient } = require("@prisma/client");
 // const prisma = new PrismaClient();
-// const { sendTextMessage } = require("../services/whatsappService");
+// const {
+//   sendTextMessage,
+//   sendImageMessage,
+// } = require("../services/whatsappService");
 // const { generateCampaign } = require("../services/geminiService");
 // const { notifyAdmins } = require("../services/notificationService");
 // const {
 //   uploadCampaignImage,
-// } = require("../services/storageService");
-
+// } = require("../services/cloudinaryService");
 // // =====================================================
 // // CREATE CAMPAIGN
 // // =====================================================
@@ -43,14 +45,16 @@
 //       });
 //     }
 
-//     // ============================
-//     // Upload Image to Supabase
-//     // ============================
-//     let imageUrl = null;
+//    // ============================
+// // Upload Image to Cloudinary
+// // ============================
+// let imageUrl = null;
 
-//     if (req.file) {
-//       imageUrl = await uploadCampaignImage(req.file);
-//     }
+// if (req.file) {
+//   const uploadResult = await uploadCampaignImage(req.file);
+
+//   imageUrl = uploadResult?.imageUrl || null;
+// }
 
 //     const campaign = await prisma.campaign.create({
 //       data: {
@@ -255,12 +259,15 @@
 //     }
 
 //     // Keep old image
-//     let imageUrl = existingCampaign.imageUrl;
+// // Keep old image
+// let imageUrl = existingCampaign.imageUrl;
 
-//     // Upload new image if selected
-//     if (req.file) {
-//       imageUrl = await uploadCampaignImage(req.file);
-//     }
+// // Upload new image if selected
+// if (req.file) {
+//   const uploadResult = await uploadCampaignImage(req.file);
+
+//   imageUrl = uploadResult?.imageUrl || existingCampaign.imageUrl;
+// }
 
 //     const campaign = await prisma.campaign.update({
 //       where: {
@@ -504,20 +511,37 @@
 // let sendStatus = "FAILED";
 
 // try {
-//   const result = await sendTextMessage(
-//     customer.phone,
-//     campaign.messageContent
-//   );
+
+//   let result;
+
+//   if (campaign.imageUrl) {
+
+//     result = await sendImageMessage(
+//       customer.phone,
+//       campaign.imageUrl,
+//       campaign.messageContent
+//     );
+
+//   } else {
+
+//     result = await sendTextMessage(
+//       customer.phone,
+//       campaign.messageContent
+//     );
+
+//   }
 
 //   console.log("WhatsApp Result:", result);
 
 //   if (result.success) {
 //     sendStatus = "SENT";
 //   }
-// } catch (err) {
-//   console.error("WhatsApp Send Error:", err);
-// }
 
+// } catch (err) {
+
+//   console.error("WhatsApp Send Error:", err);
+
+// }
 // // =============================
 // // Save Message
 // // =============================
@@ -649,6 +673,9 @@ const { notifyAdmins } = require("../services/notificationService");
 const {
   uploadCampaignImage,
 } = require("../services/cloudinaryService");
+const {
+  getOrCreateConversation,
+} = require("../helpers/conversationHelper");
 // =====================================================
 // CREATE CAMPAIGN
 // =====================================================
@@ -1118,30 +1145,19 @@ exports.sendCampaign = async (req, res) => {
       }
 
       // =============================
-      // Find Conversation
+      // Find or Create Conversation (by phone — avoids duplicate
+      // conversations / unique constraint crashes when a
+      // Conversation already exists for this phone but isn't
+      // linked to this customerId yet, e.g. inbound webhook
+      // messages that arrived before the Customer record existed)
       // =============================
-      let conversation =
-        await prisma.conversation.findUnique({
-          where: {
-            customerId,
-          },
-        });
+      let conversation = await getOrCreateConversation(customer.phone);
 
-      // =============================
-      // Create Conversation
-      // =============================
-      if (!conversation) {
-        conversation =
-          await prisma.conversation.create({
-            data: {
-              customerId,
-              phone: customer.phone,
-              status: "OPEN",
-              channel: "WHATSAPP",
-              lastMessage: "",
-              unreadCount: 0,
-            },
-          });
+      if (conversation.customerId !== customerId) {
+        conversation = await prisma.conversation.update({
+          where: { id: conversation.id },
+          data: { customerId },
+        });
       }
 
 // =============================
