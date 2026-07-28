@@ -918,6 +918,7 @@ const sendTemplate = async (req, res) => {
 // =============================
 
 let sendStatus = "FAILED";
+let metaMessageId = null;
 
 try {
 
@@ -935,6 +936,7 @@ try {
 
     if (result.success) {
         sendStatus = "SENT";
+        metaMessageId = result.data?.messages?.[0]?.id || null;
     }
 
 } catch (err) {
@@ -960,6 +962,8 @@ await prisma.message.create({
         messageType: "TEXT",
 
         status: sendStatus,
+
+        metaMessageId,
 
     },
 

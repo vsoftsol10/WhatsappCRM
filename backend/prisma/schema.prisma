@@ -80,6 +80,8 @@ model Message {
   sender         String
   messageType    String       @default("TEXT")
   status         String       @default("SENT")
+  metaMessageId  String?      @unique
+  failureReason  String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
   imageUrl       String?

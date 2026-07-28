@@ -185,6 +185,8 @@ const sendMessage = async (req, res) => {
       });
     }
 
+    let metaMessageId = null;
+
     // Send only AGENT messages to WhatsApp
     if (sender === "AGENT") {
       const recipientPhone =
@@ -238,6 +240,8 @@ const sendMessage = async (req, res) => {
           error: result.error,
         });
       }
+
+      metaMessageId = result.data?.messages?.[0]?.id || null;
     }
 
     // Save message after successful send
@@ -248,6 +252,7 @@ const sendMessage = async (req, res) => {
         sender,
         messageType,
         status,
+        metaMessageId,
       },
     });
 
