@@ -1,6 +1,9 @@
 // const prisma = require("../config/prisma");
 // const { generateTemplate } = require("../services/geminiService");
 // const { sendTextMessage } = require("../services/whatsappService");
+// const {
+//   getOrCreateConversation,
+// } = require("../helpers/conversationHelper");
 // // ================= CREATE TEMPLATE =================
 // const createTemplate = async (req, res) => {
 //   try {
@@ -328,46 +331,18 @@
 
 
 
-//       // Find existing conversation
+//       // Find or create conversation (by phone — avoids duplicate
+//       // conversations / unique constraint crashes when a
+//       // Conversation already exists for this phone but isn't
+//       // linked to this customerId yet)
 
-//       let conversation =
-//         await prisma.conversation.findFirst({
+//       let conversation = await getOrCreateConversation(customer.phone);
 
-//           where: {
-//             customerId,
-//           },
-
+//       if (conversation.customerId !== customerId) {
+//         conversation = await prisma.conversation.update({
+//           where: { id: conversation.id },
+//           data: { customerId },
 //         });
-
-
-
-
-
-//       // Create conversation if not exists
-
-//       if (!conversation) {
-
-
-//         conversation =
-//           await prisma.conversation.create({
-
-//             data: {
-
-//               customerId,
-
-//               phone: customer.phone,
-
-//               status: "OPEN",
-
-//               lastMessage: "",
-
-//               unreadCount: 0,
-
-//             },
-
-//           });
-
-
 //       }
 
 // // =============================
@@ -593,7 +568,7 @@
 
 const prisma = require("../config/prisma");
 const { generateTemplate } = require("../services/geminiService");
-const { sendTextMessage } = require("../services/whatsappService");
+const { sendTextMessage, sendTemplateMessage } = require("../services/whatsappService");
 const {
   getOrCreateConversation,
 } = require("../helpers/conversationHelper");
@@ -946,9 +921,14 @@ let sendStatus = "FAILED";
 
 try {
 
-    const result = await sendTextMessage(
+    // Uses the same Meta-approved generic template as campaigns
+    // ("custom_campaign_message") so this is a real WhatsApp Template
+    // send — works even outside the 24-hour window — instead of a
+    // free-form text message that only worked when the window was open.
+    const result = await sendTemplateMessage(
         customer.phone,
-        template.content
+        "custom_campaign_message", // your approved template name
+        [customer.name, template.content] // fills {{1}} and {{2}}
     );
 
     console.log("WhatsApp Result:", result);
