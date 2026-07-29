@@ -282,10 +282,6 @@ function Customers() {
                 </th>
 
                 <th className="crm-th">
-                  Email
-                </th>
-
-                <th className="crm-th">
                   Company
                 </th>
 
@@ -327,10 +323,6 @@ function Customers() {
 
                       <td className="crm-td">
                         {customer.phone}
-                      </td>
-
-                      <td className="crm-td break-all">
-                        {customer.email}
                       </td>
 
                       <td className="crm-td">
