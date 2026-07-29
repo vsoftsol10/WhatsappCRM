@@ -105,30 +105,35 @@ const sendImageMessage = async (to, imageUrl, caption = "") => {
 };
 
 const sendTemplateMessage = async (to, templateName, params = []) => {
-
   if (!to || typeof to !== "string" || !to.trim()) {
     return {
       success: false,
-      error: {
-        message: "Recipient phone number is required",
-      },
+      error: { message: "Recipient phone number is required" },
     };
   }
+
+  // Sanitize each parameter: remove newlines/tabs, collapse multiple spaces
+  const sanitizedParams = params.map((p) =>
+    String(p)
+      .replace(/[\n\r\t]/g, " ")   // replace newlines/tabs with a space
+      .replace(/\s{2,}/g, " ")     // collapse multiple spaces into one
+      .trim()
+  );
 
   try {
     const response = await axios.post(
       `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
       {
         messaging_product: "whatsapp",
-        to : to.trim(),
+        to: to.trim(),
         type: "template",
         template: {
           name: templateName,
           language: { code: "en_US" },
-          components: params.length > 0 ? [
+          components: sanitizedParams.length > 0 ? [
             {
               type: "body",
-              parameters: params.map(p => ({ type: "text", text: p }))
+              parameters: sanitizedParams.map(p => ({ type: "text", text: p }))
             }
           ] : []
         },
