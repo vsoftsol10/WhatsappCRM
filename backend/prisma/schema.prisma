@@ -80,6 +80,7 @@ model Message {
   sender         String
   messageType    String       @default("TEXT")
   status         String       @default("SENT")
+  isEdited       Boolean      @default(false)
   metaMessageId  String?      @unique
   failureReason  String?
   createdAt      DateTime     @default(now())

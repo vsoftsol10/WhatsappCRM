@@ -28,6 +28,8 @@
 //       });
 //     }
 
+//     let metaMessageId = null;
+
 //     // Send only AGENT messages to WhatsApp
 //     if (sender === "AGENT") {
 //       const recipientPhone =
@@ -37,6 +39,35 @@
 //         return res.status(400).json({
 //           success: false,
 //           message: "Recipient phone number not found",
+//         });
+//       }
+
+//       // WhatsApp only allows free-form (non-template) messages within
+//       // 24 hours of the customer's last incoming message. Outside that
+//       // window, Meta silently rejects the send — check it ourselves so
+//       // we can return a clear error instead of a confusing failure.
+//       const lastCustomerMessage = await prisma.message.findFirst({
+//         where: {
+//           conversationId,
+//           sender: "CUSTOMER",
+//         },
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//       });
+
+//       const WINDOW_MS = 24 * 60 * 60 * 1000;
+//       const withinWindow =
+//         lastCustomerMessage &&
+//         Date.now() - new Date(lastCustomerMessage.createdAt).getTime() <
+//           WINDOW_MS;
+
+//       if (!withinWindow) {
+//         return res.status(400).json({
+//           success: false,
+//           message:
+//             "24-hour messaging window is closed for this customer. Send an approved template message to restart the conversation.",
+//           code: "WINDOW_CLOSED",
 //         });
 //       }
 
@@ -52,6 +83,8 @@
 //           error: result.error,
 //         });
 //       }
+
+//       metaMessageId = result.data?.messages?.[0]?.id || null;
 //     }
 
 //     // Save message after successful send
@@ -62,6 +95,7 @@
 //         sender,
 //         messageType,
 //         status,
+//         metaMessageId,
 //       },
 //     });
 
@@ -154,7 +188,6 @@
 //   deleteMessage,
 // };
 
-
 const prisma = require("../config/prisma");
 const { sendTextMessage } = require("../services/whatsappService");
 
@@ -185,8 +218,6 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    let metaMessageId = null;
-
     // Send only AGENT messages to WhatsApp
     if (sender === "AGENT") {
       const recipientPhone =
@@ -196,35 +227,6 @@ const sendMessage = async (req, res) => {
         return res.status(400).json({
           success: false,
           message: "Recipient phone number not found",
-        });
-      }
-
-      // WhatsApp only allows free-form (non-template) messages within
-      // 24 hours of the customer's last incoming message. Outside that
-      // window, Meta silently rejects the send — check it ourselves so
-      // we can return a clear error instead of a confusing failure.
-      const lastCustomerMessage = await prisma.message.findFirst({
-        where: {
-          conversationId,
-          sender: "CUSTOMER",
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      const WINDOW_MS = 24 * 60 * 60 * 1000;
-      const withinWindow =
-        lastCustomerMessage &&
-        Date.now() - new Date(lastCustomerMessage.createdAt).getTime() <
-          WINDOW_MS;
-
-      if (!withinWindow) {
-        return res.status(400).json({
-          success: false,
-          message:
-            "24-hour messaging window is closed for this customer. Send an approved template message to restart the conversation.",
-          code: "WINDOW_CLOSED",
         });
       }
 
@@ -240,8 +242,6 @@ const sendMessage = async (req, res) => {
           error: result.error,
         });
       }
-
-      metaMessageId = result.data?.messages?.[0]?.id || null;
     }
 
     // Save message after successful send
@@ -252,7 +252,6 @@ const sendMessage = async (req, res) => {
         sender,
         messageType,
         status,
-        metaMessageId,
       },
     });
 
@@ -314,6 +313,53 @@ const getMessagesByConversation = async (req, res) => {
   }
 };
 
+// EDIT MESSAGE
+const editMessage = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content } = req.body;
+
+    if (!content || !content.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Message content is required",
+      });
+    }
+
+    const existingMessage = await prisma.message.findUnique({
+      where: { id },
+    });
+
+    if (!existingMessage) {
+      return res.status(404).json({
+        success: false,
+        message: "Message not found",
+      });
+    }
+
+    const message = await prisma.message.update({
+      where: { id },
+      data: {
+        content: content.trim(),
+        isEdited: true,
+      },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Message updated successfully",
+      data: message,
+    });
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to update message",
+    });
+  }
+};
+
 // DELETE MESSAGE
 const deleteMessage = async (req, res) => {
   try {
@@ -342,5 +388,6 @@ const deleteMessage = async (req, res) => {
 module.exports = {
   sendMessage,
   getMessagesByConversation,
+  editMessage,
   deleteMessage,
 };
