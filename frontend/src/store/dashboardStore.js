@@ -1,5 +1,3 @@
-// src/store/dashboardStore.js
-
 import { create } from "zustand";
 import { getDashboardStats } from "../api/dashboardApi";
 

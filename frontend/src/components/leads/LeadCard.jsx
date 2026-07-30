@@ -1,5 +1,6 @@
 import { 
   MoreVertical, 
+  Eye,
   Pencil,
   Trash2,
   PhoneCall,
@@ -13,6 +14,7 @@ import { useState, useEffect, useRef } from "react";
 
 export default function LeadCard({ 
   lead,
+  onView,
   onEdit,
   onDelete,
   onStatusChange,
@@ -84,6 +86,17 @@ export default function LeadCard({
       
       {showMenu && (
           <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg z-20">
+
+          <button
+            onClick={() => {
+              onView(lead);
+              setShowMenu(false);
+            }}
+            className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-100"
+          >
+            <Eye size={16} />
+            <span>View Details</span>
+          </button>
 
           <button
             onClick={() => {
@@ -215,4 +228,3 @@ export default function LeadCard({
                 </div>
         );
       }
-

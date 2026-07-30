@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
 import {
   MoreVertical,
+  Eye,
   Pencil,
   Trash2,
   PhoneCall,
@@ -56,6 +57,7 @@ function sourceBadge(source) {
 
 export default function LeadTable({
   leads,
+  onView,
   onEdit,
   onDelete,
   onStatusChange,
@@ -63,7 +65,11 @@ export default function LeadTable({
 }) {
   const [openMenu, setOpenMenu] = useState(null);
 
+  const [menuPosition, setMenuPosition] = useState("down");
+
   const menuRef = useRef(null);
+
+  const buttonRefs = useRef({});
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -84,6 +90,22 @@ export default function LeadTable({
       );
     };
   }, []);
+
+  useLayoutEffect(() => {
+    if (!openMenu) return;
+
+    const button = buttonRefs.current[openMenu];
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    const menuHeight = 260; // approx dropdown height incl. all options
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    setMenuPosition(spaceBelow < menuHeight ? "up" : "down");
+  }, [openMenu]);
 
   if (!leads || leads.length === 0) {
     return (
@@ -127,8 +149,6 @@ export default function LeadTable({
 
         <tbody>
           {leads.map((lead, index) => {
-          const isLastRows = index >= leads.length - 3;
-
           return (
             <tr
               key={lead.id}
@@ -195,6 +215,11 @@ export default function LeadTable({
               <td className="crm-td">
                 <div ref={menuRef} onClick={(e) => e.stopPropagation()} className="relative flex justify-center">
                   <button
+                    ref={(el) => {
+                      if (el) {
+                        buttonRefs.current[lead.id] = el;
+                      }
+                    }}
                     onClick={() =>
                       setOpenMenu(
                         openMenu === lead.id
@@ -210,9 +235,20 @@ export default function LeadTable({
                   {openMenu === lead.id && (
   <div
     className={`absolute right-0 z-50 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ${
-      isLastRows ? "bottom-10" : "top-10"
+      menuPosition === "up" ? "bottom-10" : "top-10"
     }`}
   >
+    <button
+      onClick={() => {
+        onView(lead);
+        setOpenMenu(null);
+      }}
+      className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100"
+    >
+      <Eye size={16} />
+      View Details
+    </button>
+
     <button
       onClick={() => {
         console.log("Edit clicked", lead.id);

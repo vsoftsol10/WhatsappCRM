@@ -160,7 +160,7 @@ function MessageBubble({ message }) {
       }`}
     >
       <div
-        className={`relative max-w-[88%] overflow-hidden rounded-2xl shadow-sm sm:max-w-[72%] ${
+        className={`relative max-w-[88%] rounded-2xl shadow-sm sm:max-w-[72%] ${
           isSender
             ? "rounded-br-md bg-[#DCF8C6] text-[#111827]"
             : "rounded-bl-md bg-white text-gray-800"

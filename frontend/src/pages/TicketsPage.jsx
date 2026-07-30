@@ -5,6 +5,7 @@ import TicketSearch from "../components/tickets/TicketSearch";
 import TicketFilters from "../components/tickets/TicketFilters";
 import TicketTable from "../components/tickets/TicketTable";
 import AddEditTicketModal from "../components/tickets/AddEditTicketModal";
+import ViewTicketModal from "../components/tickets/ViewTicketModal";
 import TicketStats from "../components/tickets/TicketStats";
 
 import useTicketStore from "../store/ticketStore";
@@ -40,6 +41,9 @@ function TicketsPage() {
   const [isEditing, setIsEditing] = useState(false);
 
   const [openMenu, setOpenMenu] = useState(null);
+
+  const [showViewModal, setShowViewModal] = useState(false);
+  const [selectedTicket, setSelectedTicket] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -137,6 +141,16 @@ function TicketsPage() {
 
     setIsEditing(true);
     setShowForm(true);
+  };
+
+  // ===========================
+  // OPEN VIEW MODAL
+  // ===========================
+
+  const handleViewTicket = (ticket) => {
+    setOpenMenu(null);
+    setSelectedTicket(ticket);
+    setShowViewModal(true);
   };
 
   // ===========================
@@ -309,6 +323,7 @@ const paginatedTickets =
         tickets={paginatedTickets}
         openMenu={openMenu}
         setOpenMenu={setOpenMenu}
+        handleView={handleViewTicket}
         handleEdit={handleEditTicket}
         handleDelete={handleDeleteTicket}
         onStatusChange={handleStatusChange}
@@ -340,6 +355,15 @@ const paginatedTickets =
           }
         />
       )}
+
+      <ViewTicketModal
+        isOpen={showViewModal}
+        onClose={() => {
+          setShowViewModal(false);
+          setSelectedTicket(null);
+        }}
+        ticket={selectedTicket}
+      />
     </div>
   );
 }

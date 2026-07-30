@@ -9,6 +9,7 @@ import LeadStats from "../components/leads/LeadStats";
 import LeadFilters from "../components/leads/LeadFilters";
 import AddLeadModal from "../components/leads/AddLeadModal";
 import EditLeadModal from "../components/leads/EditLeadModal";
+import ViewLeadModal from "../components/leads/ViewLeadModal";
 import toast from "react-hot-toast";
 import { getCustomers } from "../api/customerApi";
 import useCustomerStore from "../store/customerStore";
@@ -40,6 +41,9 @@ export default function Lead() {
     useState(false);
 
   const [showEditModal, setShowEditModal] =
+    useState(false);
+
+  const [showViewModal, setShowViewModal] =
     useState(false);
 
   const [selectedLead, setSelectedLead] =
@@ -150,6 +154,11 @@ export default function Lead() {
   const handleEdit = (lead) => {
     setSelectedLead(lead);
     setShowEditModal(true);
+  };
+
+  const handleView = (lead) => {
+    setSelectedLead(lead);
+    setShowViewModal(true);
   };
 
   const handleDelete = async (id) => {
@@ -321,6 +330,7 @@ export default function Lead() {
             <LeadCard
               key={lead.id}
               lead={lead}
+              onView={handleView}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onStatusChange={handleStatusChange}
@@ -334,6 +344,7 @@ export default function Lead() {
 
         <LeadTable
           leads={paginatedLeads}
+          onView={handleView}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onStatusChange={handleStatusChange}
@@ -364,6 +375,14 @@ export default function Lead() {
       <EditLeadModal
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
+        lead={selectedLead}
+      />
+
+      {/* ================= VIEW MODAL ================= */}
+
+      <ViewLeadModal
+        isOpen={showViewModal}
+        onClose={() => setShowViewModal(false)}
         lead={selectedLead}
       />
 

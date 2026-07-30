@@ -1,5 +1,3 @@
-// src/api/dashboardApi.js
-
 import apiClient from "./apiClient";
 
 export const getDashboardStats = async () => {
