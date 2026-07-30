@@ -2,6 +2,7 @@
 // import {
 //   sendMessage,
 //   getMessagesByConversation,
+//   editMessage,
 //   deleteMessage,
 // } from "../api/messageApi";
 
@@ -30,6 +31,21 @@
 //   addMessage: async (messageData) => {
 //     try {
 //       await sendMessage(messageData);
+//     } catch (error) {
+//       console.error(error);
+//     }
+//   },
+
+//   // EDIT MESSAGE
+//   updateMessage: async (id, content) => {
+//     try {
+//       const result = await editMessage(id, content);
+
+//       set((state) => ({
+//         messages: state.messages.map((message) =>
+//           message.id === id ? result.data : message
+//         ),
+//       }));
 //     } catch (error) {
 //       console.error(error);
 //     }
@@ -119,6 +135,11 @@ const useMessageStore = create((set) => ({
     } catch (error) {
       console.error(error);
     }
+  },
+
+  // CLEAR ALL MESSAGES (local state only — used after clearing chat on the server)
+  clearMessages: () => {
+    set({ messages: [] });
   },
 }));
 

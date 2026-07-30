@@ -1,46 +1,70 @@
-// import axios from "axios";
+// import apiClient from "./apiClient";
 
-// const API_URL = "https://whatsappcrm-f1qj.onrender.com/api/conversations";
-
+// // ===============================
 // // GET ALL CONVERSATIONS
+// // ===============================
 // export const getConversations = async () => {
-//   const response = await axios.get(API_URL);
+//   const response = await apiClient.get("/api/conversations");
 //   return response.data;
 // };
 
+// // ===============================
 // // GET CONVERSATION BY ID
+// // ===============================
 // export const getConversationById = async (id) => {
-//   const response = await axios.get(`${API_URL}/${id}`);
+//   const response = await apiClient.get(
+//     `/api/conversations/${id}`
+//   );
 //   return response.data;
 // };
 
+// // ===============================
 // // CREATE CONVERSATION
+// // ===============================
 // export const createConversation = async (conversationData) => {
-//   const response = await axios.post(API_URL, conversationData);
+//   const response = await apiClient.post(
+//     "/api/conversations",
+//     conversationData
+//   );
 //   return response.data;
 // };
 
+// // ===============================
 // // UPDATE CONVERSATION STATUS
-// export const updateConversationStatus = async (id, status) => {
-//   const response = await axios.patch(`${API_URL}/${id}`, {
-//     status,
-//   });
-
-//   return response.data;
-// };
-
-// // MARK AS READ
-// export const markConversationAsRead = async (id) => {
-//   const response = await axios.patch(
-//     `${API_URL}/${id}/read`
+// // ===============================
+// export const updateConversationStatus = async (
+//   id,
+//   status
+// ) => {
+//   const response = await apiClient.patch(
+//     `/api/conversations/${id}`,
+//     {
+//       status,
+//     }
 //   );
 
 //   return response.data;
 // };
 
+// // ===============================
+// // MARK CONVERSATION AS READ
+// // ===============================
+// export const markConversationAsRead = async (id) => {
+//   const response = await apiClient.patch(
+//     `/api/conversations/${id}/read`
+//   );
+
+//   return response.data;
+// };
+
+// // ===============================
 // // DELETE CONVERSATION
+// // ===============================
 // export const deleteConversation = async (id) => {
-//   const response = await axios.delete(`${API_URL}/${id}`);
+//   const response = await apiClient.delete(
+//     `/api/conversations/${id}`
+//   );
+
 //   return response.data;
 // };
 
@@ -98,6 +122,28 @@ export const updateConversationStatus = async (
 export const markConversationAsRead = async (id) => {
   const response = await apiClient.patch(
     `/api/conversations/${id}/read`
+  );
+
+  return response.data;
+};
+
+// ===============================
+// MARK CONVERSATION AS UNREAD
+// ===============================
+export const markConversationAsUnread = async (id) => {
+  const response = await apiClient.patch(
+    `/api/conversations/${id}/unread`
+  );
+
+  return response.data;
+};
+
+// ===============================
+// CLEAR CHAT (delete all messages)
+// ===============================
+export const clearConversationMessages = async (id) => {
+  const response = await apiClient.delete(
+    `/api/conversations/${id}/messages`
   );
 
   return response.data;
