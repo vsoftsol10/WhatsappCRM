@@ -5,32 +5,42 @@
 //     const { id, role } = req.user;
 
 //     // ===========================
-//     // General Statistics
+//     // General Statistics (Optimized)
 //     // ===========================
 
-//     const totalCustomers = await prisma.customer.count();
+//     const [
+//       totalCustomers,
+//       totalEmployees,
+//       totalConversations,
+//       unreadConversations,
+//       totalLeads,
+//       totalCampaigns,
+//       totalTemplates,
+//     ] = await Promise.all([
+//       prisma.customer.count(),
 
-//     const totalEmployees = await prisma.user.count({
-//       where: {
-//         role: "USER",
-//       },
-//     });
-
-//     const totalConversations = await prisma.conversation.count();
-
-//     const unreadConversations = await prisma.conversation.count({
-//       where: {
-//         unreadCount: {
-//           gt: 0,
+//       prisma.user.count({
+//         where: {
+//           role: "USER",
 //         },
-//       },
-//     });
+//       }),
 
-//     const totalLeads = await prisma.lead.count();
+//       prisma.conversation.count(),
 
-//     const totalCampaigns = await prisma.campaign.count();
+//       prisma.conversation.count({
+//         where: {
+//           unreadCount: {
+//             gt: 0,
+//           },
+//         },
+//       }),
 
-//     const totalTemplates = await prisma.template.count();
+//       prisma.lead.count(),
+
+//       prisma.campaign.count(),
+
+//       prisma.template.count(),
+//     ]);
 
 //     // ===========================
 //     // Lead Growth (Last 6 Months)
@@ -79,7 +89,9 @@
 //     }
 
 //     leadGrowthRaw.forEach((item) => {
-//       const month = lastSixMonths.find((m) => m.month === item.month);
+//       const month = lastSixMonths.find(
+//         (m) => m.month === item.month
+//       );
 
 //       if (month) {
 //         month.leads = Number(item.leads);
@@ -97,37 +109,45 @@
 //             assignedToId: id,
 //           };
 
-//     const totalTasks = await prisma.task.count({
-//       where: taskFilter,
-//     });
+//         const [
+//       totalTasks,
+//       todoTasks,
+//       inProgressTasks,
+//       reviewTasks,
+//       completedTasks,
+//     ] = await Promise.all([
+//       prisma.task.count({
+//         where: taskFilter,
+//       }),
 
-//     const todoTasks = await prisma.task.count({
-//       where: {
-//         ...taskFilter,
-//         status: "TODO",
-//       },
-//     });
+//       prisma.task.count({
+//         where: {
+//           ...taskFilter,
+//           status: "TODO",
+//         },
+//       }),
 
-//     const inProgressTasks = await prisma.task.count({
-//       where: {
-//         ...taskFilter,
-//         status: "IN_PROGRESS",
-//       },
-//     });
+//       prisma.task.count({
+//         where: {
+//           ...taskFilter,
+//           status: "IN_PROGRESS",
+//         },
+//       }),
 
-//     const reviewTasks = await prisma.task.count({
-//       where: {
-//         ...taskFilter,
-//         status: "REVIEW",
-//       },
-//     });
+//       prisma.task.count({
+//         where: {
+//           ...taskFilter,
+//           status: "REVIEW",
+//         },
+//       }),
 
-//     const completedTasks = await prisma.task.count({
-//       where: {
-//         ...taskFilter,
-//         status: "COMPLETED",
-//       },
-//     });
+//       prisma.task.count({
+//         where: {
+//           ...taskFilter,
+//           status: "COMPLETED",
+//         },
+//       }),
+//     ]);
 
 //     // ===========================
 //     // Response
@@ -321,6 +341,57 @@ const getDashboardStats = async (req, res) => {
     ]);
 
     // ===========================
+    // Ticket Statistics
+    // ===========================
+
+    const ticketFilter =
+      role === "ADMIN"
+        ? {}
+        : {
+            assignedToId: id,
+          };
+
+    const [
+      totalTickets,
+      openTickets,
+      ticketsInProgress,
+      resolvedTickets,
+      closedTickets,
+    ] = await Promise.all([
+      prisma.ticket.count({
+        where: ticketFilter,
+      }),
+
+      prisma.ticket.count({
+        where: {
+          ...ticketFilter,
+          status: "OPEN",
+        },
+      }),
+
+      prisma.ticket.count({
+        where: {
+          ...ticketFilter,
+          status: "IN_PROGRESS",
+        },
+      }),
+
+      prisma.ticket.count({
+        where: {
+          ...ticketFilter,
+          status: "RESOLVED",
+        },
+      }),
+
+      prisma.ticket.count({
+        where: {
+          ...ticketFilter,
+          status: "CLOSED",
+        },
+      }),
+    ]);
+
+    // ===========================
     // Response
     // ===========================
 
@@ -341,6 +412,14 @@ const getDashboardStats = async (req, res) => {
           inProgress: inProgressTasks,
           review: reviewTasks,
           completed: completedTasks,
+        },
+
+        tickets: {
+          total: totalTickets,
+          open: openTickets,
+          inProgress: ticketsInProgress,
+          resolved: resolvedTickets,
+          closed: closedTickets,
         },
 
         leadGrowth: lastSixMonths,
