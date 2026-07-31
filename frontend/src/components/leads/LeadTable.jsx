@@ -71,6 +71,8 @@ export default function LeadTable({
 
   const buttonRefs = useRef({});
 
+  const dropdownRef = useRef(null);
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -95,16 +97,23 @@ export default function LeadTable({
     if (!openMenu) return;
 
     const button = buttonRefs.current[openMenu];
+    const dropdown = dropdownRef.current;
 
-    if (!button) return;
+    if (!button || !dropdown) return;
 
-    const rect = button.getBoundingClientRect();
+    const buttonRect = button.getBoundingClientRect();
+    const menuHeight = dropdown.getBoundingClientRect().height;
 
-    const menuHeight = 260; // approx dropdown height incl. all options
+    const spaceBelow = window.innerHeight - buttonRect.bottom;
+    const spaceAbove = buttonRect.top;
 
-    const spaceBelow = window.innerHeight - rect.bottom;
-
-    setMenuPosition(spaceBelow < menuHeight ? "up" : "down");
+    // Prefer opening down; only flip up if there isn't enough
+    // room below AND there IS enough room above.
+    if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
+      setMenuPosition("up");
+    } else {
+      setMenuPosition("down");
+    }
   }, [openMenu]);
 
   if (!leads || leads.length === 0) {
@@ -234,8 +243,9 @@ export default function LeadTable({
 
                   {openMenu === lead.id && (
   <div
-    className={`absolute right-0 z-50 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg ${
-      menuPosition === "up" ? "bottom-10" : "top-10"
+    ref={dropdownRef}
+    className={`absolute right-0 z-[9999] max-h-[70vh] w-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg ${
+      menuPosition === "up" ? "bottom-full mb-2" : "top-full mt-2"
     }`}
   >
     <button

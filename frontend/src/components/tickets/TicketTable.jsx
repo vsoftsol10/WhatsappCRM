@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import {
   MoreVertical,
   Eye,
@@ -59,6 +59,26 @@ function TicketTable({
   const isAdmin = user?.role === "ADMIN";
 
   const menuRef = useRef(null);
+
+  const buttonRefs = useRef({});
+
+  const [menuPosition, setMenuPosition] = useState("down");
+
+  useLayoutEffect(() => {
+    if (!openMenu) return;
+
+    const button = buttonRefs.current[openMenu];
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    const menuHeight = 200; // approx dropdown height
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    setMenuPosition(spaceBelow < menuHeight ? "up" : "down");
+  }, [openMenu]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -135,13 +155,6 @@ function TicketTable({
             {tickets.map((ticket, index) => {
 
               const id = ticket.id;
-
-              // Open upward for the last two rows
-              const openUp = index >= tickets.length - 2;
-
-              //const isLastRows = index >= tickets.length - 3;
-
-              const shouldOpenUp = index >= tickets.length - 2;
 
               return (
                 <tr
@@ -233,6 +246,11 @@ function TicketTable({
                         className="relative flex justify-center"
                       >
                         <button
+                          ref={(el) => {
+                            if (el) {
+                              buttonRefs.current[id] = el;
+                            }
+                          }}
                           onClick={() =>  setOpenMenu(openMenu === id ? null : id)
                           }
                           className="rounded-lg p-2 transition hover:bg-gray-100"
@@ -241,16 +259,9 @@ function TicketTable({
                         </button>
 
                         {openMenu === id && (
-                          // <div
-                          //   className={`absolute right-0 z-[999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
-                          //     isLastRows
-                          //       ? "bottom-full mb-2"
-                          //       : "top-full mt-2"
-                          //   }`}
-                          // >
                           <div
                             className={`absolute right-0 z-[9999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
-                              shouldOpenUp
+                              menuPosition === "up"
                                 ? "bottom-full mb-2"
                                 : "top-full mt-2"
                             }`}
