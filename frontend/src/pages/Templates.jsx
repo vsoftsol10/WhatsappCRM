@@ -11,6 +11,7 @@ import TemplatePreviewModal from "../components/templates/TemplatePreviewModal";
 import SendTemplateModal from "../components/templates/SendTemplateModal";
 import toast from "react-hot-toast";
 import Pagination from "../components/common/Pagination";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 export default function Templates() {
   const {
@@ -35,6 +36,7 @@ export default function Templates() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const itemsPerPage = 9; // 3 x 3 grid
 
@@ -84,7 +86,14 @@ export default function Templates() {
     setShowEditModal(true);
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
+    setDeleteTargetId(id);
+  };
+
+  const confirmDelete = async () => {
+    const id = deleteTargetId;
+    setDeleteTargetId(null);
+
     try {
       await removeTemplate(id);
       toast.success("Template deleted successfully!");
@@ -245,6 +254,17 @@ export default function Templates() {
           setSelectedTemplate(null);
         }}
         template={selectedTemplate}
+      />
+
+      <ConfirmModal
+        isOpen={!!deleteTargetId}
+        title="Delete Template"
+        message="Are you sure you want to delete this template? This cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
       />
     </div>
   );

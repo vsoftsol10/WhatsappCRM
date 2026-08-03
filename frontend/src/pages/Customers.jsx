@@ -26,6 +26,10 @@
 //   const [currentPage, setCurrentPage] =
 //     useState(1);
 
+//   // Unfiltered snapshot used only for the KPI cards, so
+//   // filtering/searching the table doesn't change these numbers.
+//   const [allCustomers, setAllCustomers] = useState([]);
+
 //   const ROWS_PER_PAGE = 10;
 
 //   const menuRef = useRef(null);
@@ -55,6 +59,31 @@
 //         handleClickOutside
 //       );
 //     };
+//   }, []);
+
+//   // =========================
+//   // FETCH ALL CUSTOMERS (unfiltered, for KPI cards)
+//   // =========================
+
+//   useEffect(() => {
+//     const fetchAllCustomers = async () => {
+//       try {
+//         const data = await getCustomers("", "");
+
+//         setAllCustomers(
+//           data.customers ||
+//             data.data ||
+//             []
+//         );
+//       } catch (error) {
+//         console.error(
+//           "Failed to fetch customer stats:",
+//           error
+//         );
+//       }
+//     };
+
+//     fetchAllCustomers();
 //   }, []);
 
 //   // =========================
@@ -105,15 +134,15 @@
 //   // CUSTOMER STATS
 //   // =========================
 
-//   const totalCustomers = customers.length;
+//   const totalCustomers = allCustomers.length;
 
-//   const activeCustomers = customers.filter(
+//   const activeCustomers = allCustomers.filter(
 //     (customer) =>
 //       customer.status === "ACTIVE"
 //   ).length;
 
 //   const inactiveCustomers =
-//     customers.filter(
+//     allCustomers.filter(
 //       (customer) =>
 //         customer.status === "INACTIVE"
 //     ).length;
@@ -159,6 +188,12 @@
 //         customers.filter(
 //           (customer) =>
 //             customer.id !== id
+//         )
+//       );
+
+//       setAllCustomers((prev) =>
+//         prev.filter(
+//           (customer) => customer.id !== id
 //         )
 //       );
 
@@ -489,7 +524,6 @@
 
 // export default Customers;
 
-
 import { useEffect, useState, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreVertical } from "lucide-react";
@@ -498,6 +532,7 @@ import toast from "react-hot-toast";
 import useCustomerStore from "../store/customerStore";
 import { getCustomers, deleteCustomer } from "../api/customerApi";
 import CustomerStatCard from "../components/customers/CustomerStatCard";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 function Customers() {
   const customers =
@@ -521,6 +556,7 @@ function Customers() {
   // Unfiltered snapshot used only for the KPI cards, so
   // filtering/searching the table doesn't change these numbers.
   const [allCustomers, setAllCustomers] = useState([]);
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const ROWS_PER_PAGE = 10;
 
@@ -666,12 +702,13 @@ function Customers() {
   // DELETE CUSTOMER
   // =========================
 
-  const handleDelete = async (id) => {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this customer?"
-    );
+  const handleDelete = (id) => {
+    setDeleteTargetId(id);
+  };
 
-    if (!confirmed) return;
+  const confirmDelete = async () => {
+    const id = deleteTargetId;
+    setDeleteTargetId(null);
 
     try {
       await deleteCustomer(id);
@@ -1010,6 +1047,16 @@ function Customers() {
         </div>
 
       
+      <ConfirmModal
+        isOpen={!!deleteTargetId}
+        title="Delete Customer"
+        message="Are you sure you want to delete this customer? This cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
+      />
     </div>
   );
 }

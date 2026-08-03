@@ -5,7 +5,6 @@
 //   FaInfoCircle,
 //   FaEnvelopeOpen,
 //   FaTrashAlt,
-//   FaTimesCircle,
 // } from "react-icons/fa";
 // import useConversationStore from "../../store/conversationStore";
 // import useMessageStore from "../../store/messageStore";
@@ -21,9 +20,6 @@
 
 //   const markAsUnread = useConversationStore((state) => state.markAsUnread);
 //   const clearChat = useConversationStore((state) => state.clearChat);
-//   const editConversationStatus = useConversationStore(
-//     (state) => state.editConversationStatus
-//   );
 //   const clearMessages = useMessageStore((state) => state.clearMessages);
 
 //   // Close menu on outside click
@@ -63,14 +59,6 @@
 //     }
 //   };
 
-//   const handleCloseConversation = () => {
-//     setShowMenu(false);
-
-//     if (window.confirm("Close this conversation?")) {
-//       editConversationStatus(selectedConversation.id, "CLOSED");
-//     }
-//   };
-
 //   return (
 //     <div className="flex min-h-16 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4">
 //       {/* Left Section */}
@@ -100,9 +88,15 @@
 //             {selectedConversation.customer?.name}
 //           </h2>
 
-//           <p className="text-sm font-medium text-[#25D366]">
-//             Online
-//           </p>
+//           {selectedConversation.status === "CLOSED" ? (
+//             <p className="text-sm font-medium text-red-500">
+//               Closed
+//             </p>
+//           ) : (
+//             <p className="text-sm font-medium text-[#25D366]">
+//               Online
+//             </p>
+//           )}
 //         </div>
 //       </div>
 
@@ -143,14 +137,6 @@
 //                   <FaTrashAlt size={13} />
 //                   Clear Chat
 //                 </button>
-
-//                 <button
-//                   onClick={handleCloseConversation}
-//                   className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-red-600 hover:bg-gray-100"
-//                 >
-//                   <FaTimesCircle size={13} />
-//                   Close Conversation
-//                 </button>
 //               </div>
 //             )}
 //           </div>
@@ -172,6 +158,7 @@ import {
 } from "react-icons/fa";
 import useConversationStore from "../../store/conversationStore";
 import useMessageStore from "../../store/messageStore";
+import ConfirmModal from "../common/ConfirmModal";
 
 function ChatHeader({
   selectedConversation,
@@ -180,6 +167,7 @@ function ChatHeader({
   setShowCustomerDetails,
 }) {
   const [showMenu, setShowMenu] = useState(false);
+  const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
   const menuRef = useRef(null);
 
   const markAsUnread = useConversationStore((state) => state.markAsUnread);
@@ -216,14 +204,17 @@ function ChatHeader({
 
   const handleClearChat = () => {
     setShowMenu(false);
+    setShowClearChatConfirm(true);
+  };
 
-    if (window.confirm("Clear all messages in this chat? This cannot be undone.")) {
-      clearChat(selectedConversation.id);
-      clearMessages();
-    }
+  const confirmClearChat = () => {
+    setShowClearChatConfirm(false);
+    clearChat(selectedConversation.id);
+    clearMessages();
   };
 
   return (
+    <>
     <div className="flex min-h-16 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4">
       {/* Left Section */}
       <div className="flex min-w-0 items-center gap-3">
@@ -307,6 +298,18 @@ function ChatHeader({
         </div>
       </div>
     </div>
+
+    <ConfirmModal
+      isOpen={showClearChatConfirm}
+      title="Clear Chat"
+      message="Clear all messages in this chat? This cannot be undone."
+      confirmText="Clear"
+      cancelText="Cancel"
+      variant="danger"
+      onConfirm={confirmClearChat}
+      onCancel={() => setShowClearChatConfirm(false)}
+    />
+    </>
   );
 }
 

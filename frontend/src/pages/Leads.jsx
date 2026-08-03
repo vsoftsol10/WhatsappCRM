@@ -2,6 +2,7 @@
 // import { LayoutGrid, List } from "lucide-react";
 
 // import useLeadStore from "../store/leadStore";
+// import useEmployeeStore from "../store/employeeStore";
 
 // import LeadCard from "../components/leads/LeadCard";
 // import LeadTable from "../components/leads/LeadTable";
@@ -30,6 +31,8 @@
 //   (state) => state.setCustomers
 // );
 
+//   const { employees, fetchEmployees } = useEmployeeStore();
+
 //   const [searchTerm, setSearchTerm] = useState("");
 //   const [selectedStatus, setSelectedStatus] =
 //     useState("ALL");
@@ -56,7 +59,8 @@
 
 //   useEffect(() => {
 //     fetchLeads();
-//   }, [fetchLeads]);
+//     fetchEmployees();
+//   }, [fetchLeads, fetchEmployees]);
 
 //   useEffect(() => {
 //     console.log("Leads:", leads);
@@ -368,6 +372,7 @@
 //       <AddLeadModal
 //         isOpen={showAddModal}
 //         onClose={() => setShowAddModal(false)}
+//         employees={employees}
 //       />
 
 //       {/* ================= EDIT MODAL ================= */}
@@ -376,6 +381,7 @@
 //         isOpen={showEditModal}
 //         onClose={() => setShowEditModal(false)}
 //         lead={selectedLead}
+//         employees={employees}
 //       />
 
 //       {/* ================= VIEW MODAL ================= */}
@@ -407,6 +413,7 @@ import toast from "react-hot-toast";
 import { getCustomers } from "../api/customerApi";
 import useCustomerStore from "../store/customerStore";
 import Pagination from "../components/common/Pagination";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 export default function Lead() {
   const {
@@ -442,6 +449,9 @@ export default function Lead() {
     useState(false);
 
   const [selectedLead, setSelectedLead] =
+    useState(null);
+
+  const [deleteTargetId, setDeleteTargetId] =
     useState(null);
 
   const [currentPage, setCurrentPage] =
@@ -557,12 +567,13 @@ export default function Lead() {
     setShowViewModal(true);
   };
 
-  const handleDelete = async (id) => {
-  const confirmed = window.confirm(
-    "Are you sure you want to delete this lead?"
-  );
+  const handleDelete = (id) => {
+  setDeleteTargetId(id);
+};
 
-  if (!confirmed) return;
+const confirmDelete = async () => {
+  const id = deleteTargetId;
+  setDeleteTargetId(null);
 
   try {
     await removeLead(id);
@@ -782,6 +793,19 @@ export default function Lead() {
         isOpen={showViewModal}
         onClose={() => setShowViewModal(false)}
         lead={selectedLead}
+      />
+
+      {/* ================= DELETE CONFIRM MODAL ================= */}
+
+      <ConfirmModal
+        isOpen={!!deleteTargetId}
+        title="Delete Lead"
+        message="Are you sure you want to delete this lead? This cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTargetId(null)}
       />
 
     </div>

@@ -136,6 +136,12 @@
 //     setOpenSection((prev) => (prev === id ? "" : id));
 //   };
 
+//   const handleLogout = () => {
+//     if (window.confirm("Are you sure you want to logout?")) {
+//       logout();
+//     }
+//   };
+
 //   const linkClass = ({ isActive }) =>
 //     `group flex h-11 items-center gap-3 rounded-lg px-3 text-[15px] transition-all duration-200 ease-out hover:scale-[1.02]
 //     ${
@@ -255,7 +261,7 @@
 //         </div> */}
 
 //         <button
-//           onClick={logout}
+//           onClick={handleLogout}
 //           className="flex w-full items-center justify-center gap-2 rounded-lg border border-white/10 bg-transparent py-3 text-[15px] font-semibold text-[#25D366] transition-all duration-200 ease-out hover:scale-[1.02] hover:border-[#B91C1C] hover:bg-[#B91C1C] hover:text-white active:scale-[0.98]"
 //         >
 //           <FaSignOutAlt />
@@ -267,10 +273,10 @@
 //   );
 // }
 
-
 import { useState, useEffect } from "react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import ConfirmModal from "./common/ConfirmModal";
 
 import {
   FaTachometerAlt,
@@ -406,10 +412,15 @@ export default function Sidebar({
     setOpenSection((prev) => (prev === id ? "" : id));
   };
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleLogout = () => {
-    if (window.confirm("Are you sure you want to logout?")) {
-      logout();
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    setShowLogoutConfirm(false);
+    logout();
   };
 
   const linkClass = ({ isActive }) =>
@@ -539,6 +550,17 @@ export default function Sidebar({
         </button>
       </div>
       </aside>
+
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        title="Logout"
+        message="Are you sure you want to logout?"
+        confirmText="Logout"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmLogout}
+        onCancel={() => setShowLogoutConfirm(false)}
+      />
     </>
   );
 }

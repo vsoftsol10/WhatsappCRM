@@ -12,7 +12,6 @@
 // }) {
 //   const {
 //   addCampaign,
-//   sendCampaign,
 // } = useCampaignStore();
 
 //   const [customers, setCustomers] = useState([]);
@@ -203,12 +202,6 @@
 //       return toast.error("Campaign message is required.");
 //     }
 
-//     if (selectedCustomers.length === 0) {
-//       return toast.error(
-//         "Please select at least one customer."
-//       );
-//     }
-
 //     try {
 //    const campaign = await addCampaign({
 //   ...formData,
@@ -218,12 +211,7 @@
 
 // console.log("Campaign:", campaign);
 
-// await sendCampaign(
-//   campaign.id,
-//   selectedCustomers
-// );
-
-// toast.success("Campaign sent successfully.");
+// toast.success("Campaign created successfully. Use \"Send Campaign\" to send it.");
 
 // resetForm();
 
@@ -459,7 +447,7 @@
 
 //               <label className="font-medium text-gray-700">
 //                 Select Customers
-//                 <span className="text-red-500"> *</span>
+//                 <span className="ml-1 text-xs font-normal text-gray-400">(optional)</span>
 //               </label>
 
 //               <div className="flex gap-2">
@@ -939,6 +927,7 @@ return (
 
             <label className="mb-2 block font-medium text-gray-700">
               Campaign Message
+              <span className="text-red-500"> *</span>
             </label>
 
             <textarea
