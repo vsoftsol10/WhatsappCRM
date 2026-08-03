@@ -322,7 +322,7 @@ const sendTemplateMessage = async (to, templateName, params = []) => {
 // Requires a Meta-approved template whose Header format is set to "Image"
 // (e.g. "custom_campaign_image_message"). imageUrl must be a publicly
 // accessible URL (your Cloudinary link works fine).
-const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = []) => {
+const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = [], languageCode = "en_US") => {
 
   if (!to || typeof to !== "string" || !to.trim()) {
     return {
@@ -351,7 +351,7 @@ const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = []
         type: "template",
         template: {
           name: templateName,
-          language: { code: "en_US" },
+          language: { code: languageCode },
           components: [
             {
               type: "header",
