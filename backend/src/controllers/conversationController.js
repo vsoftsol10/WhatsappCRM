@@ -1,6 +1,74 @@
 const prisma = require("../config/prisma");
 
 // CREATE CONVERSATION
+// const createConversation = async (req, res) => {
+//   try {
+//     const {
+//       customerId,
+//       status,
+//       channel,
+//       lastMessage,
+//       unreadCount,
+//     } = req.body;
+
+//     // Check if customer exists
+//     const customer = await prisma.customer.findUnique({
+//       where: { id: customerId },
+//     });
+
+//     if (!customer) {
+//       return res.status(404).json({
+//         success: false,
+//         message: "Customer not found",
+//       });
+//     }
+
+//     const existingConversation = await prisma.conversation.findFirst({
+//       where: {
+//         customerId,
+//       },
+//       include: {
+//         customer: true,
+//       },
+//     });
+
+//     if (existingConversation) {
+//       return res.status(200).json({
+//         success: true,
+//         message: "Conversation already exists",
+//         conversation: existingConversation,
+//       });
+//     }
+
+//     const conversation = await prisma.conversation.create({
+//       data: {
+//         customerId,
+//         phone: customer.phone,
+//         status,
+//         channel,
+//         lastMessage,
+//         unreadCount,
+//       },
+//       include: {
+//         customer: true,
+//       },
+//     });
+
+//     res.status(201).json({
+//       success: true,
+//       message: "Conversation created successfully",
+//       conversation,
+//     });
+//   } catch (error) {
+//     console.error(error);
+
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to create conversation",
+//     });
+//   }
+// };
+
 const createConversation = async (req, res) => {
   try {
     const {
@@ -23,9 +91,12 @@ const createConversation = async (req, res) => {
       });
     }
 
-    const existingConversation = await prisma.conversation.findFirst({
+    // Check by phone, not customerId — a conversation may already
+    // exist for this phone (e.g. created by an inbound webhook
+    // message before this customer record existed / was linked)
+    const existingConversation = await prisma.conversation.findUnique({
       where: {
-        customerId,
+        phone: customer.phone,
       },
       include: {
         customer: true,
@@ -33,6 +104,21 @@ const createConversation = async (req, res) => {
     });
 
     if (existingConversation) {
+      // Link it to this customer if it isn't already
+      if (existingConversation.customerId !== customerId) {
+        const updated = await prisma.conversation.update({
+          where: { id: existingConversation.id },
+          data: { customerId },
+          include: { customer: true },
+        });
+
+        return res.status(200).json({
+          success: true,
+          message: "Conversation already existed and was linked to this customer",
+          conversation: updated,
+        });
+      }
+
       return res.status(200).json({
         success: true,
         message: "Conversation already exists",
