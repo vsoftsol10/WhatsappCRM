@@ -43,7 +43,7 @@ const {
   createTaskWorkNote,
   updateTaskWorkNote,
   deleteTaskWorkNote,
-} = require("../controllers/taskWorkNoteController");
+} = require("../controllers/taskworknoteController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 

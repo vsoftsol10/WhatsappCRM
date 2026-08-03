@@ -49,7 +49,7 @@ const {
   createTicketWorkNote,
   updateTicketWorkNote,
   deleteTicketWorkNote,
-} = require("../controllers/ticketWorkNoteController");
+} = require("../controllers/ticketworknoteController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 

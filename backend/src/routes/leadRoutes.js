@@ -52,7 +52,7 @@ const {
   createLeadWorkNote,
   updateLeadWorkNote,
   deleteLeadWorkNote,
-} = require("../controllers/leadWorkNoteController");
+} = require("../controllers/leadworknoteController");
 
 const router = express.Router();
 
