@@ -27,15 +27,19 @@ model User {
   status           UserStatus     @default(ACTIVE)
   campaigns        Campaign[]
   customers        Customer[]
+  assignedLeads Lead[] @relation("AssignedLeads")
+  leadWorkNotes LeadWorkNote[] @relation("LeadWorkNotes")
   assignedDeals    Deal[]         @relation("AssignedDeals")
   createdDeals     Deal[]         @relation("CreatedDeals")
   dealActivities   DealActivity[] @relation("CreatedDealActivities")
   notifications    Notification[]
   assignedTasks    Task[]         @relation("AssignedTasks")
   createdTasks     Task[]         @relation("CreatedTasks")
+  taskWorkNotes    TaskWorkNote[] @relation("TaskWorkNotes")
   templates        Template[]
   assignedTickets  Ticket[]       @relation("AssignedTickets")
   createdTickets   Ticket[]       @relation("CreatedTickets")
+  ticketWorkNotes  TicketWorkNote[] @relation("TicketWorkNotes")
 }
 
 model Customer {
@@ -97,11 +101,33 @@ model Lead {
   status       LeadStatus
   source       String?
   requirements String?
-  assignedToId Int?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
   isConverted  Boolean    @default(false)
   company      String?
+
+  assignedToId String?
+  assignedTo User? @relation("AssignedLeads", fields: [assignedToId], references: [id])
+
+  workNotes LeadWorkNote[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@index([assignedToId])
+}
+
+model LeadWorkNote {
+  id           String   @id @default(uuid())
+  leadId       Int
+  employeeId   String
+  note         String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  employee     User     @relation("LeadWorkNotes", fields: [employeeId], references: [id])
+
+  @@index([leadId])
+  @@index([employeeId])
 }
 
 model Campaign {
@@ -183,11 +209,27 @@ model Task {
   updatedAt    DateTime     @updatedAt
   assignedTo   User         @relation("AssignedTasks", fields: [assignedToId], references: [id])
   createdBy    User         @relation("CreatedTasks", fields: [createdById], references: [id])
+  workNotes    TaskWorkNote[]
 
   @@index([status])
   @@index([priority])
   @@index([assignedToId])
   @@index([createdById])
+}
+
+model TaskWorkNote {
+  id         String   @id @default(uuid())
+  taskId     String
+  employeeId String
+  note       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  task       Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  employee   User     @relation("TaskWorkNotes", fields: [employeeId], references: [id])
+
+  @@index([taskId])
+  @@index([employeeId])
 }
 
 model Ticket {
@@ -204,12 +246,28 @@ model Ticket {
   assignedTo   User?          @relation("AssignedTickets", fields: [assignedToId], references: [id])
   createdBy    User           @relation("CreatedTickets", fields: [createdById], references: [id])
   customer     Customer       @relation(fields: [customerId], references: [id])
+  workNotes    TicketWorkNote[]
 
   @@index([status])
   @@index([priority])
   @@index([customerId])
   @@index([createdById])
   @@index([assignedToId])
+}
+
+model TicketWorkNote {
+  id         String   @id @default(uuid())
+  ticketId   String
+  employeeId String
+  note       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  employee   User     @relation("TicketWorkNotes", fields: [employeeId], references: [id])
+
+  @@index([ticketId])
+  @@index([employeeId])
 }
 
 model Deal {

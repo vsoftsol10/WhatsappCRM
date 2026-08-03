@@ -69,6 +69,7 @@ const getEmployees = async (req, res) => {
     const employees = await prisma.user.findMany({
       where: {
         role: "USER",
+        status: "ACTIVE",
       },
       select: {
         id: true,

@@ -96,7 +96,7 @@ export default function TemplateCard({
         >
           <Eye size={22} />
           <span className="text-sm">
-            Preview
+            view
           </span>
         </button>
 
