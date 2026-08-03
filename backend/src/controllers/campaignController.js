@@ -1166,7 +1166,7 @@ try {
 
     result = await sendCampaignImageTemplate(
       customer.phone,
-      "custom_campaign_message", // approved image template name
+      "campaign", // approved IMAGE-header template name (Meta template: "campaign")
        campaign.imageUrl,
       [customer.name, campaign.messageContent] // fills {{1}} and {{2}}
     );
