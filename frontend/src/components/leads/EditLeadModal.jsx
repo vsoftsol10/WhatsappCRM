@@ -7,6 +7,7 @@
 //   isOpen,
 //   onClose,
 //   lead,
+//   employees = [],
 // }) {
 //   const { editLead } = useLeadStore();
 
@@ -18,6 +19,7 @@
 //     company: "",
 //     requirements: "",
 //     status: "NEW",
+//     assignedToId: "",
 //   });
 
 //   const [errors, setErrors] = useState({});
@@ -32,6 +34,7 @@
 //         source: lead.source || "",
 //         requirements: lead.requirements || "",
 //         status: lead.status || "NEW",
+//         assignedToId: lead.assignedToId || "",
 //       });
 
 //       setErrors({});
@@ -108,6 +111,7 @@
 //       source: "",
 //       requirements: "",
 //       status: "NEW",
+//       assignedToId: "",
 //     });
 
 //     setErrors({});
@@ -280,6 +284,28 @@
 //               )}
 //             </div>
 
+//             {/* Assign Employee */}
+//             <div>
+//               <label className="block mb-2 font-medium text-gray-700">
+//                 Assign Employee
+//               </label>
+
+//               <select
+//                 name="assignedToId"
+//                 value={formData.assignedToId}
+//                 onChange={handleChange}
+//                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#25D366]"
+//               >
+//                 <option value="">Unassigned</option>
+
+//                 {employees.map((employee) => (
+//                   <option key={employee.id} value={employee.id}>
+//                     {employee.name}
+//                   </option>
+//                 ))}
+//               </select>
+//             </div>
+
 //             {/* Status */}
 //               <div>
 //                 <label className="block mb-2 font-medium text-gray-700">
@@ -352,6 +378,8 @@ import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import useLeadStore from "../../store/leadStore";
 import toast from "react-hot-toast";
+import { addLeadWorkNote } from "../../api/leadApi";
+import AddWorkNote from "../common/AddWorkNote";
 
 export default function EditLeadModal({
   isOpen,
@@ -699,6 +727,13 @@ export default function EditLeadModal({
                 </p>
               )}
             </div>
+
+            {/* WORK NOTE */}
+            {lead?.id && (
+              <div className="border-t pt-4">
+                <AddWorkNote entityId={lead.id} addNote={addLeadWorkNote} />
+              </div>
+            )}
 
             {/* Buttons */}
             <div className="flex justify-end gap-3 pt-4 border-t mt-6">
