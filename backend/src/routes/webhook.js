@@ -119,6 +119,10 @@ const {
   classifyCustomerMessage,
 } = require("../services/geminiService");
 
+const {
+  createLeadFromClassification,
+} = require("../helpers/leadHelper");
+
 router.get("/", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -180,13 +184,25 @@ router.post("/", async (req, res) => {
 
       // Step 4: AI analysis. Classifies the message text into a product
       // interest so Step 5 (Product Router) can decide where the lead
-      // goes. For now this just logs the result — routing/lead creation
-      // comes in Step 5.
+      // goes.
+      let classification = null;
       try {
-        const classification = await classifyCustomerMessage(text);
+        classification = await classifyCustomerMessage(text);
         console.log("AI Classification:", classification);
       } catch (classificationError) {
         console.error("AI classification error:", classificationError);
+      }
+
+      // Step 5: Product Router. Creates a Lead from every classified
+      // message — no confidence threshold, no dedup against existing
+      // leads (confirmed team decision). "Other" is tagged as
+      // "Unclassified" so a human agent can pick it up manually.
+      if (classification) {
+        try {
+          await createLeadFromClassification(conversation, classification, text);
+        } catch (leadError) {
+          console.error("Lead creation error:", leadError);
+        }
       }
     }
 
