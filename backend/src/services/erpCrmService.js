@@ -50,7 +50,8 @@ const sendLeadToErpCrm = async (lead) => {
     });
 
     console.log(
-      `Lead forwarded to ERP CRM successfully (local lead #${lead.id} -> ERP CRM lead #${response.data?.lead?.id})`
+      `Lead forwarded to ERP CRM successfully (local lead #${lead.id}). ERP CRM response:`,
+      JSON.stringify(response.data)
     );
 
     return { success: true, data: response.data };

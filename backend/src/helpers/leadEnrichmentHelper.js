@@ -1,5 +1,7 @@
 const prisma = require("../config/prisma");
-const { sendTextMessage } = require("../services/whatsappService");
+const {
+  sendAndSaveOutgoingMessage,
+} = require("../helpers/messageHelper");
 const { sendLeadToErpCrm } = require("../services/erpCrmService");
 
 // Step 6 - Lead Enrichment: only ERP is wired to an external CRM today.
@@ -13,11 +15,13 @@ const PRODUCT_CRM_SENDERS = {
 // conversation back to a human agent (Step 6 decision: 15 minutes).
 const PENDING_LEAD_TIMEOUT_MS = 15 * 60 * 1000;
 
-const askQuestion = async (phone, question) => {
-  const result = await sendTextMessage(phone, question);
-  if (!result.success) {
-    console.error("Failed to send lead-enrichment question:", result.error);
-  }
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const isValidCompany = (text) => (text || "").trim().length >= 2;
+const isValidEmail = (text) => EMAIL_REGEX.test((text || "").trim());
+
+const askQuestion = async (conversation, question) => {
+  await sendAndSaveOutgoingMessage(conversation, question);
 };
 
 // Call this right after a NEW lead is created (Step 5) for a product we
@@ -54,7 +58,7 @@ const startLeadEnrichment = async (conversation, product, lead) => {
     },
   });
 
-  await askQuestion(conversation.phone, question);
+  await askQuestion(conversation, question);
 };
 
 // Call this when conversation.pendingLeadStep is already set — this
@@ -62,8 +66,23 @@ const startLeadEnrichment = async (conversation, product, lead) => {
 // classify.
 const handlePendingLeadAnswer = async (conversation, answerText) => {
   const { pendingLeadStep, pendingLeadProduct, phone } = conversation;
+  const trimmedAnswer = (answerText || "").trim();
 
   if (pendingLeadStep === "COMPANY") {
+    if (!isValidCompany(trimmedAnswer)) {
+      // Not a usable answer — re-ask the same question instead of
+      // moving on, and reset the wait timer.
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { pendingLeadAskedAt: new Date() },
+      });
+      await askQuestion(
+        conversation,
+        "Sorry, I didn't quite get that. Could you share your company name?"
+      );
+      return;
+    }
+
     // Email may already be known from a linked Customer record —
     // check before asking for it too.
     const lead = await prisma.lead.findFirst({
@@ -73,7 +92,7 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
     if (lead?.email) {
       // Email already known — save company and finish immediately.
       await finalizeEnrichment(conversation, {
-        company: answerText.trim(),
+        company: trimmedAnswer,
         email: lead.email,
       });
       return;
@@ -82,23 +101,36 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
     await prisma.conversation.update({
       where: { id: conversation.id },
       data: {
-        pendingLeadCompany: answerText.trim(),
+        pendingLeadCompany: trimmedAnswer,
         pendingLeadStep: "EMAIL",
         pendingLeadAskedAt: new Date(),
       },
     });
 
     await askQuestion(
-      phone,
+      conversation,
       "Thanks! Could you also share your email address so our team can reach you?"
     );
     return;
   }
 
   if (pendingLeadStep === "EMAIL") {
+    if (!isValidEmail(trimmedAnswer)) {
+      // Not a valid email — keep asking until we get a real one.
+      await prisma.conversation.update({
+        where: { id: conversation.id },
+        data: { pendingLeadAskedAt: new Date() },
+      });
+      await askQuestion(
+        conversation,
+        "That doesn't look like a valid email address. Could you share a valid email (e.g. name@example.com)?"
+      );
+      return;
+    }
+
     await finalizeEnrichment(conversation, {
       company: conversation.pendingLeadCompany,
-      email: answerText.trim(),
+      email: trimmedAnswer,
     });
   }
 };
@@ -138,11 +170,16 @@ const finalizeEnrichment = async (conversation, { company, email }) => {
 
   const sendToCrm = PRODUCT_CRM_SENDERS[pendingLeadProduct];
   if (sendToCrm) {
-    await sendToCrm(updatedLead);
+    const result = await sendToCrm(updatedLead);
+    if (!result?.success) {
+      console.error(
+        `Lead #${updatedLead.id} was NOT forwarded to ${pendingLeadProduct} CRM. See error above.`
+      );
+    }
   }
 
-  await sendTextMessage(
-    phone,
+  await sendAndSaveOutgoingMessage(
+    conversation,
     "Thank you! We've forwarded your request to our team and they'll reach out to you shortly."
   );
 };
