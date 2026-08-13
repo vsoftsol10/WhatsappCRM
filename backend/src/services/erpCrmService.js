@@ -14,7 +14,7 @@ const ERP_CRM_URL =
   process.env.ERP_CRM_LEADS_URL ||
   "https://vconstech-crm-new.onrender.com/api/leads";
 
-const DEFAULT_PLAN = "Basic";
+const DEFAULT_PLAN = "None";
 
 // Their API wants a plain 10-digit number. Our numbers are stored with
 // the country code (e.g. "919150425948") — take the last 10 digits.
