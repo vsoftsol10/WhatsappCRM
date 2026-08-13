@@ -3,6 +3,8 @@
 // import toast from "react-hot-toast";
 
 // import useTaskStore from "../../store/taskStore";
+// import { addTaskWorkNote } from "../../api/taskApi";
+// import AddWorkNote from "../common/AddWorkNote";
 
 // export default function EditTaskModal({
 //   isOpen,
@@ -297,6 +299,11 @@
 //               )}
 //             </div>
 
+//             {/* WORK NOTE */}
+//             <div className="border-t pt-4">
+//               <AddWorkNote entityId={task.id} addNote={addTaskWorkNote} />
+//             </div>
+
 //             {/* BUTTONS */}
 //             <div className="flex justify-end gap-3 pt-4 border-t mt-6">
 //               <button
@@ -321,20 +328,18 @@
 //   );
 // }
 
+
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 
 import useTaskStore from "../../store/taskStore";
-import { addTaskWorkNote } from "../../api/taskApi";
-import AddWorkNote from "../common/AddWorkNote";
 
-export default function EditTaskModal({
+export default function CreateTaskModal({
   isOpen,
   onClose,
-  task,
 }) {
-  const { editTask, employees, fetchEmployees } =
+  const { createTask, employees, fetchEmployees } =
     useTaskStore();
 
   const [formData, setFormData] = useState({
@@ -346,11 +351,10 @@ export default function EditTaskModal({
   });
 
   const [errors, setErrors] = useState({});
+  const [loadingEmployees, setLoadingEmployees] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  const [loadingEmployees, setLoadingEmployees] =
-    useState(true);
-
-  // Fetch employees safely
+  // Fetch employees when modal opens
   useEffect(() => {
     const loadEmployees = async () => {
       try {
@@ -358,6 +362,7 @@ export default function EditTaskModal({
         await fetchEmployees();
       } catch (err) {
         console.error(err);
+        toast.error("Failed to load employees");
       } finally {
         setLoadingEmployees(false);
       }
@@ -366,24 +371,23 @@ export default function EditTaskModal({
     if (isOpen) {
       loadEmployees();
     }
-  }, [isOpen]);
+  }, [isOpen, fetchEmployees]);
 
-  // Sync task into form safely
+  // Reset form when modal opens
   useEffect(() => {
-    if (task) {
+    if (isOpen) {
       setFormData({
-        title: task.title || "",
-        description: task.description || "",
-        priority: task.priority || "MEDIUM",
-        dueDate: task.dueDate
-          ? task.dueDate.split("T")[0]
-          : "",
-        assignedToId: task.assignedToId || "",
+        title: "",
+        description: "",
+        priority: "MEDIUM",
+        dueDate: "",
+        assignedToId: "",
       });
 
       setErrors({});
+      setSubmitting(false);
     }
-  }, [task]);
+  }, [isOpen]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -436,29 +440,46 @@ export default function EditTaskModal({
     if (!validateForm()) return;
 
     try {
-      await editTask(task.id, formData);
+      setSubmitting(true);
 
-      toast.success("Task updated successfully!");
+      await createTask(formData);
+
+      toast.success("Task created successfully!");
+
+      setFormData({
+        title: "",
+        description: "",
+        priority: "MEDIUM",
+        dueDate: "",
+        assignedToId: "",
+      });
 
       setErrors({});
 
       onClose();
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to update task");
+      console.error("Create task error:", error);
+
+      toast.error(
+        error?.response?.data?.message ||
+          "Failed to create task"
+      );
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  if (!isOpen || !task) return null;
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black/50 z-50 overflow-y-auto">
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+
           {/* Header */}
           <div className="bg-[#25D366] px-6 py-5 flex justify-between items-center">
             <h2 className="text-2xl font-bold text-gray-800">
-              Edit Task
+              Create Task
             </h2>
 
             <button
@@ -474,10 +495,12 @@ export default function EditTaskModal({
             onSubmit={handleSubmit}
             className="p-6 space-y-5 max-h-[75vh] overflow-y-auto"
           >
+
             {/* TITLE */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Task Title <span className="text-red-500">*</span>
+                Task Title{" "}
+                <span className="text-red-500">*</span>
               </label>
 
               <input
@@ -502,7 +525,8 @@ export default function EditTaskModal({
             {/* DESCRIPTION */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Description <span className="text-red-500">*</span>
+                Description{" "}
+                <span className="text-red-500">*</span>
               </label>
 
               <textarea
@@ -510,6 +534,7 @@ export default function EditTaskModal({
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Enter description"
+                rows={4}
                 className={`w-full rounded-lg border px-4 py-3 outline-none ${
                   errors.description
                     ? "border-red-500"
@@ -527,7 +552,8 @@ export default function EditTaskModal({
             {/* PRIORITY */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Priority <span className="text-red-500">*</span>
+                Priority{" "}
+                <span className="text-red-500">*</span>
               </label>
 
               <select
@@ -555,7 +581,8 @@ export default function EditTaskModal({
             {/* DUE DATE */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Due Date <span className="text-red-500">*</span>
+                Due Date{" "}
+                <span className="text-red-500">*</span>
               </label>
 
               <input
@@ -577,10 +604,11 @@ export default function EditTaskModal({
               )}
             </div>
 
-            {/* EMPLOYEE DROPDOWN */}
+            {/* EMPLOYEE */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Assign Employee <span className="text-red-500">*</span>
+                Assign Employee{" "}
+                <span className="text-red-500">*</span>
               </label>
 
               {loadingEmployees ? (
@@ -622,31 +650,32 @@ export default function EditTaskModal({
               )}
             </div>
 
-            {/* WORK NOTE */}
-            <div className="border-t pt-4">
-              <AddWorkNote entityId={task.id} addNote={addTaskWorkNote} />
-            </div>
-
             {/* BUTTONS */}
             <div className="flex justify-end gap-3 pt-4 border-t mt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                disabled={submitting}
+                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition disabled:opacity-50"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition"
+                disabled={submitting}
+                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition disabled:opacity-50"
               >
-                Update Task
+                {submitting
+                  ? "Creating..."
+                  : "Create Task"}
               </button>
             </div>
+
           </form>
         </div>
       </div>
     </div>
   );
 }
+
