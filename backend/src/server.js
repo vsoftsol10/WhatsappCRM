@@ -26,6 +26,10 @@ const dealActivityRoutes = require("./routes/dealActivityRoutes");
 const webhookRoutes = require("./routes/webhook");
 const notificationRoutes = require("./routes/notificationRoutes");
 
+const {
+  releaseStalePendingLeads,
+} = require("./helpers/leadEnrichmentHelper");
+
 const app = express();
 
 // Middleware
@@ -61,3 +65,12 @@ app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 
+// Step 6: every 5 minutes, release any WhatsApp conversation that's
+// been waiting more than 15 minutes for a company/email reply, so it
+// doesn't get stuck waiting forever and just falls back to a human
+// agent picking it up from the Conversations tab.
+setInterval(() => {
+  releaseStalePendingLeads().catch((err) =>
+    console.error("Error releasing stale pending leads:", err)
+  );
+}, 5 * 60 * 1000);

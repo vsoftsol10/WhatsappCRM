@@ -54,7 +54,19 @@ const { sendTextMessage } = require("../services/whatsappService");
 
 const WELCOME_MESSAGE =
   process.env.WHATSAPP_WELCOME_MESSAGE ||
-  "Thank you for contacting us. We received your message and will get back to you shortly.";
+  `Hi,
+
+  We're pleased to welcome you to VsoftSolutions! Thank you for connecting with us.
+
+  This message confirms your successful engagement. Our team is dedicated to providing you with exceptional service and support.
+
+  Should you require any immediate assistance, please do not hesitate to contact us.
+
+  You can reach us via:
+  Phone: 9876546375
+  Email: vsoft@gmail.com
+
+  We look forward to assisting you.`;
 
 // Sends a one-time acknowledgement to a customer the first time they
 // message us on a conversation, and saves that outbound message so it

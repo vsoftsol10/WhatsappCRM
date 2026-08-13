@@ -75,6 +75,15 @@ model Conversation {
   welcomeSent Boolean   @default(false)
   customer    Customer? @relation(fields: [customerId], references: [id])
   messages    Message[]
+
+  // Lead-enrichment state (Step 6): tracks a pending "what's your
+  // company / email" question so the next incoming message is treated
+  // as an answer instead of being re-classified by the AI.
+  pendingLeadProduct String?   // e.g. "ERP" — which product's lead this is for
+  pendingLeadStep    String?   // "COMPANY" | "EMAIL" | null
+  pendingLeadCompany String?
+  pendingLeadEmail   String?
+  pendingLeadAskedAt DateTime?
 }
 
 model Message {

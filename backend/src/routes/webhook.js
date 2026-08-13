@@ -123,6 +123,11 @@ const {
   createLeadFromClassification,
 } = require("../helpers/leadHelper");
 
+const {
+  startLeadEnrichment,
+  handlePendingLeadAnswer,
+} = require("../helpers/leadEnrichmentHelper");
+
 router.get("/", (req, res) => {
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
@@ -182,9 +187,23 @@ router.post("/", async (req, res) => {
         console.error("Auto-reply error:", autoReplyError);
       }
 
+      // Step 6a: if we're mid-conversation collecting company/email for
+      // an enriched lead, this message is the customer's answer — not
+      // a new topic. Handle it and skip classification entirely.
+      let skipClassification = false;
+      if (conversation.pendingLeadStep) {
+        skipClassification = true;
+        try {
+          await handlePendingLeadAnswer(conversation, text);
+        } catch (enrichmentError) {
+          console.error("Lead enrichment answer error:", enrichmentError);
+        }
+      }
+
       // Step 4: AI analysis. Classifies the message text into a product
       // interest so Step 5 (Product Router) can decide where the lead
       // goes.
+      if (!skipClassification) {
       let classification = null;
       try {
         classification = await classifyCustomerMessage(text);
@@ -194,15 +213,27 @@ router.post("/", async (req, res) => {
       }
 
       // Step 5: Product Router. Creates a Lead from every classified
-      // message — no confidence threshold, no dedup against existing
-      // leads (confirmed team decision). "Other" is tagged as
-      // "Unclassified" so a human agent can pick it up manually.
+      // message with confidence >= 0.5 (skips "Other" / low confidence).
+      // Dedupes on phone + product — repeat messages about the same
+      // product update the existing lead instead of duplicating.
       if (classification) {
         try {
-          await createLeadFromClassification(conversation, classification, text);
+          const { lead, isNew } = await createLeadFromClassification(
+            conversation,
+            classification,
+            text
+          );
+
+          // Step 6b: only kick off enrichment/forwarding the first time
+          // this lead is created — not on every follow-up message about
+          // the same product.
+          if (isNew && lead) {
+            await startLeadEnrichment(conversation, classification.product, lead);
+          }
         } catch (leadError) {
           console.error("Lead creation error:", leadError);
         }
+      }
       }
     }
 

@@ -80,7 +80,7 @@ const createLeadFromClassification = async (
     console.log(
       `Skipping lead creation for ${phone}: product=${product}, confidence=${confidence} (below threshold ${MIN_CONFIDENCE} or unclassified)`
     );
-    return null;
+    return { lead: null, isNew: false };
   }
 
   const source = `WhatsApp - ${product}`;
@@ -100,7 +100,7 @@ const createLeadFromClassification = async (
       `Existing lead updated instead of duplicating: #${updatedLead.id} (${product}, phone ${phone})`
     );
 
-    return updatedLead;
+    return { lead: updatedLead, isNew: false };
   }
 
   const lead = await prisma.lead.create({
@@ -120,7 +120,7 @@ const createLeadFromClassification = async (
     `Lead created from WhatsApp message: #${lead.id} (${product}, confidence ${confidence})`
   );
 
-  return lead;
+  return { lead, isNew: true };
 };
 
 module.exports = {
