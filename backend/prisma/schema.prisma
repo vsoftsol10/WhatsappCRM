@@ -77,14 +77,25 @@ model Conversation {
   messages    Message[]
 
   // Lead-enrichment state (Step 6): tracks a pending "what's your
-  // company / email" question so the next incoming message is treated
-  // as an answer instead of being re-classified by the AI.
+  // name / company / email" question so the next incoming message is
+  // treated as an answer instead of being re-classified by the AI.
   pendingLeadProduct String?   // e.g. "ERP" — which product's lead this is for
-  pendingLeadStep    String?   // "COMPANY" | "EMAIL" | null
+  pendingLeadStep    String?   // "NAME" | "COMPANY" | "EMAIL" | null
+  pendingLeadName    String?
   pendingLeadCompany String?
   pendingLeadEmail   String?
   pendingLeadAskedAt DateTime?
+
+  // Ticket-enrichment state: same idea as lead-enrichment above, but
+  // for SUPPORT-intent messages (existing customer reporting a
+  // problem) that get forwarded to the external CRM's Tickets API
+  // instead of created as a sales Lead.
+  pendingTicketProduct     String?    // e.g. "ERP" — which product's ticket this is for
+  pendingTicketStep        String?    // "NAME" | null
+  pendingTicketDescription String?
+  pendingTicketAskedAt     DateTime?
 }
+
 
 model Message {
   id             String       @id @default(uuid())

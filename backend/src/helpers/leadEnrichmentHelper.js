@@ -17,37 +17,81 @@ const PENDING_LEAD_TIMEOUT_MS = 15 * 60 * 1000;
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+const isValidName = (text) => (text || "").trim().length >= 2;
 const isValidCompany = (text) => (text || "").trim().length >= 2;
 const isValidEmail = (text) => EMAIL_REGEX.test((text || "").trim());
+
+// Questions are asked in this order: NAME, then COMPANY, then EMAIL —
+// whichever of these the lead doesn't already have.
+const ORDERED_STEPS = ["NAME", "COMPANY", "EMAIL"];
+
+const QUESTIONS = {
+  NAME: "Thanks for reaching out! Could you share your name, please?",
+  COMPANY:
+    "Great! Could you share your company name so we can get you the right ERP proposal?",
+  EMAIL:
+    "Thanks! Could you also share your email address so our team can reach you?",
+};
+
+const RETRY_MESSAGES = {
+  NAME: "Sorry, I didn't quite get that. Could you share your name?",
+  COMPANY:
+    "Sorry, I didn't quite get that. Could you share your company name?",
+  EMAIL:
+    "That doesn't look like a valid email address. Could you share a valid email (e.g. name@example.com)?",
+};
+
+// leadHelper.js falls back to "WhatsApp Lead (<phone>)" when there's no
+// linked Customer name — that placeholder means "we don't actually
+// have a name yet" for enrichment purposes.
+const isPlaceholderName = (lead) => lead.name === `WhatsApp Lead (${lead.phone})`;
+
+const isFieldMissing = (lead, step) => {
+  if (step === "NAME") return isPlaceholderName(lead);
+  if (step === "COMPANY") return !lead.company;
+  if (step === "EMAIL") return !lead.email;
+  return false;
+};
+
+// Finds the next step (after `afterStep`, or from the start if omitted)
+// that's still missing on this lead. Returns null if nothing's missing.
+const nextMissingStep = (lead, afterStep = null) => {
+  const startIndex = afterStep ? ORDERED_STEPS.indexOf(afterStep) + 1 : 0;
+  for (let i = startIndex; i < ORDERED_STEPS.length; i++) {
+    if (isFieldMissing(lead, ORDERED_STEPS[i])) return ORDERED_STEPS[i];
+  }
+  return null;
+};
 
 const askQuestion = async (conversation, question) => {
   await sendAndSaveOutgoingMessage(conversation, question);
 };
 
+const resetAskTimer = async (conversation) => {
+  await prisma.conversation.update({
+    where: { id: conversation.id },
+    data: { pendingLeadAskedAt: new Date() },
+  });
+};
+
 // Call this right after a NEW lead is created (Step 5) for a product we
-// forward externally. Figures out what's missing (company, email, or
-// both) and asks for the first missing one. If nothing is missing, it
-// forwards immediately without asking anything.
+// forward externally. Figures out what's missing (name, company,
+// email — in that order) and asks for the first missing one. If
+// nothing is missing, it forwards immediately without asking anything.
 const startLeadEnrichment = async (conversation, product, lead) => {
   if (!PRODUCT_CRM_SENDERS[product]) {
     // We don't forward this product anywhere yet — nothing to do.
     return;
   }
 
-  const missingCompany = !lead.company;
-  const missingEmail = !lead.email;
+  const firstStep = nextMissingStep(lead);
 
-  if (!missingCompany && !missingEmail) {
+  if (!firstStep) {
     // Already have everything (e.g. linked Customer record already had
-    // company + email) — forward straight away, no questions needed.
+    // name + company + email) — forward straight away, no questions.
     await sendLeadToErpCrm(lead);
     return;
   }
-
-  const firstStep = missingCompany ? "COMPANY" : "EMAIL";
-  const question = missingCompany
-    ? "Great! Could you share your company name so we can get you the right ERP proposal?"
-    : "Thanks! Could you share your email address so our team can reach you?";
 
   await prisma.conversation.update({
     where: { id: conversation.id },
@@ -58,7 +102,7 @@ const startLeadEnrichment = async (conversation, product, lead) => {
     },
   });
 
-  await askQuestion(conversation, question);
+  await askQuestion(conversation, QUESTIONS[firstStep]);
 };
 
 // Call this when conversation.pendingLeadStep is already set — this
@@ -68,77 +112,110 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
   const { pendingLeadStep, pendingLeadProduct, phone } = conversation;
   const trimmedAnswer = (answerText || "").trim();
 
-  if (pendingLeadStep === "COMPANY") {
-    if (!isValidCompany(trimmedAnswer)) {
-      // Not a usable answer — re-ask the same question instead of
-      // moving on, and reset the wait timer.
-      await prisma.conversation.update({
-        where: { id: conversation.id },
-        data: { pendingLeadAskedAt: new Date() },
-      });
-      await askQuestion(
-        conversation,
-        "Sorry, I didn't quite get that. Could you share your company name?"
-      );
-      return;
-    }
+  const lead = await prisma.lead.findFirst({
+    where: { phone, source: `WhatsApp - ${pendingLeadProduct}` },
+  });
 
-    // Email may already be known from a linked Customer record —
-    // check before asking for it too.
-    const lead = await prisma.lead.findFirst({
-      where: { phone, source: `WhatsApp - ${pendingLeadProduct}` },
+  if (!lead) {
+    console.error(
+      `Lead enrichment answer received but no lead found for ${phone} / ${pendingLeadProduct} — clearing pending state.`
+    );
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: {
+        pendingLeadProduct: null,
+        pendingLeadStep: null,
+        pendingLeadName: null,
+        pendingLeadCompany: null,
+        pendingLeadEmail: null,
+        pendingLeadAskedAt: null,
+      },
     });
+    return;
+  }
 
-    if (lead?.email) {
-      // Email already known — save company and finish immediately.
-      await finalizeEnrichment(conversation, {
-        company: trimmedAnswer,
-        email: lead.email,
-      });
+  if (pendingLeadStep === "NAME") {
+    if (!isValidName(trimmedAnswer)) {
+      await resetAskTimer(conversation);
+      await askQuestion(conversation, RETRY_MESSAGES.NAME);
       return;
     }
 
     await prisma.conversation.update({
       where: { id: conversation.id },
-      data: {
-        pendingLeadCompany: trimmedAnswer,
-        pendingLeadStep: "EMAIL",
-        pendingLeadAskedAt: new Date(),
-      },
+      data: { pendingLeadName: trimmedAnswer },
     });
 
-    await askQuestion(
-      conversation,
-      "Thanks! Could you also share your email address so our team can reach you?"
-    );
+    await advanceOrFinalize(conversation, lead, "NAME", { name: trimmedAnswer });
+    return;
+  }
+
+  if (pendingLeadStep === "COMPANY") {
+    if (!isValidCompany(trimmedAnswer)) {
+      await resetAskTimer(conversation);
+      await askQuestion(conversation, RETRY_MESSAGES.COMPANY);
+      return;
+    }
+
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: { pendingLeadCompany: trimmedAnswer },
+    });
+
+    await advanceOrFinalize(conversation, lead, "COMPANY", {
+      company: trimmedAnswer,
+    });
     return;
   }
 
   if (pendingLeadStep === "EMAIL") {
     if (!isValidEmail(trimmedAnswer)) {
-      // Not a valid email — keep asking until we get a real one.
-      await prisma.conversation.update({
-        where: { id: conversation.id },
-        data: { pendingLeadAskedAt: new Date() },
-      });
-      await askQuestion(
-        conversation,
-        "That doesn't look like a valid email address. Could you share a valid email (e.g. name@example.com)?"
-      );
+      await resetAskTimer(conversation);
+      await askQuestion(conversation, RETRY_MESSAGES.EMAIL);
       return;
     }
 
-    await finalizeEnrichment(conversation, {
-      company: conversation.pendingLeadCompany,
+    await advanceOrFinalize(conversation, lead, "EMAIL", {
       email: trimmedAnswer,
     });
   }
 };
 
-// Saves the collected company/email onto the lead, clears the pending
-// state, forwards to the right external CRM, and lets the customer
-// know their request has been sent along.
-const finalizeEnrichment = async (conversation, { company, email }) => {
+// After saving the answer for `completedStep`, either asks the next
+// missing question or — if nothing's left — finalizes the lead.
+// `justCollected` carries whatever was just answered (not yet reflected
+// on `lead`, since we don't re-fetch); earlier steps' answers are read
+// from `conversation.pendingLeadName` / `pendingLeadCompany`, which are
+// already up to date because `conversation` is re-fetched fresh at the
+// start of every incoming webhook call.
+const advanceOrFinalize = async (conversation, lead, completedStep, justCollected) => {
+  const next = nextMissingStep(lead, completedStep);
+
+  if (next) {
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: {
+        pendingLeadStep: next,
+        pendingLeadAskedAt: new Date(),
+      },
+    });
+    await askQuestion(conversation, QUESTIONS[next]);
+    return;
+  }
+
+  const name =
+    justCollected.name || conversation.pendingLeadName || lead.name;
+  const company =
+    justCollected.company || conversation.pendingLeadCompany || lead.company;
+  const email = justCollected.email || lead.email;
+
+  await finalizeEnrichment(conversation, { name, company, email });
+};
+
+// Saves the collected name/company/email onto the lead, clears the
+// pending state, forwards to the right external CRM, and lets the
+// customer know their request has been sent along.
+const finalizeEnrichment = async (conversation, { name, company, email }) => {
   const { pendingLeadProduct, phone } = conversation;
 
   const lead = await prisma.lead.findFirst({
@@ -150,6 +227,7 @@ const finalizeEnrichment = async (conversation, { company, email }) => {
     data: {
       pendingLeadProduct: null,
       pendingLeadStep: null,
+      pendingLeadName: null,
       pendingLeadCompany: null,
       pendingLeadEmail: null,
       pendingLeadAskedAt: null,
@@ -165,7 +243,7 @@ const finalizeEnrichment = async (conversation, { company, email }) => {
 
   const updatedLead = await prisma.lead.update({
     where: { id: lead.id },
-    data: { company, email },
+    data: { name, company, email },
   });
 
   const sendToCrm = PRODUCT_CRM_SENDERS[pendingLeadProduct];
@@ -204,6 +282,7 @@ const releaseStalePendingLeads = async () => {
       data: {
         pendingLeadProduct: null,
         pendingLeadStep: null,
+        pendingLeadName: null,
         pendingLeadCompany: null,
         pendingLeadEmail: null,
         pendingLeadAskedAt: null,

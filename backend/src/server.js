@@ -30,6 +30,10 @@ const {
   releaseStalePendingLeads,
 } = require("./helpers/leadEnrichmentHelper");
 
+const {
+  releaseStalePendingTickets,
+} = require("./helpers/ticketEnrichmentHelper");
+
 const app = express();
 
 // Middleware
@@ -66,11 +70,15 @@ app.listen(PORT, () => {
 });
 
 // Step 6: every 5 minutes, release any WhatsApp conversation that's
-// been waiting more than 15 minutes for a company/email reply, so it
-// doesn't get stuck waiting forever and just falls back to a human
-// agent picking it up from the Conversations tab.
+// been waiting more than 15 minutes for a company/email reply (leads)
+// or a name reply (tickets), so it doesn't get stuck waiting forever
+// and just falls back to a human agent picking it up from the
+// Conversations tab.
 setInterval(() => {
   releaseStalePendingLeads().catch((err) =>
     console.error("Error releasing stale pending leads:", err)
+  );
+  releaseStalePendingTickets().catch((err) =>
+    console.error("Error releasing stale pending tickets:", err)
   );
 }, 5 * 60 * 1000);

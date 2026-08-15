@@ -1,107 +1,3 @@
-// const express = require("express");
-// const router = express.Router();
-// const prisma = require("../config/prisma");
-
-// const {
-//   getOrCreateConversation,
-// } = require("../helpers/conversationHelper");
-
-// const {
-//   saveIncomingMessage,
-// } = require("../helpers/messageHelper");
-
-// router.get("/", (req, res) => {
-//   const mode = req.query["hub.mode"];
-//   const token = req.query["hub.verify_token"];
-//   const challenge = req.query["hub.challenge"];
-
-//   if (
-//     mode === "subscribe" &&
-//     token === process.env.VERIFY_TOKEN
-//   ) {
-//     console.log("Webhook Verified");
-//     return res.status(200).send(challenge);
-//   }
-
-//   return res.sendStatus(403);
-// });
-
-// router.post("/", async (req, res) => {
-//   try {
-//     const value = req.body.entry?.[0]?.changes?.[0]?.value;
-//     const message = value?.messages?.[0];
-//     const statuses = value?.statuses;
-
-//     if (message) {
-//       const phone = message.from;
-
-//       // Fall back for non-text messages (image/sticker/voice/location/
-//       // button or interactive replies) so the incoming message still
-//       // gets saved instead of throwing on a required "content" field.
-//       const text =
-//         message.text?.body ||
-//         message.button?.text ||
-//         message.interactive?.button_reply?.title ||
-//         message.interactive?.list_reply?.title ||
-//         `[${message.type || "unsupported"} message]`;
-
-//       console.log("Phone :", phone);
-//       console.log("Message :", text);
-
-//       const conversation = await getOrCreateConversation(phone);
-
-//       console.log("Conversation ID :",conversation.id);
-//       if (conversation.customer) {
-//         console.log("Customer :", conversation.customer.name);
-//         } else {
-//         console.log("Customer : Not linked yet");
-//         }
-    
-//       await saveIncomingMessage(conversation.id, text);
-//         console.log("Message saved successfully");
-//     }
-
-//     // Delivery status updates (sent/delivered/read/failed) for messages
-//     // we sent out. Matched back to our Message row via metaMessageId so
-//     // failures are visible instead of silently disappearing.
-//     if (statuses && statuses.length > 0) {
-//       for (const statusEvent of statuses) {
-//         const metaMessageId = statusEvent.id;
-//         const newStatus = statusEvent.status; // sent | delivered | read | failed
-//         const failureReason =
-//           statusEvent.errors?.[0]?.title ||
-//           statusEvent.errors?.[0]?.message ||
-//           null;
-
-//         console.log("Status update:", metaMessageId, newStatus, failureReason || "");
-
-//         if (!metaMessageId) continue;
-
-//         try {
-//           await prisma.message.updateMany({
-//             where: { metaMessageId },
-//             data: {
-//               status: newStatus ? newStatus.toUpperCase() : undefined,
-//               failureReason,
-//             },
-//           });
-//         } catch (err) {
-//           console.error("Failed to update message status:", err);
-//         }
-//       }
-//     }
-
-//     return res.sendStatus(200);
-//   } catch (error) {
-//     console.error(error);
-//     return res.sendStatus(500);
-//   }
-// });
-
-
-
-// module.exports = router;
-
 const express = require("express");
 const router = express.Router();
 const prisma = require("../config/prisma");
@@ -127,6 +23,11 @@ const {
   startLeadEnrichment,
   handlePendingLeadAnswer,
 } = require("../helpers/leadEnrichmentHelper");
+
+const {
+  startTicketEnrichment,
+  handlePendingTicketAnswer,
+} = require("../helpers/ticketEnrichmentHelper");
 
 router.get("/", (req, res) => {
   const mode = req.query["hub.mode"];
@@ -188,8 +89,9 @@ router.post("/", async (req, res) => {
       }
 
       // Step 6a: if we're mid-conversation collecting company/email for
-      // an enriched lead, this message is the customer's answer — not
-      // a new topic. Handle it and skip classification entirely.
+      // an enriched lead, OR mid-conversation collecting a name for a
+      // ticket, this message is the customer's answer — not a new topic.
+      // Handle it and skip classification entirely.
       let skipClassification = false;
       if (conversation.pendingLeadStep) {
         skipClassification = true;
@@ -198,11 +100,17 @@ router.post("/", async (req, res) => {
         } catch (enrichmentError) {
           console.error("Lead enrichment answer error:", enrichmentError);
         }
+      } else if (conversation.pendingTicketStep) {
+        skipClassification = true;
+        try {
+          await handlePendingTicketAnswer(conversation, text);
+        } catch (enrichmentError) {
+          console.error("Ticket enrichment answer error:", enrichmentError);
+        }
       }
 
       // Step 4: AI analysis. Classifies the message text into a product
-      // interest so Step 5 (Product Router) can decide where the lead
-      // goes.
+      // + intent so Step 5 (Product Router) can decide where it goes.
       if (!skipClassification) {
       let classification = null;
       try {
@@ -212,26 +120,38 @@ router.post("/", async (req, res) => {
         console.error("AI classification error:", classificationError);
       }
 
-      // Step 5: Product Router. Creates a Lead from every classified
-      // message with confidence >= 0.5 (skips "Other" / low confidence).
-      // Dedupes on phone + product — repeat messages about the same
-      // product update the existing lead instead of duplicating.
+      // Step 5: Product Router. INQUIRY-intent messages become sales
+      // Leads (existing flow, unchanged). SUPPORT-intent messages
+      // become Tickets instead — this is what stops "I have a problem
+      // in the ERP software" from being misfiled as an ERP sales lead.
       if (classification) {
-        try {
-          const { lead, isNew } = await createLeadFromClassification(
-            conversation,
-            classification,
-            text
-          );
-
-          // Step 6b: only kick off enrichment/forwarding the first time
-          // this lead is created — not on every follow-up message about
-          // the same product.
-          if (isNew && lead) {
-            await startLeadEnrichment(conversation, classification.product, lead);
+        if (classification.intent === "SUPPORT") {
+          try {
+            await startTicketEnrichment(conversation, classification.product, {
+              name: conversation.customer?.name || null,
+              description: classification.summary || text,
+              phone: conversation.phone,
+            });
+          } catch (ticketError) {
+            console.error("Ticket creation error:", ticketError);
           }
-        } catch (leadError) {
-          console.error("Lead creation error:", leadError);
+        } else {
+          try {
+            const { lead, isNew } = await createLeadFromClassification(
+              conversation,
+              classification,
+              text
+            );
+
+            // Step 6b: only kick off enrichment/forwarding the first time
+            // this lead is created — not on every follow-up message about
+            // the same product.
+            if (isNew && lead) {
+              await startLeadEnrichment(conversation, classification.product, lead);
+            }
+          } catch (leadError) {
+            console.error("Lead creation error:", leadError);
+          }
         }
       }
       }
