@@ -127,11 +127,7 @@ router.post("/", async (req, res) => {
       if (classification) {
         if (classification.intent === "SUPPORT") {
           try {
-            await startTicketEnrichment(conversation, classification.product, {
-              name: conversation.customer?.name || null,
-              description: classification.summary || text,
-              phone: conversation.phone,
-            });
+            await startTicketEnrichment(conversation, classification, text);
           } catch (ticketError) {
             console.error("Ticket creation error:", ticketError);
           }
