@@ -174,6 +174,25 @@
 
 const prisma = require("../config/prisma");
 const { sendTextMessage } = require("../services/whatsappService");
+const { getIO } = require("../config/socket");
+
+// Broadcasts a saved message + its updated conversation to every
+// connected agent, and specifically to anyone with that conversation
+// open. Wrapped in try/catch so a socket hiccup never breaks the
+// underlying WhatsApp send/save flow.
+const broadcastMessage = (message, conversation) => {
+  try {
+    const io = getIO();
+    io.to("agents").emit("message:new", message);
+    io.to(`conversation:${message.conversationId}`).emit("message:new", message);
+
+    if (conversation) {
+      io.to("agents").emit("conversation:update", conversation);
+    }
+  } catch (error) {
+    console.error("Socket broadcast failed:", error.message);
+  }
+};
 
 const WELCOME_MESSAGE =
   process.env.WHATSAPP_WELCOME_MESSAGE ||
@@ -223,7 +242,7 @@ const sendWelcomeReplyIfNeeded = async (conversation) => {
 
   const metaMessageId = result.data?.messages?.[0]?.id || null;
 
-  await prisma.message.create({
+  const savedMessage = await prisma.message.create({
     data: {
       conversationId: conversation.id,
       content: WELCOME_MESSAGE,
@@ -234,13 +253,15 @@ const sendWelcomeReplyIfNeeded = async (conversation) => {
     },
   });
 
-  await prisma.conversation.update({
+  const updatedConversation = await prisma.conversation.update({
     where: { id: conversation.id },
     data: {
       welcomeSent: true,
       lastMessage: WELCOME_MESSAGE,
     },
   });
+
+  broadcastMessage(savedMessage, updatedConversation);
 
   console.log("Auto-reply sent and saved for conversation:", conversation.id);
 };
@@ -266,7 +287,7 @@ const saveIncomingMessage = async (
     });
 
     // Update conversation
-    await prisma.conversation.update({
+    const updatedConversation = await prisma.conversation.update({
       where: {
         id: conversationId,
       },
@@ -280,6 +301,8 @@ const saveIncomingMessage = async (
 
     console.log("Message Saved Successfully");
     console.log(message);
+
+    broadcastMessage(message, updatedConversation);
 
     return message;
   } catch (error) {
@@ -315,10 +338,12 @@ const sendAndSaveOutgoingMessage = async (conversation, text) => {
     },
   });
 
-  await prisma.conversation.update({
+  const updatedConversation = await prisma.conversation.update({
     where: { id: conversation.id },
     data: { lastMessage: text },
   });
+
+  broadcastMessage(savedMessage, updatedConversation);
 
   return savedMessage;
 };

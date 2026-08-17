@@ -7,7 +7,10 @@ dns.setDefaultResultOrder("ipv4first");
 
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
 require("dotenv").config();
+
+const { initSocket } = require("./config/socket");
 
 const authRoutes = require("./routes/authRoutes");
 const userRoutes = require("./routes/userRoutes");
@@ -65,7 +68,12 @@ app.get("/", (req, res) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Wrap Express in a plain HTTP server so socket.io can attach to the
+// same port instead of needing a second server/port.
+const httpServer = http.createServer(app);
+initSocket(httpServer);
+
+httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
 

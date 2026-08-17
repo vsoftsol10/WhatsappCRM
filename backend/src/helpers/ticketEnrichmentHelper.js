@@ -238,10 +238,15 @@ const handlePendingTicketAnswer = async (conversation, answerText) => {
     });
   }
 
+  // Look up the real local ticket (created in startLeadEnrichment
+  // before we asked for a name) so logs/forwarding reference its
+  // actual ID instead of the phone number.
+  const localTicket = customer ? await findOpenWhatsAppTicket(customer.id) : null;
+
   const sendToCrm = PRODUCT_TICKET_SENDERS[pendingTicketProduct];
   if (sendToCrm) {
     const result = await sendToCrm({
-      id: phone,
+      id: localTicket?.id || phone,
       name: trimmedAnswer,
       description: pendingTicketDescription,
       phone,

@@ -1,5 +1,6 @@
 const prisma = require("../config/prisma");
 const { sendTextMessage } = require("../services/whatsappService");
+const { getIO } = require("../config/socket");
 
 // SEND MESSAGE
 const sendMessage = async (req, res) => {
@@ -65,7 +66,7 @@ const sendMessage = async (req, res) => {
       },
     });
 
-    await prisma.conversation.update({
+    const updatedConversation = await prisma.conversation.update({
       where: {
         id: conversationId,
       },
@@ -78,6 +79,18 @@ const sendMessage = async (req, res) => {
         }),
       },
     });
+
+    // Broadcast so every other agent's dashboard updates without a
+    // manual refresh — the agent who just sent it gets this too, but
+    // that's harmless since the store dedupes by message id.
+    try {
+      const io = getIO();
+      io.to("agents").emit("message:new", message);
+      io.to(`conversation:${conversationId}`).emit("message:new", message);
+      io.to("agents").emit("conversation:update", updatedConversation);
+    } catch (socketError) {
+      console.error("Socket broadcast failed:", socketError.message);
+    }
 
     return res.status(201).json({
       success: true,

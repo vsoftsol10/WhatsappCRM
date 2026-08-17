@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const prisma = require("../config/prisma");
+const { getIO } = require("../config/socket");
 
 const {
   getOrCreateConversation,
@@ -177,6 +178,16 @@ router.post("/", async (req, res) => {
               failureReason,
             },
           });
+
+          try {
+            getIO().to("agents").emit("message:status", {
+              metaMessageId,
+              status: newStatus ? newStatus.toUpperCase() : undefined,
+              failureReason,
+            });
+          } catch (socketError) {
+            console.error("Socket broadcast failed:", socketError.message);
+          }
         } catch (err) {
           console.error("Failed to update message status:", err);
         }
