@@ -42,6 +42,13 @@ const {
 
 const app = express();
 
+// Render (like most hosts) sits behind a reverse proxy, which sets
+// the X-Forwarded-For header with the real client IP. Without this,
+// Express ignores that header, so express-rate-limit can't tell
+// requests apart by IP (and throws a warning about it). `1` means
+// trust exactly one hop of proxy — matches Render's setup.
+app.set("trust proxy", 1);
+
 // Middleware
 app.use(helmet());
 
