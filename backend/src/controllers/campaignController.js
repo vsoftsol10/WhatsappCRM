@@ -3,10 +3,11 @@
 // const {
 //   sendTextMessage,
 //   sendImageMessage,
+//   sendTemplateMessage,
+//   sendCampaignImageTemplate,
 // } = require("../services/whatsappService");
 // const { generateCampaign } = require("../services/geminiService");
 // const { notifyAdmins } = require("../services/notificationService");
-// const { sendTemplateMessage } = require("../services/whatsappService");
 // const {
 //   uploadCampaignImage,
 // } = require("../services/cloudinaryService");
@@ -508,11 +509,29 @@
 
 //   let result;
 
-//   result = await sendTemplateMessage(
-//   customer.phone,
-//   "custom_campaign_message", // your approved template name
-//   [customer.name, campaign.messageContent] // fills {{1}} and {{2}}
-// );
+//   // Campaigns are business-initiated, so they must always go
+//   // through an approved template (never plain sendTextMessage).
+//   // Use the image-header template when the campaign has an image,
+//   // otherwise the text-only template.
+//   if (campaign.imageUrl) {
+
+//     result = await sendCampaignImageTemplate(
+//       customer.phone,
+//       "campaign", // approved IMAGE-header template name (Meta template: "campaign")
+//        campaign.imageUrl,
+//       [customer.name, campaign.messageContent], // fills {{1}} and {{2}}
+//       "en" // Meta approved this template under "English", not "English (US)"
+//     );
+
+//   } else {
+
+//     result = await sendTemplateMessage(
+//       customer.phone,
+//       "custom_campaign_message", // approved text-only template name
+//       [customer.name, campaign.messageContent] // fills {{1}} and {{2}}
+//     );
+
+//   }
 
 //   console.log("WhatsApp Result:", result);
 
@@ -663,6 +682,7 @@ const {
 const {
   getOrCreateConversation,
 } = require("../helpers/conversationHelper");
+const { getIO } = require("../config/socket");
 // =====================================================
 // CREATE CAMPAIGN
 // =====================================================
@@ -1061,9 +1081,21 @@ exports.generateAICampaign = async (req, res) => {
 // =====================================================
 // SEND CAMPAIGN TO CUSTOMERS
 // =====================================================
+// Previously this whole loop ran inside the request/response cycle —
+// fine for a handful of customers, but a request that has to send
+// WhatsApp messages to hundreds of customers one at a time can
+// easily exceed a platform's request timeout (e.g. Render), leaving
+// the campaign half-sent with no record of where it stopped. Now the
+// route validates, flips the campaign to SENDING, and responds
+// immediately; the actual sending happens in the background via
+// processCampaignSend, and the campaign is moved to COMPLETED (with
+// the real audienceCount/successCount) once every customer has been
+// processed. The frontend picks up the SENDING status right away and
+// can refetch/listen on the socket "campaign:update" event this
+// emits when it finishes.
 exports.sendCampaign = async (req, res) => {
   try {
-      console.log("========== SEND CAMPAIGN ==========");
+    console.log("========== SEND CAMPAIGN ==========");
     console.log("Request Body:", req.body);
     const { campaignId, customerIds } = req.body;
 
@@ -1094,6 +1126,39 @@ exports.sendCampaign = async (req, res) => {
       });
     }
 
+    await prisma.campaign.update({
+      where: { id: campaignId },
+      data: { status: "SENDING" },
+    });
+
+    // Not awaited on purpose — this runs after the response is sent.
+    // Errors inside are caught and logged there so they can't crash
+    // the process or leave an unhandled rejection.
+    processCampaignSend(campaign, customerIds);
+
+    return res.status(202).json({
+      success: true,
+      message: `Campaign is being sent to ${customerIds.length} customer(s).`,
+      status: "SENDING",
+    });
+  } catch (error) {
+    console.error("Send Campaign Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to start campaign send.",
+      error: error.message,
+    });
+  }
+};
+
+// Does the actual per-customer sending. Split out from sendCampaign
+// so it can run in the background after the HTTP response has
+// already gone out.
+const processCampaignSend = async (campaign, customerIds) => {
+  const campaignId = campaign.id;
+
+  try {
     let successCount = 0;
 
     for (const customerId of customerIds) {
@@ -1240,7 +1305,7 @@ await prisma.message.create({
     // =============================
     // Update Campaign
     // =============================
-    await prisma.campaign.update({
+    const updatedCampaign = await prisma.campaign.update({
       where: {
         id: campaignId,
       },
@@ -1250,23 +1315,31 @@ await prisma.message.create({
       },
     });
 
-    return res.status(200).json({
-      success: true,
-      totalSent: successCount,
-      audienceCount,
-      message: `${successCount} customer(s) received the campaign.`,
-    });
+    console.log(
+      `Campaign ${campaignId} finished: ${successCount}/${customerIds.length} sent.`
+    );
 
+    try {
+      getIO().to("agents").emit("campaign:update", updatedCampaign);
+    } catch (socketError) {
+      console.error("Socket broadcast failed:", socketError.message);
+    }
   } catch (error) {
+    console.error("Campaign background send failed:", error);
 
-    console.error("Send Campaign Error:", error);
-
-    return res.status(500).json({
-      success: false,
-      message: "Failed to send campaign.",
-      error: error.message,
-    });
-
+    // Best-effort: mark the campaign FAILED so it doesn't sit stuck
+    // on SENDING forever if something threw mid-loop.
+    try {
+      await prisma.campaign.update({
+        where: { id: campaignId },
+        data: { status: "FAILED" },
+      });
+    } catch (updateError) {
+      console.error(
+        "Failed to mark campaign as FAILED after error:",
+        updateError
+      );
+    }
   }
 };
 

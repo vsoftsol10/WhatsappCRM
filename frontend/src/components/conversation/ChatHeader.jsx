@@ -8,6 +8,7 @@
 // } from "react-icons/fa";
 // import useConversationStore from "../../store/conversationStore";
 // import useMessageStore from "../../store/messageStore";
+// import ConfirmModal from "../common/ConfirmModal";
 
 // function ChatHeader({
 //   selectedConversation,
@@ -16,6 +17,7 @@
 //   setShowCustomerDetails,
 // }) {
 //   const [showMenu, setShowMenu] = useState(false);
+//   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
 //   const menuRef = useRef(null);
 
 //   const markAsUnread = useConversationStore((state) => state.markAsUnread);
@@ -52,14 +54,17 @@
 
 //   const handleClearChat = () => {
 //     setShowMenu(false);
+//     setShowClearChatConfirm(true);
+//   };
 
-//     if (window.confirm("Clear all messages in this chat? This cannot be undone.")) {
-//       clearChat(selectedConversation.id);
-//       clearMessages();
-//     }
+//   const confirmClearChat = () => {
+//     setShowClearChatConfirm(false);
+//     clearChat(selectedConversation.id);
+//     clearMessages();
 //   };
 
 //   return (
+//     <>
 //     <div className="flex min-h-16 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4">
 //       {/* Left Section */}
 //       <div className="flex min-w-0 items-center gap-3">
@@ -143,6 +148,18 @@
 //         </div>
 //       </div>
 //     </div>
+
+//     <ConfirmModal
+//       isOpen={showClearChatConfirm}
+//       title="Clear Chat"
+//       message="Clear all messages in this chat? This cannot be undone."
+//       confirmText="Clear"
+//       cancelText="Cancel"
+//       variant="danger"
+//       onConfirm={confirmClearChat}
+//       onCancel={() => setShowClearChatConfirm(false)}
+//     />
+//     </>
 //   );
 // }
 
@@ -155,6 +172,8 @@ import {
   FaInfoCircle,
   FaEnvelopeOpen,
   FaTrashAlt,
+  FaCheckCircle,
+  FaRedo,
 } from "react-icons/fa";
 import useConversationStore from "../../store/conversationStore";
 import useMessageStore from "../../store/messageStore";
@@ -168,10 +187,14 @@ function ChatHeader({
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
   const menuRef = useRef(null);
 
   const markAsUnread = useConversationStore((state) => state.markAsUnread);
   const clearChat = useConversationStore((state) => state.clearChat);
+  const editConversationStatus = useConversationStore(
+    (state) => state.editConversationStatus
+  );
   const clearMessages = useMessageStore((state) => state.clearMessages);
 
   // Close menu on outside click
@@ -213,6 +236,23 @@ function ChatHeader({
     clearMessages();
   };
 
+  const isClosed = selectedConversation.status === "CLOSED";
+
+  const handleCloseChat = () => {
+    setShowMenu(false);
+    setShowCloseConfirm(true);
+  };
+
+  const confirmCloseChat = () => {
+    setShowCloseConfirm(false);
+    editConversationStatus(selectedConversation.id, "CLOSED");
+  };
+
+  const handleReopenChat = () => {
+    setShowMenu(false);
+    editConversationStatus(selectedConversation.id, "OPEN");
+  };
+
   return (
     <>
     <div className="flex min-h-16 items-center justify-between gap-3 border-b border-gray-200 bg-white px-4">
@@ -229,7 +269,11 @@ function ChatHeader({
         {/* Avatar */}
         <div className="relative">
           <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#25D366] text-lg font-semibold text-white sm:h-12 sm:w-12">
-            {selectedConversation.customer?.name?.charAt(0)}
+            {(
+              selectedConversation.customer?.name ||
+              selectedConversation.phone ||
+              "?"
+            ).charAt(0)}
           </div>
 
           {selectedConversation.isOnline && (
@@ -240,18 +284,28 @@ function ChatHeader({
         {/* Name + Status */}
         <div className="min-w-0">
           <h2 className="truncate font-semibold text-gray-800">
-            {selectedConversation.customer?.name}
+            {selectedConversation.customer?.name ||
+              selectedConversation.phone}
           </h2>
 
-          {selectedConversation.status === "CLOSED" ? (
-            <p className="text-sm font-medium text-red-500">
-              Closed
-            </p>
-          ) : (
-            <p className="text-sm font-medium text-[#25D366]">
-              Online
-            </p>
-          )}
+          <div className="flex items-center gap-2">
+            {selectedConversation.customer?.name &&
+              selectedConversation.phone && (
+                <span className="truncate text-sm text-gray-500">
+                  {selectedConversation.phone}
+                </span>
+              )}
+
+            {selectedConversation.status === "CLOSED" ? (
+              <p className="text-sm font-medium text-red-500">
+                Closed
+              </p>
+            ) : (
+              <p className="text-sm font-medium text-[#25D366]">
+                Open
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
@@ -292,6 +346,24 @@ function ChatHeader({
                   <FaTrashAlt size={13} />
                   Clear Chat
                 </button>
+
+                {isClosed ? (
+                  <button
+                    onClick={handleReopenChat}
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <FaRedo size={13} />
+                    Reopen Chat
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleCloseChat}
+                    className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <FaCheckCircle size={13} />
+                    Close Chat
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -308,6 +380,17 @@ function ChatHeader({
       variant="danger"
       onConfirm={confirmClearChat}
       onCancel={() => setShowClearChatConfirm(false)}
+    />
+
+    <ConfirmModal
+      isOpen={showCloseConfirm}
+      title="Close Chat"
+      message="Close this conversation with the customer? You can reopen it anytime from this same menu."
+      confirmText="Close"
+      cancelText="Cancel"
+      variant="danger"
+      onConfirm={confirmCloseChat}
+      onCancel={() => setShowCloseConfirm(false)}
     />
     </>
   );

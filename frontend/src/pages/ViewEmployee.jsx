@@ -12,6 +12,7 @@ import {
 
 import apiClient from "../api/apiClient";
 import toast from "react-hot-toast";
+import EditEmployeeModal from "../components/employee/EditEmployeeModal";
 
 const ViewEmployee = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const ViewEmployee = () => {
 
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     fetchEmployee();
@@ -270,9 +272,7 @@ const ViewEmployee = () => {
         </button>
 
         <button
-          onClick={() =>
-            navigate(`/employees/edit/${employee.id}`)
-          }
+          onClick={() => setShowEditModal(true)}
           className="crm-primary-button"
         >
           <FiEdit2 />
@@ -280,6 +280,13 @@ const ViewEmployee = () => {
         </button>
 
       </div>
+
+      <EditEmployeeModal
+        isOpen={showEditModal}
+        employeeId={employee?.id}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={fetchEmployee}
+      />
 
     </div>
   );

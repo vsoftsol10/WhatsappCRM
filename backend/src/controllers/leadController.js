@@ -1,5 +1,24 @@
 // const prisma = require("../config/prisma");
 
+// const {
+//   notifyUser,
+//   NotificationType,
+// } = require("../services/notificationService");
+
+// // ======================================================
+// // COMMON INCLUDE
+// // ======================================================
+
+// const leadInclude = {
+//   assignedTo: {
+//     select: {
+//       id: true,
+//       name: true,
+//       email: true,
+//     },
+//   },
+// };
+
 // // ================= CREATE LEAD =================
 // const createLead = async (req, res) => {
 //   try {
@@ -11,6 +30,7 @@
 //       source,
 //       requirements,
 //       status,
+//       assignedToId,
 //     } = req.body;
 
 //     if (!name || !name.trim()) {
@@ -33,6 +53,22 @@
 //       ? status.toUpperCase()
 //       : "NEW";
 
+//     // Validate assigned employee (optional)
+//     if (assignedToId) {
+//       const employee = await prisma.user.findUnique({
+//         where: {
+//           id: assignedToId,
+//         },
+//       });
+
+//       if (!employee || employee.role !== "USER") {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Invalid employee selected",
+//         });
+//       }
+//     }
+
 //     const lead = await prisma.lead.create({
 //       data: {
 //         name: name.trim(),
@@ -42,8 +78,27 @@
 //         source: source?.trim() || null,
 //         requirements: requirements?.trim() || null,
 //         status: leadStatus,
+//         assignedToId: assignedToId || null,
 //       },
+//       include: leadInclude,
 //     });
+
+//     // ================= CREATE NOTIFICATION =================
+//     if (assignedToId) {
+//       try {
+//         await notifyUser({
+//           userId: assignedToId,
+//           title: "New Lead Assigned",
+//           message: `You have been assigned a new lead: "${lead.name}".`,
+//           type: NotificationType.LEAD,
+//         });
+//       } catch (notificationError) {
+//         console.error(
+//           "Lead notification failed:",
+//           notificationError
+//         );
+//       }
+//     }
 
 //     return res.status(201).json({
 //       success: true,
@@ -64,11 +119,28 @@
 // // ================= GET ALL LEADS =================
 // const getLeads = async (req, res) => {
 //   try {
-//     const leads = await prisma.lead.findMany({
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+//     let leads;
+
+//     if (req.user.role === "ADMIN") {
+//       // Admin can view all leads
+//       leads = await prisma.lead.findMany({
+//         include: leadInclude,
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//       });
+//     } else {
+//       // Employees can only view leads assigned to them
+//       leads = await prisma.lead.findMany({
+//         where: {
+//           assignedToId: req.user.userId,
+//         },
+//         include: leadInclude,
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//       });
+//     }
 
 //     return res.status(200).json({
 //       success: true,
@@ -99,6 +171,7 @@
 //       source,
 //       requirements,
 //       status,
+//       assignedToId,
 //     } = req.body;
 
 //     const existingLead = await prisma.lead.findUnique({
@@ -112,6 +185,22 @@
 //         success: false,
 //         message: "Lead not found",
 //       });
+//     }
+
+//     // Validate assigned employee (optional)
+//     if (assignedToId) {
+//       const employee = await prisma.user.findUnique({
+//         where: {
+//           id: assignedToId,
+//         },
+//       });
+
+//       if (!employee || employee.role !== "USER") {
+//         return res.status(400).json({
+//           success: false,
+//           message: "Invalid employee selected",
+//         });
+//       }
 //     }
 
 //     const updatedLead = await prisma.lead.update({
@@ -128,8 +217,33 @@
 //         status: existingLead.isConverted
 //           ? existingLead.status
 //           : status,
+//         assignedToId:
+//           assignedToId === undefined
+//             ? existingLead.assignedToId
+//             : assignedToId || null,
 //       },
+//       include: leadInclude,
 //     });
+
+//     // ================= REASSIGNMENT NOTIFICATION =================
+//     if (
+//       assignedToId &&
+//       assignedToId !== existingLead.assignedToId
+//     ) {
+//       try {
+//         await notifyUser({
+//           userId: assignedToId,
+//           title: "Lead Assigned",
+//           message: `A lead has been assigned to you: "${updatedLead.name}".`,
+//           type: NotificationType.LEAD,
+//         });
+//       } catch (notificationError) {
+//         console.error(
+//           "Lead reassignment notification failed:",
+//           notificationError
+//         );
+//       }
+//     }
 
 //     return res.status(200).json({
 //       success: true,
@@ -200,6 +314,7 @@
 //       data: {
 //         status: normalizedStatus,
 //       },
+//       include: leadInclude,
 //     });
 
 //     return res.status(200).json({
@@ -356,6 +471,7 @@
 //   deleteLead,
 // };
 
+
 const prisma = require("../config/prisma");
 
 const {
@@ -477,33 +593,56 @@ const createLead = async (req, res) => {
 // ================= GET ALL LEADS =================
 const getLeads = async (req, res) => {
   try {
-    let leads;
+    const { page, limit } = req.query;
 
-    if (req.user.role === "ADMIN") {
-      // Admin can view all leads
-      leads = await prisma.lead.findMany({
+    const baseWhere =
+      req.user.role === "ADMIN"
+        ? {}
+        : { assignedToId: req.user.userId };
+
+    // Backward compatible: no `page` param → full list, like before.
+    if (!page) {
+      const leads = await prisma.lead.findMany({
+        where: baseWhere,
         include: leadInclude,
         orderBy: {
           createdAt: "desc",
         },
       });
-    } else {
-      // Employees can only view leads assigned to them
-      leads = await prisma.lead.findMany({
-        where: {
-          assignedToId: req.user.userId,
-        },
-        include: leadInclude,
-        orderBy: {
-          createdAt: "desc",
-        },
+
+      return res.status(200).json({
+        success: true,
+        count: leads.length,
+        data: leads,
       });
     }
+
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
+
+    const [leads, total] = await Promise.all([
+      prisma.lead.findMany({
+        where: baseWhere,
+        include: leadInclude,
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip: (pageNum - 1) * limitNum,
+        take: limitNum,
+      }),
+      prisma.lead.count({ where: baseWhere }),
+    ]);
 
     return res.status(200).json({
       success: true,
       count: leads.length,
       data: leads,
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.max(1, Math.ceil(total / limitNum)),
+      },
     });
   } catch (error) {
     console.error("Get Leads Error:", error);
@@ -828,3 +967,4 @@ module.exports = {
   convertLeadToCustomer,
   deleteLead,
 };
+ 

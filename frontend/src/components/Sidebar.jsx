@@ -1,6 +1,7 @@
 // import { useState, useEffect } from "react";
 // import { NavLink, useLocation } from "react-router-dom";
 // import { useAuthStore } from "../store/authStore";
+// import ConfirmModal from "./common/ConfirmModal";
 
 // import {
 //   FaTachometerAlt,
@@ -136,10 +137,15 @@
 //     setOpenSection((prev) => (prev === id ? "" : id));
 //   };
 
+//   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
 //   const handleLogout = () => {
-//     if (window.confirm("Are you sure you want to logout?")) {
-//       logout();
-//     }
+//     setShowLogoutConfirm(true);
+//   };
+
+//   const confirmLogout = () => {
+//     setShowLogoutConfirm(false);
+//     logout();
 //   };
 
 //   const linkClass = ({ isActive }) =>
@@ -269,6 +275,17 @@
 //         </button>
 //       </div>
 //       </aside>
+
+//       <ConfirmModal
+//         isOpen={showLogoutConfirm}
+//         title="Logout"
+//         message="Are you sure you want to logout?"
+//         confirmText="Logout"
+//         cancelText="Cancel"
+//         variant="danger"
+//         onConfirm={confirmLogout}
+//         onCancel={() => setShowLogoutConfirm(false)}
+//       />
 //     </>
 //   );
 // }
@@ -293,6 +310,7 @@ import {
   FaBullhorn,
   FaFileAlt,
   FaChevronRight,
+  FaHistory,
 } from "react-icons/fa";
 
 const sections = [
@@ -348,6 +366,11 @@ const sections = [
         name: "Employees",
         icon: FaUserTie,
         path: "/employees",
+      },
+      {
+        name: "Audit Log",
+        icon: FaHistory,
+        path: "/audit-logs",
       },
       {
         name: "Tickets",
@@ -496,9 +519,10 @@ export default function Sidebar({
                   <div className="flex flex-col gap-2">
                     {section.items
                       .filter((item) => {
-                        // Hide Employees menu for USER role
+                        // Hide Employees and Audit Log menu items for USER role
                         if (
-                          item.path === "/employees" &&
+                          (item.path === "/employees" ||
+                            item.path === "/audit-logs") &&
                           user?.role !== "ADMIN"
                         ) {
                           return false;

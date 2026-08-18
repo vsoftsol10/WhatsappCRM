@@ -1,72 +1,40 @@
-// // const prisma = require("../config/prisma");
-
-// // const saveIncomingMessage = async (
-// //   conversationId,
-// //   text
-// // ) => {
-// //   try {
-// //     console.log("========== SAVE MESSAGE ==========");
-// //     console.log("Conversation ID:", conversationId);
-// //     console.log("Message:", text);
-
-// //     // Save incoming message
-// //     const message = await prisma.message.create({
-// //       data: {
-// //         conversationId,
-// //         content: text,
-// //         sender: "CUSTOMER",
-// //         messageType: "TEXT",
-// //         status: "RECEIVED",
-// //       },
-// //     });
-
-// //     // Update conversation
-// //     await prisma.conversation.update({
-// //       where: {
-// //         id: conversationId,
-// //       },
-// //       data: {
-// //         lastMessage: text,
-// //         unreadCount: {
-// //           increment: 1,
-// //         },
-// //       },
-// //     });
-
-// //     console.log("Message Saved Successfully");
-// //     console.log(message);
-
-// //     return message;
-// //   } catch (error) {
-// //     console.error("SAVE MESSAGE ERROR");
-// //     console.error(error);
-
-// //     throw error;
-// //   }
-// // };
-
-// // module.exports = {
-// //   saveIncomingMessage,
-// // };
-
 // const prisma = require("../config/prisma");
 // const { sendTextMessage } = require("../services/whatsappService");
+// const { getIO } = require("../config/socket");
+
+// // Broadcasts a saved message + its updated conversation to every
+// // connected agent, and specifically to anyone with that conversation
+// // open. Wrapped in try/catch so a socket hiccup never breaks the
+// // underlying WhatsApp send/save flow.
+// const broadcastMessage = (message, conversation) => {
+//   try {
+//     const io = getIO();
+//     io.to("agents").emit("message:new", message);
+//     io.to(`conversation:${message.conversationId}`).emit("message:new", message);
+
+//     if (conversation) {
+//       io.to("agents").emit("conversation:update", conversation);
+//     }
+//   } catch (error) {
+//     console.error("Socket broadcast failed:", error.message);
+//   }
+// };
 
 // const WELCOME_MESSAGE =
 //   process.env.WHATSAPP_WELCOME_MESSAGE ||
 //   `Hi,
 
-//   We're pleased to welcome you to VsoftSolutions! Thank you for connecting with us.
+//    We're pleased to welcome you to VsoftSolutions! Thank you for connecting with us.
 
-//   This message confirms your successful engagement. Our team is dedicated to providing you with exceptional service and support.
+//    This message confirms your successful engagement. Our team is dedicated to providing you with exceptional service and support.
 
-//   Should you require any immediate assistance, please do not hesitate to contact us.
+//    Should you require any immediate assistance, please do not hesitate to contact us.
 
-//   You can reach us via:
-//   Phone: 9876546375
-//   Email: vsoft@gmail.com
+//    You can reach us via:
+//    Phone: 9876546375
+//    Email: vsoft@gmail.com
 
-//   We look forward to assisting you.`;
+//    We look forward to assisting you.`;
 
 // // Sends a one-time acknowledgement to a customer the first time they
 // // message us on a conversation, and saves that outbound message so it
@@ -100,7 +68,7 @@
 
 //   const metaMessageId = result.data?.messages?.[0]?.id || null;
 
-//   await prisma.message.create({
+//   const savedMessage = await prisma.message.create({
 //     data: {
 //       conversationId: conversation.id,
 //       content: WELCOME_MESSAGE,
@@ -111,13 +79,15 @@
 //     },
 //   });
 
-//   await prisma.conversation.update({
+//   const updatedConversation = await prisma.conversation.update({
 //     where: { id: conversation.id },
 //     data: {
 //       welcomeSent: true,
 //       lastMessage: WELCOME_MESSAGE,
 //     },
 //   });
+
+//   broadcastMessage(savedMessage, updatedConversation);
 
 //   console.log("Auto-reply sent and saved for conversation:", conversation.id);
 // };
@@ -143,7 +113,7 @@
 //     });
 
 //     // Update conversation
-//     await prisma.conversation.update({
+//     const updatedConversation = await prisma.conversation.update({
 //       where: {
 //         id: conversationId,
 //       },
@@ -158,6 +128,8 @@
 //     console.log("Message Saved Successfully");
 //     console.log(message);
 
+//     broadcastMessage(message, updatedConversation);
+
 //     return message;
 //   } catch (error) {
 //     console.error("SAVE MESSAGE ERROR");
@@ -167,9 +139,45 @@
 //   }
 // };
 
+// // Sends any outbound bot/agent message and saves it to the DB so it
+// // shows up in the CRM conversation thread — used by the lead
+// // enrichment questions/confirmation (and reusable for future
+// // automated replies) instead of calling sendTextMessage raw.
+// const sendAndSaveOutgoingMessage = async (conversation, text) => {
+//   const result = await sendTextMessage(conversation.phone, text);
+
+//   if (!result.success) {
+//     console.error("Failed to send outgoing message:", result.error);
+//     return null;
+//   }
+
+//   const metaMessageId = result.data?.messages?.[0]?.id || null;
+
+//   const savedMessage = await prisma.message.create({
+//     data: {
+//       conversationId: conversation.id,
+//       content: text,
+//       sender: "AGENT",
+//       messageType: "TEXT",
+//       status: "SENT",
+//       metaMessageId,
+//     },
+//   });
+
+//   const updatedConversation = await prisma.conversation.update({
+//     where: { id: conversation.id },
+//     data: { lastMessage: text },
+//   });
+
+//   broadcastMessage(savedMessage, updatedConversation);
+
+//   return savedMessage;
+// };
+
 // module.exports = {
 //   saveIncomingMessage,
 //   sendWelcomeReplyIfNeeded,
+//   sendAndSaveOutgoingMessage,
 // };
 
 const prisma = require("../config/prisma");
@@ -268,14 +276,19 @@ const sendWelcomeReplyIfNeeded = async (conversation) => {
 
 const saveIncomingMessage = async (
   conversationId,
-  text
+  text,
+  metaMessageId = null
 ) => {
   try {
     console.log("========== SAVE MESSAGE ==========");
     console.log("Conversation ID:", conversationId);
     console.log("Message:", text);
 
-    // Save incoming message
+    // Save incoming message. metaMessageId is stored (when the
+    // webhook passes it) so a retried Meta delivery of the same
+    // message hits the unique constraint on Message.metaMessageId
+    // and can be caught as a duplicate instead of being saved and
+    // reprocessed a second time.
     const message = await prisma.message.create({
       data: {
         conversationId,
@@ -283,6 +296,7 @@ const saveIncomingMessage = async (
         sender: "CUSTOMER",
         messageType: "TEXT",
         status: "RECEIVED",
+        metaMessageId,
       },
     });
 

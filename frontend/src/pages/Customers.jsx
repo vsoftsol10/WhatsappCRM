@@ -6,6 +6,7 @@
 // import useCustomerStore from "../store/customerStore";
 // import { getCustomers, deleteCustomer } from "../api/customerApi";
 // import CustomerStatCard from "../components/customers/CustomerStatCard";
+// import ConfirmModal from "../components/common/ConfirmModal";
 
 // function Customers() {
 //   const customers =
@@ -29,6 +30,7 @@
 //   // Unfiltered snapshot used only for the KPI cards, so
 //   // filtering/searching the table doesn't change these numbers.
 //   const [allCustomers, setAllCustomers] = useState([]);
+//   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
 //   const ROWS_PER_PAGE = 10;
 
@@ -174,12 +176,13 @@
 //   // DELETE CUSTOMER
 //   // =========================
 
-//   const handleDelete = async (id) => {
-//     const confirmed = window.confirm(
-//       "Are you sure you want to delete this customer?"
-//     );
+//   const handleDelete = (id) => {
+//     setDeleteTargetId(id);
+//   };
 
-//     if (!confirmed) return;
+//   const confirmDelete = async () => {
+//     const id = deleteTargetId;
+//     setDeleteTargetId(null);
 
 //     try {
 //       await deleteCustomer(id);
@@ -518,13 +521,23 @@
 //         </div>
 
       
+//       <ConfirmModal
+//         isOpen={!!deleteTargetId}
+//         title="Delete Customer"
+//         message="Are you sure you want to delete this customer? This cannot be undone."
+//         confirmText="Delete"
+//         cancelText="Cancel"
+//         variant="danger"
+//         onConfirm={confirmDelete}
+//         onCancel={() => setDeleteTargetId(null)}
+//       />
 //     </div>
 //   );
 // }
 
 // export default Customers;
 
-import { useEffect, useState, useMemo, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { MoreVertical } from "lucide-react";
 import toast from "react-hot-toast";
@@ -615,8 +628,13 @@ function Customers() {
   }, []);
 
   // =========================
-  // FETCH CUSTOMERS
+  // FETCH CUSTOMERS (server-side paginated — only the current
+  // page's rows are requested, instead of fetching every matching
+  // customer and slicing it client-side)
   // =========================
+
+  const [totalPages, setTotalPages] = useState(1);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -625,7 +643,9 @@ function Customers() {
           statusFilter === "ALL"
             ? ""
             : statusFilter,
-          searchTerm
+          searchTerm,
+          currentPage,
+          ROWS_PER_PAGE
         );
 
         setCustomers(
@@ -633,6 +653,8 @@ function Customers() {
             data.data ||
             []
         );
+
+        setTotalPages(data.pagination?.totalPages || 1);
       } catch (error) {
         console.error(
           "Failed to fetch customers:",
@@ -640,6 +662,7 @@ function Customers() {
         );
 
         setCustomers([]);
+        setTotalPages(1);
       }
     };
 
@@ -648,6 +671,8 @@ function Customers() {
     setCustomers,
     statusFilter,
     searchTerm,
+    currentPage,
+    refreshTrigger,
   ]);
 
   // =========================
@@ -676,27 +701,11 @@ function Customers() {
     ).length;
 
   // =========================
-  // PAGINATION
+  // PAGINATION (totalPages comes from the server response above;
+  // `customers` is already just the current page's rows)
   // =========================
 
-  const totalPages = Math.max(
-    1,
-    Math.ceil(
-      customers.length / ROWS_PER_PAGE
-    )
-  );
-
-  const paginatedCustomers =
-    useMemo(() => {
-      const start =
-        (currentPage - 1) *
-        ROWS_PER_PAGE;
-
-      return customers.slice(
-        start,
-        start + ROWS_PER_PAGE
-      );
-    }, [customers, currentPage]);
+  const paginatedCustomers = customers;
 
   // =========================
   // DELETE CUSTOMER
@@ -713,18 +722,21 @@ function Customers() {
     try {
       await deleteCustomer(id);
 
-      setCustomers(
-        customers.filter(
-          (customer) =>
-            customer.id !== id
-        )
-      );
-
       setAllCustomers((prev) =>
         prev.filter(
           (customer) => customer.id !== id
         )
       );
+
+      // If this was the only row on the current (non-first) page,
+      // step back a page — otherwise just re-fetch this page so it
+      // reflects the deletion (customers is a server-paginated slice
+      // now, not a full array we can safely splice locally).
+      if (customers.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      } else {
+        setRefreshTrigger((prev) => prev + 1);
+      }
 
       toast.success(
         "Customer deleted successfully!"

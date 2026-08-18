@@ -5,15 +5,17 @@ import {
   editMessage,
   deleteMessage,
 } from "../api/messageApi";
+import { connectSocket } from "../api/socket";
 
-const useMessageStore = create((set) => ({
+const useMessageStore = create((set, get) => ({
   messages: [],
   loading: false,
+  currentConversationId: null,
 
   // GET MESSAGES
   fetchMessages: async (conversationId) => {
     try {
-      set({ loading: true });
+      set({ loading: true, currentConversationId: conversationId });
 
       const data = await getMessagesByConversation(conversationId);
 
@@ -68,7 +70,44 @@ const useMessageStore = create((set) => ({
 
   // CLEAR ALL MESSAGES (local state only — used after clearing chat on the server)
   clearMessages: () => {
-    set({ messages: [] });
+    set({ messages: [], currentConversationId: null });
+  },
+
+  // SOCKET LISTENERS — call once from a mounted component (Conversations
+  // page) and call the returned cleanup on unmount.
+  initSocketListeners: () => {
+    const socket = connectSocket();
+    if (!socket) return () => {};
+
+    const handleNewMessage = (message) => {
+      const { currentConversationId, messages } = get();
+
+      if (message.conversationId !== currentConversationId) return;
+
+      // Dedupe — the agent who just sent it already has it from the
+      // REST response, so ignore the socket echo of the same id.
+      if (messages.some((m) => m.id === message.id)) return;
+
+      set({ messages: [...messages, message] });
+    };
+
+    const handleStatusUpdate = ({ metaMessageId, status, failureReason }) => {
+      set((state) => ({
+        messages: state.messages.map((m) =>
+          m.metaMessageId === metaMessageId
+            ? { ...m, status: status ?? m.status, failureReason }
+            : m
+        ),
+      }));
+    };
+
+    socket.on("message:new", handleNewMessage);
+    socket.on("message:status", handleStatusUpdate);
+
+    return () => {
+      socket.off("message:new", handleNewMessage);
+      socket.off("message:status", handleStatusUpdate);
+    };
   },
 }));
 

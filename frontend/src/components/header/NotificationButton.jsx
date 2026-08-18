@@ -7,6 +7,7 @@ import {
   markAllNotificationsAsRead,
   deleteNotification,
 } from "../../api/notificationApi";
+import { connectSocket } from "../../api/socket";
 
 import NotificationDropdown from "./NotificationDropdown";
 
@@ -35,6 +36,25 @@ function NotificationButton() {
   // ================= INITIAL LOAD =================
   useEffect(() => {
     fetchNotifications();
+  }, []);
+
+  // ================= REAL-TIME PUSH =================
+  // Backend emits notification:new to this user's socket room the
+  // moment a Notification row is created — prepend it so the bell
+  // badge/dropdown update without waiting for the next poll/refresh.
+  useEffect(() => {
+    const socket = connectSocket();
+    if (!socket) return;
+
+    const handleNewNotification = (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+    };
+
+    socket.on("notification:new", handleNewNotification);
+
+    return () => {
+      socket.off("notification:new", handleNewNotification);
+    };
   }, []);
 
   // ================= CLOSE DROPDOWN ON OUTSIDE CLICK =================

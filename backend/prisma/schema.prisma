@@ -40,6 +40,7 @@ model User {
   assignedTickets  Ticket[]       @relation("AssignedTickets")
   createdTickets   Ticket[]       @relation("CreatedTickets")
   ticketWorkNotes  TicketWorkNote[] @relation("TicketWorkNotes")
+  auditLogs        AuditLog[]
 }
 
 model Customer {
@@ -335,6 +336,23 @@ model Notification {
 
   @@index([userId])
   @@index([isRead])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String   // e.g. "EMPLOYEE_CREATED", "EMPLOYEE_ROLE_CHANGED", "CUSTOMER_DELETED"
+  entityType String   // e.g. "Employee", "Customer"
+  entityId   String   // id of the affected record (kept as String even
+                       // though some ids like Lead.id are Int, so this
+                       // table doesn't need a relation per entity type)
+  details    String?  // short human-readable summary, e.g. "role: USER -> ADMIN"
+  actorId    String?  // who performed the action; null if the system did it
+  actor      User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
   @@index([createdAt])
 }
 

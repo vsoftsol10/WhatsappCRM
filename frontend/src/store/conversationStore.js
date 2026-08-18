@@ -9,6 +9,7 @@ import {
   clearConversationMessages,
   deleteConversation,
 } from "../api/conversationApi";
+import { connectSocket } from "../api/socket";
 
 const useConversationStore = create((set) => ({
   conversations: [],
@@ -166,7 +167,38 @@ const useConversationStore = create((set) => ({
       console.error(error);
     }
   },
+
+  // SOCKET LISTENERS — call once from a mounted component (Conversations
+  // page) and call the returned cleanup on unmount. Keeps the sidebar's
+  // lastMessage/unreadCount live across every connected agent.
+  initSocketListeners: () => {
+    const socket = connectSocket();
+    if (!socket) return () => {};
+
+    const handleConversationUpdate = (updatedConversation) => {
+      set((state) => {
+        const exists = state.conversations.some(
+          (c) => c.id === updatedConversation.id
+        );
+
+        const conversations = exists
+          ? state.conversations.map((c) =>
+              c.id === updatedConversation.id
+                ? { ...c, ...updatedConversation }
+                : c
+            )
+          : [updatedConversation, ...state.conversations];
+
+        return { conversations };
+      });
+    };
+
+    socket.on("conversation:update", handleConversationUpdate);
+
+    return () => {
+      socket.off("conversation:update", handleConversationUpdate);
+    };
+  },
 }));
 
 export default useConversationStore;
-
