@@ -2,6 +2,8 @@ const ACTION_LABELS = {
   EMPLOYEE_CREATED: "Employee created",
   EMPLOYEE_UPDATED: "Employee updated",
   EMPLOYEE_DELETED: "Employee deleted",
+  CUSTOMER_CREATED: "Customer created",
+  CUSTOMER_UPDATED: "Customer updated",
   CUSTOMER_DELETED: "Customer deleted",
 };
 
