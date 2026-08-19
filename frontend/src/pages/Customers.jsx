@@ -1,4 +1,4 @@
-// import { useEffect, useState, useMemo, useRef } from "react";
+// import { useEffect, useState, useRef } from "react";
 // import { useNavigate } from "react-router-dom";
 // import { MoreVertical } from "lucide-react";
 // import toast from "react-hot-toast";
@@ -7,6 +7,8 @@
 // import { getCustomers, deleteCustomer } from "../api/customerApi";
 // import CustomerStatCard from "../components/customers/CustomerStatCard";
 // import ConfirmModal from "../components/common/ConfirmModal";
+// import AddCustomerModal from "../components/customers/AddCustomerModal";
+// import EditCustomerModal from "../components/customers/EditCustomerModal";
 
 // function Customers() {
 //   const customers =
@@ -31,6 +33,9 @@
 //   // filtering/searching the table doesn't change these numbers.
 //   const [allCustomers, setAllCustomers] = useState([]);
 //   const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+//   const [showAddModal, setShowAddModal] = useState(false);
+//   const [editCustomerId, setEditCustomerId] = useState(null);
 
 //   const ROWS_PER_PAGE = 10;
 
@@ -67,6 +72,8 @@
 //   // FETCH ALL CUSTOMERS (unfiltered, for KPI cards)
 //   // =========================
 
+//   const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
+
 //   useEffect(() => {
 //     const fetchAllCustomers = async () => {
 //       try {
@@ -86,11 +93,21 @@
 //     };
 
 //     fetchAllCustomers();
-//   }, []);
+//   }, [statsRefreshTrigger]);
 
 //   // =========================
-//   // FETCH CUSTOMERS
+//   // FETCH CUSTOMERS (server-side paginated — only the current
+//   // page's rows are requested, instead of fetching every matching
+//   // customer and slicing it client-side)
 //   // =========================
+
+//   const [totalPages, setTotalPages] = useState(1);
+//   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+//   const handleModalSuccess = () => {
+//     setRefreshTrigger((prev) => prev + 1);
+//     setStatsRefreshTrigger((prev) => prev + 1);
+//   };
 
 //   useEffect(() => {
 //     const fetchCustomers = async () => {
@@ -99,7 +116,9 @@
 //           statusFilter === "ALL"
 //             ? ""
 //             : statusFilter,
-//           searchTerm
+//           searchTerm,
+//           currentPage,
+//           ROWS_PER_PAGE
 //         );
 
 //         setCustomers(
@@ -107,6 +126,8 @@
 //             data.data ||
 //             []
 //         );
+
+//         setTotalPages(data.pagination?.totalPages || 1);
 //       } catch (error) {
 //         console.error(
 //           "Failed to fetch customers:",
@@ -114,6 +135,7 @@
 //         );
 
 //         setCustomers([]);
+//         setTotalPages(1);
 //       }
 //     };
 
@@ -122,6 +144,8 @@
 //     setCustomers,
 //     statusFilter,
 //     searchTerm,
+//     currentPage,
+//     refreshTrigger,
 //   ]);
 
 //   // =========================
@@ -150,27 +174,11 @@
 //     ).length;
 
 //   // =========================
-//   // PAGINATION
+//   // PAGINATION (totalPages comes from the server response above;
+//   // `customers` is already just the current page's rows)
 //   // =========================
 
-//   const totalPages = Math.max(
-//     1,
-//     Math.ceil(
-//       customers.length / ROWS_PER_PAGE
-//     )
-//   );
-
-//   const paginatedCustomers =
-//     useMemo(() => {
-//       const start =
-//         (currentPage - 1) *
-//         ROWS_PER_PAGE;
-
-//       return customers.slice(
-//         start,
-//         start + ROWS_PER_PAGE
-//       );
-//     }, [customers, currentPage]);
+//   const paginatedCustomers = customers;
 
 //   // =========================
 //   // DELETE CUSTOMER
@@ -187,18 +195,21 @@
 //     try {
 //       await deleteCustomer(id);
 
-//       setCustomers(
-//         customers.filter(
-//           (customer) =>
-//             customer.id !== id
-//         )
-//       );
-
 //       setAllCustomers((prev) =>
 //         prev.filter(
 //           (customer) => customer.id !== id
 //         )
 //       );
+
+//       // If this was the only row on the current (non-first) page,
+//       // step back a page — otherwise just re-fetch this page so it
+//       // reflects the deletion (customers is a server-paginated slice
+//       // now, not a full array we can safely splice locally).
+//       if (customers.length === 1 && currentPage > 1) {
+//         setCurrentPage((prev) => prev - 1);
+//       } else {
+//         setRefreshTrigger((prev) => prev + 1);
+//       }
 
 //       toast.success(
 //         "Customer deleted successfully!"
@@ -232,9 +243,7 @@
 //           </div>
 
 //           <button
-//             onClick={() =>
-//               navigate("/customers/add")
-//             }
+//             onClick={() => setShowAddModal(true)}
 //             className="crm-primary-button w-full sm:w-auto"
 //           >
 //             + Add Customer
@@ -425,11 +434,10 @@
 //                             </button>
 
 //                             <button
-//                               onClick={() =>
-//                                 navigate(
-//                                   `/customers/edit/${customer.id}`
-//                                 )
-//                               }
+//                               onClick={() => {
+//                                 setEditCustomerId(customer.id);
+//                                 setOpenMenu(null);
+//                               }}
 //                               className="w-full px-4 py-2 text-left hover:bg-gray-100"
 //                             >
 //                               Edit
@@ -531,6 +539,19 @@
 //         onConfirm={confirmDelete}
 //         onCancel={() => setDeleteTargetId(null)}
 //       />
+
+//       <AddCustomerModal
+//         isOpen={showAddModal}
+//         onClose={() => setShowAddModal(false)}
+//         onSuccess={handleModalSuccess}
+//       />
+
+//       <EditCustomerModal
+//         isOpen={!!editCustomerId}
+//         customerId={editCustomerId}
+//         onClose={() => setEditCustomerId(null)}
+//         onSuccess={handleModalSuccess}
+//       />
 //     </div>
 //   );
 // }
@@ -546,6 +567,8 @@ import useCustomerStore from "../store/customerStore";
 import { getCustomers, deleteCustomer } from "../api/customerApi";
 import CustomerStatCard from "../components/customers/CustomerStatCard";
 import ConfirmModal from "../components/common/ConfirmModal";
+import AddCustomerModal from "../components/customers/AddCustomerModal";
+import EditCustomerModal from "../components/customers/EditCustomerModal";
 
 function Customers() {
   const customers =
@@ -570,6 +593,9 @@ function Customers() {
   // filtering/searching the table doesn't change these numbers.
   const [allCustomers, setAllCustomers] = useState([]);
   const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editCustomerId, setEditCustomerId] = useState(null);
 
   const ROWS_PER_PAGE = 10;
 
@@ -606,6 +632,8 @@ function Customers() {
   // FETCH ALL CUSTOMERS (unfiltered, for KPI cards)
   // =========================
 
+  const [statsRefreshTrigger, setStatsRefreshTrigger] = useState(0);
+
   useEffect(() => {
     const fetchAllCustomers = async () => {
       try {
@@ -625,7 +653,7 @@ function Customers() {
     };
 
     fetchAllCustomers();
-  }, []);
+  }, [statsRefreshTrigger]);
 
   // =========================
   // FETCH CUSTOMERS (server-side paginated — only the current
@@ -635,6 +663,11 @@ function Customers() {
 
   const [totalPages, setTotalPages] = useState(1);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleModalSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+    setStatsRefreshTrigger((prev) => prev + 1);
+  };
 
   useEffect(() => {
     const fetchCustomers = async () => {
@@ -770,9 +803,7 @@ function Customers() {
           </div>
 
           <button
-            onClick={() =>
-              navigate("/customers/add")
-            }
+            onClick={() => setShowAddModal(true)}
             className="crm-primary-button w-full sm:w-auto"
           >
             + Add Customer
@@ -963,11 +994,10 @@ function Customers() {
                             </button>
 
                             <button
-                              onClick={() =>
-                                navigate(
-                                  `/customers/edit/${customer.id}`
-                                )
-                              }
+                              onClick={() => {
+                                setEditCustomerId(customer.id);
+                                setOpenMenu(null);
+                              }}
                               className="w-full px-4 py-2 text-left hover:bg-gray-100"
                             >
                               Edit
@@ -1068,6 +1098,19 @@ function Customers() {
         variant="danger"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTargetId(null)}
+      />
+
+      <AddCustomerModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        onSuccess={handleModalSuccess}
+      />
+
+      <EditCustomerModal
+        isOpen={!!editCustomerId}
+        customerId={editCustomerId}
+        onClose={() => setEditCustomerId(null)}
+        onSuccess={handleModalSuccess}
       />
     </div>
   );
