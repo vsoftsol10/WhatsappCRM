@@ -328,7 +328,15 @@ const createCustomer = async (req, res) => {
         userId,
       },
     });
- 
+
+    await recordAuditLog({
+      action: "CUSTOMER_CREATED",
+      entityType: "Customer",
+      entityId: customer.id,
+      details: `${customer.name} (${customer.phone})`,
+      actorId: req.user?.userId,
+    });
+
     res.status(201).json({
       success: true,
       message: "Customer created successfully",
@@ -492,6 +500,25 @@ const updateCustomer = async (req, res) => {
 
     const { name, phone, email, company, source, requirements, status } = req.body;
 
+    // Track what actually changed for a readable audit entry (same
+    // pattern as EMPLOYEE_UPDATED in employeeController.js).
+    const changes = [];
+    if (name !== undefined && name !== existingCustomer.name) {
+      changes.push(`name: ${existingCustomer.name} -> ${name}`);
+    }
+    if (phone !== undefined && phone !== existingCustomer.phone) {
+      changes.push(`phone: ${existingCustomer.phone} -> ${phone}`);
+    }
+    if (email !== undefined && email !== existingCustomer.email) {
+      changes.push(`email: ${existingCustomer.email} -> ${email}`);
+    }
+    if (company !== undefined && company !== existingCustomer.company) {
+      changes.push(`company: ${existingCustomer.company} -> ${company}`);
+    }
+    if (status !== undefined && status !== existingCustomer.status) {
+      changes.push(`status: ${existingCustomer.status} -> ${status}`);
+    }
+
     const updatedCustomer = await prisma.customer.update({
       where: {
         id,
@@ -506,6 +533,16 @@ const updateCustomer = async (req, res) => {
         status,
       },
     });
+
+    if (changes.length > 0) {
+      await recordAuditLog({
+        action: "CUSTOMER_UPDATED",
+        entityType: "Customer",
+        entityId: updatedCustomer.id,
+        details: `${existingCustomer.name}: ${changes.join(", ")}`,
+        actorId: req.user?.userId,
+      });
+    }
 
     return res.status(200).json({
       success: true,
