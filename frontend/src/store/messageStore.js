@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import toast from "react-hot-toast";
 import {
   sendMessage,
   getMessagesByConversation,
@@ -35,6 +36,20 @@ const useMessageStore = create((set, get) => ({
       await sendMessage(messageData);
     } catch (error) {
       console.error(error);
+
+      const errData = error.response?.data;
+
+      if (errData?.code === "WINDOW_CLOSED") {
+        toast.error(
+          "24-hour window closed for this customer — send a template instead."
+        );
+      } else {
+        toast.error(errData?.message || "Failed to send message");
+      }
+
+      // Re-throw so the input component can also react (e.g. keep the
+      // draft text instead of clearing it) if it wants to.
+      throw error;
     }
   },
 

@@ -120,15 +120,19 @@ function Conversations() {
     // backend broadcasts message:new + conversation:update over the
     // socket to every connected agent (including this one), so the UI
     // updates itself once that event arrives.
-    await addMessage({
-      conversationId: selectedConversation.id,
-      content,
-      sender: "AGENT",
-      messageType: "TEXT",
-      status: "SENT",
-    });
+        try {
+      await addMessage({
+        conversationId: selectedConversation.id,
+        content,
+        sender: "AGENT",
+        messageType: "TEXT",
+        status: "SENT",
+      });
+    } catch {
+      // addMessage already shows a toast for this — nothing more to do here.
+    }
   };
-
+  
   return (
     <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col bg-white xl:min-h-full xl:flex-row">
 

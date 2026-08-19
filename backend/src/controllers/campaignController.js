@@ -683,6 +683,7 @@ const {
   getOrCreateConversation,
 } = require("../helpers/conversationHelper");
 const { getIO } = require("../config/socket");
+const { fillTemplatePlaceholders } = require("../utils/templatePlaceholders");
 // =====================================================
 // CREATE CAMPAIGN
 // =====================================================
@@ -1219,6 +1220,18 @@ const processCampaignSend = async (campaign, customerIds) => {
 let sendStatus = "FAILED";
 let metaMessageId = null;
 
+// Gemini-generated campaign copy may still contain literal
+// {{customer_name}} / {{company}} / {{phone}} / {{email}} tokens
+// (see templatePromptBuilder.js) — fill them with real values
+// before this text goes into the template's {{2}} body variable,
+// otherwise the customer sees the raw tokens on WhatsApp. Declared
+// outside the try block since it's also used when saving the message
+// below (including on failure, so the saved log still reads correctly).
+const personalizedMessage = fillTemplatePlaceholders(
+  campaign.messageContent,
+  customer
+);
+
 try {
 
   let result;
@@ -1233,7 +1246,7 @@ try {
       customer.phone,
       "campaign", // approved IMAGE-header template name (Meta template: "campaign")
        campaign.imageUrl,
-      [customer.name, campaign.messageContent], // fills {{1}} and {{2}}
+      [customer.name, personalizedMessage], // fills {{1}} and {{2}}
       "en" // Meta approved this template under "English", not "English (US)"
     );
 
@@ -1242,7 +1255,7 @@ try {
     result = await sendTemplateMessage(
       customer.phone,
       "custom_campaign_message", // approved text-only template name
-      [customer.name, campaign.messageContent] // fills {{1}} and {{2}}
+      [customer.name, personalizedMessage] // fills {{1}} and {{2}}
     );
 
   }
@@ -1267,7 +1280,7 @@ await prisma.message.create({
   data: {
     conversationId: conversation.id,
     sender: "AGENT",
-    content: campaign.messageContent,
+    content: personalizedMessage,
     imageUrl: campaign.imageUrl,
     messageType: campaign.imageUrl ? "IMAGE" : "TEXT",
     status: sendStatus,
