@@ -56,6 +56,8 @@ const {
 const {
   saveIncomingMessage,
   sendWelcomeReplyIfNeeded,
+  sendAndSaveOutgoingMessage,
+  INTENT_QUESTION,
 } = require("../helpers/messageHelper");
 
 const {
@@ -150,9 +152,17 @@ const processWebhookPayload = async (value) => {
 
       // Step 3: auto-reply. Only fires once per conversation (guarded by
       // welcomeSent) so we don't spam "thanks for contacting us" on every
-      // message a customer sends.
+      // message a customer sends. When the welcome message actually goes
+      // out for the first time (brand-new customer), immediately follow
+      // it with a proactive "what are you looking for" question instead
+      // of silently waiting for them to volunteer it — their answer just
+      // flows into the normal classification pipeline on their next
+      // message, same as any unprompted message would.
       try {
-        await sendWelcomeReplyIfNeeded(conversation);
+        const justWelcomed = await sendWelcomeReplyIfNeeded(conversation);
+        if (justWelcomed) {
+          await sendAndSaveOutgoingMessage(conversation, INTENT_QUESTION);
+        }
       } catch (autoReplyError) {
         console.error("Auto-reply error:", autoReplyError);
       }

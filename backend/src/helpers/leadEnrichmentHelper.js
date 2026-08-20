@@ -4,9 +4,12 @@ const {
 } = require("../helpers/messageHelper");
 const { sendLeadToErpCrm } = require("../services/erpCrmService");
 
-// Step 6 - Lead Enrichment: only ERP is wired to an external CRM today.
-// To support another product later, add it here and give it its own
-// "send to <product> CRM" service, same shape as erpCrmService.
+// Step 6 - Lead Enrichment. Name/company/email collection now runs for
+// EVERY product (not just ERP) so every genuine enquiry gets asked
+// and gets a "team will reach out" reply — but only ERP has an actual
+// external CRM to forward the finished lead to today. To wire up
+// another product's CRM later, just add its sender here — everything
+// else (the questions, the DB writes) already works for it.
 const PRODUCT_CRM_SENDERS = {
   ERP: sendLeadToErpCrm,
 };
@@ -25,13 +28,15 @@ const isValidEmail = (text) => EMAIL_REGEX.test((text || "").trim());
 // whichever of these the lead doesn't already have.
 const ORDERED_STEPS = ["NAME", "COMPANY", "EMAIL"];
 
-const QUESTIONS = {
+// COMPANY's question mentions the product by name (e.g. "the right ERP
+// proposal", "the right HRMS proposal") so it still reads naturally
+// now that every product goes through this same flow.
+const QUESTIONS = (product) => ({
   NAME: "Thanks for reaching out! Could you share your name, please?",
-  COMPANY:
-    "Great! Could you share your company name so we can get you the right ERP proposal?",
+  COMPANY: `Great! Could you share your company name so we can get you the right ${product} proposal?`,
   EMAIL:
     "Thanks! Could you also share your email address so our team can reach you?",
-};
+});
 
 const RETRY_MESSAGES = {
   NAME: "Sorry, I didn't quite get that. Could you share your name?",
@@ -74,22 +79,24 @@ const resetAskTimer = async (conversation) => {
   });
 };
 
-// Call this right after a NEW lead is created (Step 5) for a product we
-// forward externally. Figures out what's missing (name, company,
+// Call this right after a NEW lead is created (Step 5) for ANY
+// INQUIRY-intent product. Figures out what's missing (name, company,
 // email — in that order) and asks for the first missing one. If
-// nothing is missing, it forwards immediately without asking anything.
+// nothing is missing, it finalizes immediately (forwarding to the
+// product's CRM if one is wired up — see PRODUCT_CRM_SENDERS —
+// otherwise just a thank-you reply).
 const startLeadEnrichment = async (conversation, product, lead) => {
-  if (!PRODUCT_CRM_SENDERS[product]) {
-    // We don't forward this product anywhere yet — nothing to do.
-    return;
-  }
-
   const firstStep = nextMissingStep(lead);
 
   if (!firstStep) {
     // Already have everything (e.g. linked Customer record already had
-    // name + company + email) — forward straight away, no questions.
-    await sendLeadToErpCrm(lead);
+    // name + company + email) — finalize straight away, no questions.
+    await finalizeEnrichment(conversation, {
+      name: lead.name,
+      company: lead.company,
+      email: lead.email,
+      product,
+    });
     return;
   }
 
@@ -102,7 +109,7 @@ const startLeadEnrichment = async (conversation, product, lead) => {
     },
   });
 
-  await askQuestion(conversation, QUESTIONS[firstStep]);
+  await askQuestion(conversation, QUESTIONS(product)[firstStep]);
 };
 
 // Call this when conversation.pendingLeadStep is already set — this
@@ -146,7 +153,7 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
       data: { pendingLeadName: trimmedAnswer },
     });
 
-    await advanceOrFinalize(conversation, lead, "NAME", { name: trimmedAnswer });
+    await advanceOrFinalize(conversation, lead, "NAME", { name: trimmedAnswer }, pendingLeadProduct);
     return;
   }
 
@@ -164,7 +171,7 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
 
     await advanceOrFinalize(conversation, lead, "COMPANY", {
       company: trimmedAnswer,
-    });
+    }, pendingLeadProduct);
     return;
   }
 
@@ -177,7 +184,7 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
 
     await advanceOrFinalize(conversation, lead, "EMAIL", {
       email: trimmedAnswer,
-    });
+    }, pendingLeadProduct);
   }
 };
 
@@ -188,7 +195,7 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
 // from `conversation.pendingLeadName` / `pendingLeadCompany`, which are
 // already up to date because `conversation` is re-fetched fresh at the
 // start of every incoming webhook call.
-const advanceOrFinalize = async (conversation, lead, completedStep, justCollected) => {
+const advanceOrFinalize = async (conversation, lead, completedStep, justCollected, product) => {
   const next = nextMissingStep(lead, completedStep);
 
   if (next) {
@@ -199,7 +206,7 @@ const advanceOrFinalize = async (conversation, lead, completedStep, justCollecte
         pendingLeadAskedAt: new Date(),
       },
     });
-    await askQuestion(conversation, QUESTIONS[next]);
+    await askQuestion(conversation, QUESTIONS(product)[next]);
     return;
   }
 
@@ -209,14 +216,16 @@ const advanceOrFinalize = async (conversation, lead, completedStep, justCollecte
     justCollected.company || conversation.pendingLeadCompany || lead.company;
   const email = justCollected.email || lead.email;
 
-  await finalizeEnrichment(conversation, { name, company, email });
+  await finalizeEnrichment(conversation, { name, company, email, product });
 };
 
 // Saves the collected name/company/email onto the lead, clears the
-// pending state, forwards to the right external CRM, and lets the
-// customer know their request has been sent along.
-const finalizeEnrichment = async (conversation, { name, company, email }) => {
-  const { pendingLeadProduct, phone } = conversation;
+// pending state, forwards to the right external CRM if one's wired up
+// for this product (see PRODUCT_CRM_SENDERS), and lets the customer
+// know their request has been received either way.
+const finalizeEnrichment = async (conversation, { name, company, email, product }) => {
+  const pendingLeadProduct = product || conversation.pendingLeadProduct;
+  const { phone } = conversation;
 
   const lead = await prisma.lead.findFirst({
     where: { phone, source: `WhatsApp - ${pendingLeadProduct}` },
@@ -247,15 +256,22 @@ const finalizeEnrichment = async (conversation, { name, company, email }) => {
   });
 
   const sendToCrm = PRODUCT_CRM_SENDERS[pendingLeadProduct];
+  let forwarded = false;
+
   if (sendToCrm) {
     const result = await sendToCrm(updatedLead);
-    if (!result?.success) {
+    forwarded = !!result?.success;
+    if (!forwarded) {
       console.error(
         `Lead #${updatedLead.id} was NOT forwarded to ${pendingLeadProduct} CRM. See error above.`
       );
     }
   }
 
+  // Same reassurance either way — customers don't need to know whether
+  // there's an external CRM behind the scenes, only that someone will
+  // follow up. Internally, forwarded vs. DB-only is still visible from
+  // whether PRODUCT_CRM_SENDERS had an entry for this product.
   await sendAndSaveOutgoingMessage(
     conversation,
     "Thank you! We've forwarded your request to our team and they'll reach out to you shortly."
