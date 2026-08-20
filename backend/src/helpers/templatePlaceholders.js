@@ -9,7 +9,7 @@
 // configurable via env vars so they don't need another code change later.
 
 const BUSINESS_INFO = {
-  company: process.env.BUSINESS_COMPANY_NAME || "Vsoft Solutions",
+  company: process.env.BUSINESS_COMPANY_NAME || "VsoftSolutions",
   phone: process.env.BUSINESS_SUPPORT_PHONE || "9095422237",
   email: process.env.BUSINESS_SUPPORT_EMAIL || "info@thevsoft.com",
 };

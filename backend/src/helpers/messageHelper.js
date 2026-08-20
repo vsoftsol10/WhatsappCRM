@@ -94,14 +94,19 @@
 
 // const saveIncomingMessage = async (
 //   conversationId,
-//   text
+//   text,
+//   metaMessageId = null
 // ) => {
 //   try {
 //     console.log("========== SAVE MESSAGE ==========");
 //     console.log("Conversation ID:", conversationId);
 //     console.log("Message:", text);
 
-//     // Save incoming message
+//     // Save incoming message. metaMessageId is stored (when the
+//     // webhook passes it) so a retried Meta delivery of the same
+//     // message hits the unique constraint on Message.metaMessageId
+//     // and can be caught as a duplicate instead of being saved and
+//     // reprocessed a second time.
 //     const message = await prisma.message.create({
 //       data: {
 //         conversationId,
@@ -109,6 +114,7 @@
 //         sender: "CUSTOMER",
 //         messageType: "TEXT",
 //         status: "RECEIVED",
+//         metaMessageId,
 //       },
 //     });
 
@@ -213,8 +219,8 @@ const WELCOME_MESSAGE =
    Should you require any immediate assistance, please do not hesitate to contact us.
 
    You can reach us via:
-   Phone: 9876546375
-   Email: vsoft@gmail.com
+   Phone: 9095422237
+   Email: info@thevsoft.com
 
    We look forward to assisting you.`;
 
