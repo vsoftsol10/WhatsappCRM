@@ -64,6 +64,23 @@ const generateTemplate = async (
   }
 };
 
+// Small delay helper for retry backoff.
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Gemini occasionally returns 503/UNAVAILABLE ("high demand") or 429
+// (rate limited) — both are transient and usually clear up within a
+// couple seconds. Worth a couple of quick retries before giving up,
+// since falling back straight away was silently dropping genuine
+// enquiries (customer says "I want ERP", Gemini is briefly
+// overloaded, message gets treated exactly like a "hi").
+const isRetryableGeminiError = (error) => {
+  const status = error?.status || error?.error?.code;
+  return status === 503 || status === 429 || status === "UNAVAILABLE";
+};
+
+const MAX_CLASSIFICATION_ATTEMPTS = 3; // 1 initial try + 2 retries
+const RETRY_DELAY_MS = 1500;
+
 // Step 4 - AI Analysis: classifies an incoming customer message into
 // { product, intent, confidence, summary } so Step 5 (Product Router)
 // can decide which team the lead/ticket belongs to, and whether it's
@@ -71,55 +88,76 @@ const generateTemplate = async (
 // (SUPPORT).
 // Never throws — on any failure (bad JSON, API error, etc.) it falls
 // back to a safe "Other" / "INQUIRY" result so the webhook flow never
-// breaks because of an AI hiccup.
+// breaks because of an AI hiccup. The fallback carries aiUnavailable:
+// true only when every retry hit a transient Gemini error (as opposed
+// to the message genuinely being unclassifiable), so the caller can
+// tell the two cases apart and alert a human instead of silently
+// treating a real enquiry like small talk.
 const classifyCustomerMessage = async (messageText) => {
   const fallback = {
     product: "Other",
     intent: "INQUIRY",
     confidence: 0,
     summary: "",
+    aiUnavailable: false,
   };
 
   if (!messageText || typeof messageText !== "string" || !messageText.trim()) {
     return fallback;
   }
 
-  try {
-    const prompt = buildClassificationPrompt(messageText);
+  const prompt = buildClassificationPrompt(messageText);
+  let lastError = null;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+  for (let attempt = 1; attempt <= MAX_CLASSIFICATION_ATTEMPTS; attempt++) {
+    try {
+      const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash",
+        contents: prompt,
+      });
 
-    let text = response.text || "";
-    text = text.replace(/```json/g, "").replace(/```/g, "").trim();
+      let text = response.text || "";
+      text = text.replace(/```json/g, "").replace(/```/g, "").trim();
 
-    const result = JSON.parse(text);
+      const result = JSON.parse(text);
 
-    const product = ALLOWED_PRODUCTS.includes(result.product)
-      ? result.product
-      : "Other";
+      const product = ALLOWED_PRODUCTS.includes(result.product)
+        ? result.product
+        : "Other";
 
-    const intent = ALLOWED_INTENTS.includes(result.intent)
-      ? result.intent
-      : "INQUIRY";
+      const intent = ALLOWED_INTENTS.includes(result.intent)
+        ? result.intent
+        : "INQUIRY";
 
-    const confidence =
-      typeof result.confidence === "number" &&
-      result.confidence >= 0 &&
-      result.confidence <= 1
-        ? result.confidence
-        : 0;
+      const confidence =
+        typeof result.confidence === "number" &&
+        result.confidence >= 0 &&
+        result.confidence <= 1
+          ? result.confidence
+          : 0;
 
-    const summary =
-      typeof result.summary === "string" ? result.summary.trim() : "";
+      const summary =
+        typeof result.summary === "string" ? result.summary.trim() : "";
 
-    return { product, intent, confidence, summary };
-  } catch (error) {
-    console.error("Gemini Classification Error:", error);
-    return fallback;
+      return { product, intent, confidence, summary, aiUnavailable: false };
+    } catch (error) {
+      lastError = error;
+
+      if (isRetryableGeminiError(error) && attempt < MAX_CLASSIFICATION_ATTEMPTS) {
+        console.warn(
+          `Gemini Classification attempt ${attempt} failed (transient), retrying in ${RETRY_DELAY_MS}ms:`,
+          error.message || error
+        );
+        await sleep(RETRY_DELAY_MS);
+        continue;
+      }
+
+      break;
+    }
   }
+
+  console.error("Gemini Classification Error (giving up):", lastError);
+  return { ...fallback, aiUnavailable: isRetryableGeminiError(lastError) };
 };
 
 module.exports = {
