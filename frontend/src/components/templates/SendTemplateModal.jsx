@@ -269,17 +269,16 @@ export default function SendTemplateModal({
 
                   {sentCustomers.includes(customer.id) && (
                     <span className="inline-block mt-2 bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full">
-                      ✓ Already Sent
+                      ✓ Already sent — you can still resend if needed
                     </span>
                   )}
                 </div>
 
                 <input
                   type="checkbox"
-                  disabled={sentCustomers.includes(customer.id)}
                   checked={selectedCustomers.includes(customer.id)}
                   onChange={() => toggleCustomer(customer.id)}
-                  className="w-5 h-5 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-5 h-5 cursor-pointer"
                 />
               </div>
             ))

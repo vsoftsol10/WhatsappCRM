@@ -120,12 +120,6 @@ const fetchSentCustomers = async () => {
   // ===========================
   const toggleCustomer = (id) => {
 
-    // Don't allow selecting
-    // already sent customers
-    if (sentCustomers.includes(id)) {
-      return;
-    }
-
     if (selectedCustomers.includes(id)) {
 
       setSelectedCustomers((prev) =>
@@ -304,22 +298,12 @@ const handleClearAll = () => {
 
                 <div
                   key={customer.id}
-                  onClick={() => {
-                    if (!alreadySent) {
-                      toggleCustomer(customer.id);
-                    }
-                  }}
+                  onClick={() => toggleCustomer(customer.id)}
                   className={`
                     flex justify-between items-center
                     border rounded-xl p-4 mb-3
                     transition-all duration-200
-
-                    ${
-                      alreadySent
-                        ? "opacity-50 bg-gray-100 cursor-not-allowed"
-                        : "hover:bg-gray-50 cursor-pointer"
-                    }
-
+                    hover:bg-gray-50 cursor-pointer
                     ${
                       selected
                         ? "ring-2 ring-green-500 border-green-500"
@@ -340,7 +324,7 @@ const handleClearAll = () => {
 
                     {alreadySent && (
                       <span className="inline-flex items-center mt-2 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-semibold">
-                        ✓ Already Sent
+                        ✓ Already sent — you can still resend if needed
                       </span>
                     )}
 
@@ -348,8 +332,6 @@ const handleClearAll = () => {
 
                   <input
                     type="checkbox"
-
-                    disabled={alreadySent}
 
                     checked={selected}
 
@@ -361,11 +343,7 @@ const handleClearAll = () => {
                       toggleCustomer(customer.id)
                     }
 
-                    className={`w-5 h-5 ${
-                      alreadySent
-                        ? "cursor-not-allowed opacity-40"
-                        : "cursor-pointer"
-                    }`}
+                    className="w-5 h-5 cursor-pointer"
                   />
 
                 </div>

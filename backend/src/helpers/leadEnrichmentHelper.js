@@ -3,6 +3,7 @@ const {
   sendAndSaveOutgoingMessage,
 } = require("../helpers/messageHelper");
 const { sendLeadToErpCrm } = require("../services/erpCrmService");
+const { getSystemUserId } = require("../helpers/ticketEnrichmentHelper");
 
 // Step 6 - Lead Enrichment. Name/company/email collection now runs for
 // EVERY product (not just ERP) so every genuine enquiry gets asked
@@ -77,6 +78,72 @@ const resetAskTimer = async (conversation) => {
     where: { id: conversation.id },
     data: { pendingLeadAskedAt: new Date() },
   });
+};
+
+// Once we have name + company + email for a WhatsApp lead, that's
+// also enough to create a Customer record — not just a Lead. Finds an
+// existing Customer by phone first (never overwrites data an agent
+// may have already entered, only fills in blanks), otherwise creates
+// one under the same system/admin account ticketEnrichmentHelper.js
+// uses for auto-created records. Also links the conversation to the
+// customer so the chat UI shows a real name instead of "Not linked
+// yet" from here on.
+const getOrCreateCustomerFromLead = async (conversation, lead) => {
+  const phone = conversation.phone;
+  if (!phone) return null;
+
+  const systemUserId = await getSystemUserId();
+  if (!systemUserId) {
+    console.error(
+      "Cannot auto-create customer from WhatsApp lead: system user not configured."
+    );
+    return null;
+  }
+
+  let customer = await prisma.customer.findUnique({ where: { phone } });
+
+  if (!customer) {
+    customer = await prisma.customer.create({
+      data: {
+        name: lead.name,
+        phone,
+        email: lead.email,
+        company: lead.company,
+        requirements: lead.requirements,
+        source: lead.source,
+        userId: systemUserId,
+      },
+    });
+    console.log(
+      `Auto-created customer #${customer.id} from WhatsApp lead #${lead.id}`
+    );
+  } else {
+    const isPlaceholderCustomerName =
+      customer.name === `WhatsApp Customer (${customer.phone})`;
+    const updateData = {};
+    if (isPlaceholderCustomerName && lead.name) updateData.name = lead.name;
+    if (!customer.email && lead.email) updateData.email = lead.email;
+    if (!customer.company && lead.company) updateData.company = lead.company;
+    if (!customer.requirements && lead.requirements) {
+      updateData.requirements = lead.requirements;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      customer = await prisma.customer.update({
+        where: { id: customer.id },
+        data: updateData,
+      });
+    }
+  }
+
+  if (!conversation.customerId) {
+    await prisma.conversation.update({
+      where: { id: conversation.id },
+      data: { customerId: customer.id },
+    });
+  }
+
+  return customer;
 };
 
 // Call this right after a NEW lead is created (Step 5) for ANY
@@ -254,6 +321,24 @@ const finalizeEnrichment = async (conversation, { name, company, email, product 
     where: { id: lead.id },
     data: { name, company, email },
   });
+
+  // Same info that just went onto the Lead also makes this person a
+  // Customer — never let a customer-creation hiccup break the reply
+  // the customer is waiting for.
+  try {
+    const customer = await getOrCreateCustomerFromLead(conversation, updatedLead);
+    if (customer && !updatedLead.isConverted) {
+      await prisma.lead.update({
+        where: { id: updatedLead.id },
+        data: { isConverted: true },
+      });
+    }
+  } catch (customerError) {
+    console.error(
+      `Failed to auto-create/link customer for lead #${updatedLead.id}:`,
+      customerError
+    );
+  }
 
   const sendToCrm = PRODUCT_CRM_SENDERS[pendingLeadProduct];
   let forwarded = false;

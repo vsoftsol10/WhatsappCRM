@@ -300,4 +300,5 @@ module.exports = {
   startTicketEnrichment,
   handlePendingTicketAnswer,
   releaseStalePendingTickets,
+  getSystemUserId,
 };
