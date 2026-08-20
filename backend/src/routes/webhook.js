@@ -1,7 +1,53 @@
 // const express = require("express");
+// const crypto = require("crypto");
 // const router = express.Router();
 // const prisma = require("../config/prisma");
 // const { getIO } = require("../config/socket");
+
+// // Verifies that a POST to this webhook was actually signed by Meta
+// // with our app secret, not just guessed by someone who found the
+// // URL. Meta signs the raw request body and sends the signature in
+// // X-Hub-Signature-256. If META_APP_SECRET isn't configured we log a
+// // warning and let requests through, so local development without the
+// // secret set still works — but this should always be set in
+// // production.
+// const verifyWebhookSignature = (req, res, next) => {
+//   const appSecret = process.env.META_APP_SECRET;
+
+//   if (!appSecret) {
+//     console.warn(
+//       "META_APP_SECRET not set — webhook signature is NOT being verified. Set this in production."
+//     );
+//     return next();
+//   }
+
+//   const signatureHeader = req.headers["x-hub-signature-256"];
+
+//   if (!signatureHeader || !req.rawBody) {
+//     return res.sendStatus(401);
+//   }
+
+//   const expectedSignature =
+//     "sha256=" +
+//     crypto
+//       .createHmac("sha256", appSecret)
+//       .update(req.rawBody)
+//       .digest("hex");
+
+//   const receivedBuffer = Buffer.from(signatureHeader);
+//   const expectedBuffer = Buffer.from(expectedSignature);
+
+//   const isValid =
+//     receivedBuffer.length === expectedBuffer.length &&
+//     crypto.timingSafeEqual(receivedBuffer, expectedBuffer);
+
+//   if (!isValid) {
+//     console.warn("Webhook signature verification failed");
+//     return res.sendStatus(401);
+//   }
+
+//   next();
+// };
 
 // const {
 //   getOrCreateConversation,
@@ -46,7 +92,7 @@
 //   return res.sendStatus(403);
 // });
 
-// router.post("/", async (req, res) => {
+// router.post("/", verifyWebhookSignature, async (req, res) => {
 //   try {
 //     const value = req.body.entry?.[0]?.changes?.[0]?.value;
 //     const message = value?.messages?.[0];
@@ -76,9 +122,23 @@
 //         } else {
 //         console.log("Customer : Not linked yet");
 //         }
-    
-//       await saveIncomingMessage(conversation.id, text);
+
+//       // Meta retries webhook deliveries it thinks were slow to
+//       // acknowledge. message.id is WhatsApp's own id for this
+//       // message — storing it and catching the resulting unique-
+//       // constraint error lets us detect and skip a duplicate
+//       // delivery instead of fully reprocessing (double AI
+//       // classification, double lead/ticket, double reply).
+//       try {
+//         await saveIncomingMessage(conversation.id, text, message.id || null);
 //         console.log("Message saved successfully");
+//       } catch (saveError) {
+//         if (saveError.code === "P2002") {
+//           console.log("Duplicate webhook delivery detected, skipping:", message.id);
+//           return res.sendStatus(200);
+//         }
+//         throw saveError;
+//       }
 
 //       // Step 3: auto-reply. Only fires once per conversation (guarded by
 //       // welcomeSent) so we don't spam "thanks for contacting us" on every
@@ -299,9 +359,15 @@ router.get("/", (req, res) => {
   return res.sendStatus(403);
 });
 
-router.post("/", verifyWebhookSignature, async (req, res) => {
+// Meta expects a fast 2xx ack for every webhook delivery — if we take
+// too long (Gemini call, WhatsApp send, cold start, etc.) it assumes
+// the delivery failed and retries with the SAME message, which our
+// duplicate-guard then has to swallow. So the route handler below
+// acks immediately after signature verification, and this function
+// does the actual save/reply/classify/lead work in the background,
+// completely decoupled from the HTTP response.
+const processWebhookPayload = async (value) => {
   try {
-    const value = req.body.entry?.[0]?.changes?.[0]?.value;
     const message = value?.messages?.[0];
     const statuses = value?.statuses;
 
@@ -342,7 +408,7 @@ router.post("/", verifyWebhookSignature, async (req, res) => {
       } catch (saveError) {
         if (saveError.code === "P2002") {
           console.log("Duplicate webhook delivery detected, skipping:", message.id);
-          return res.sendStatus(200);
+          return;
         }
         throw saveError;
       }
@@ -461,13 +527,23 @@ router.post("/", verifyWebhookSignature, async (req, res) => {
       }
     }
 
-    return res.sendStatus(200);
   } catch (error) {
-    console.error(error);
-    return res.sendStatus(500);
+    console.error("Webhook background processing error:", error);
   }
+};
+
+router.post("/", verifyWebhookSignature, (req, res) => {
+  // Ack Meta immediately — signature is already verified by the
+  // middleware above, so it's safe to accept the delivery now and do
+  // the real work afterward. Meta only cares that we returned 2xx
+  // quickly; it doesn't wait for or care about what happens next.
+  res.sendStatus(200);
+
+  const value = req.body.entry?.[0]?.changes?.[0]?.value;
+
+  processWebhookPayload(value).catch((error) => {
+    console.error("Unhandled webhook processing error:", error);
+  });
 });
-
-
 
 module.exports = router;
