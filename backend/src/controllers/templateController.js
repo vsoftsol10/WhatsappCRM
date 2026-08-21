@@ -4,6 +4,7 @@
 // const {
 //   getOrCreateConversation,
 // } = require("../helpers/conversationHelper");
+// const { fillTemplatePlaceholders } = require("../utils/templatePlaceholders");
 // // ================= CREATE TEMPLATE =================
 // const createTemplate = async (req, res) => {
 //   try {
@@ -113,8 +114,6 @@
 //   try {
 //     const { id } = req.params;
 
-//     //console.log("GET TEMPLATE API HIT");
-
 //     const template = await prisma.template.findUnique({
 //       where: {
 //         id,
@@ -143,9 +142,6 @@
 //         message: "Template not found",
 //       });
 //     }
-
-//     //console.log("Template Object:", template);
-//     //console.log("Recipients:", template.recipients);
 
 //     return res.status(200).json({
 //       success: true,
@@ -352,6 +348,15 @@
 // let sendStatus = "FAILED";
 // let metaMessageId = null;
 
+// // Gemini-generated template copy may still contain literal
+// // {{customer_name}} / {{company}} / {{phone}} / {{email}} tokens
+// // (see templatePromptBuilder.js) — fill them with real values before
+// // sending, otherwise the customer sees the raw tokens on WhatsApp.
+// const personalizedContent = fillTemplatePlaceholders(
+//     template.content,
+//     customer
+// );
+
 // try {
 
 //     // Uses the same Meta-approved generic template as campaigns
@@ -361,7 +366,7 @@
 //     const result = await sendTemplateMessage(
 //         customer.phone,
 //         "custom_campaign_message", // your approved template name
-//         [customer.name, template.content] // fills {{1}} and {{2}}
+//         [customer.name, personalizedContent] // fills {{1}} and {{2}}
 //     );
 
 //     console.log("WhatsApp Result:", result);
@@ -389,7 +394,7 @@
 
 //         sender: "AGENT",
 
-//         content: template.content,
+//         content: personalizedContent,
 
 //         messageType: "TEXT",
 
@@ -590,6 +595,7 @@ const createTemplate = async (req, res) => {
       category,
       messageType,
       content,
+      metaTemplateName,
     } = req.body;
 
     if (!name || !content) {
@@ -605,6 +611,9 @@ const createTemplate = async (req, res) => {
         category,
         messageType,
         content,
+        // Empty string means "use the default generic template" —
+        // store it as null so the send logic's fallback is clean.
+        metaTemplateName: metaTemplateName?.trim() || null,
         createdById: req.user.userId,
       },
     });
@@ -746,6 +755,7 @@ const updateTemplate = async (req, res) => {
       messageType,
       content,
       status,
+      metaTemplateName,
     } = req.body;
 
     const existingTemplate = await prisma.template.findUnique({
@@ -769,6 +779,9 @@ const updateTemplate = async (req, res) => {
         messageType,
         content,
         status,
+        ...(metaTemplateName !== undefined && {
+          metaTemplateName: metaTemplateName?.trim() || null,
+        }),
       },
     });
 
@@ -936,14 +949,25 @@ const personalizedContent = fillTemplatePlaceholders(
 
 try {
 
-    // Uses the same Meta-approved generic template as campaigns
-    // ("custom_campaign_message") so this is a real WhatsApp Template
-    // send — works even outside the 24-hour window — instead of a
-    // free-form text message that only worked when the window was open.
+    // Templates without their own dedicated Meta-approved template
+    // fall back to the generic "custom_campaign_message" — which
+    // takes the whole body as a single {{2}} parameter, so WhatsApp
+    // strips any newlines out of it (Meta doesn't allow \n inside
+    // template parameter values). A template with metaTemplateName
+    // set has its own Meta-approved template with the full formatted
+    // body baked in server-side — only the customer's name goes in
+    // as {{1}}, so real line breaks/emojis/numbered lists reach the
+    // customer intact.
+    const usesDedicatedMetaTemplate = Boolean(template.metaTemplateName);
+
     const result = await sendTemplateMessage(
         customer.phone,
-        "custom_campaign_message", // your approved template name
-        [customer.name, personalizedContent] // fills {{1}} and {{2}}
+        usesDedicatedMetaTemplate
+          ? template.metaTemplateName
+          : "custom_campaign_message",
+        usesDedicatedMetaTemplate
+          ? [customer.name] // fills {{1}} only — body is static on Meta's side
+          : [customer.name, personalizedContent] // fills {{1}} and {{2}}
     );
 
     console.log("WhatsApp Result:", result);

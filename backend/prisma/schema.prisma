@@ -213,6 +213,16 @@ model Template {
   updatedAt   DateTime            @updatedAt
   autoSend    Boolean             @default(false)
   purpose     TemplatePurpose     @default(CUSTOM)
+  // The actual Meta-approved WhatsApp template name to send this
+  // through. Defaults (at the application layer, not here) to the
+  // generic "custom_campaign_message" template — which takes the
+  // whole message body as a single {{2}} parameter and therefore
+  // loses newlines (WhatsApp strips \n from parameter values). Set
+  // this when a template has its OWN dedicated Meta-approved
+  // template (full formatted body baked in, only {{1}}=customer
+  // name as a parameter) so real line breaks/formatting reach the
+  // customer — e.g. "vedaconnect_meetup_invite".
+  metaTemplateName String?
   createdBy   User                @relation(fields: [createdById], references: [id])
   recipients  TemplateRecipient[]
 }
