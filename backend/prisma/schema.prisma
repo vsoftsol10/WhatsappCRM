@@ -164,13 +164,22 @@ model Campaign {
   updatedAt      DateTime            @updatedAt
   imageUrl       String?
   // Same purpose as Template.metaTemplateName below — set this when
-  // the campaign has its own dedicated Meta-approved template (full
-  // formatted body baked in, only {{1}}=customer name as a parameter)
+  // the campaign has its own dedicated Meta-approved template
   // instead of the generic "custom_campaign_message" wrapper.
   metaTemplateName String?
   // Language code Meta approved this template under — see
   // Template.metaTemplateLanguage for details.
   metaTemplateLanguage String? @default("en_US")
+  // Ordered body-variable values for the dedicated template above,
+  // e.g. ["Eco & Natural Product Entrepreneurs Meetup", "22 August
+  // 2026, Saturday", "4:30 PM - 6:30 PM", "Vannarpet, Tirunelveli",
+  // "9095422237"] to fill {{1}}..{{5}}. Different approved templates
+  // need different param counts/meanings, so this is a free-form
+  // ordered list rather than fixed columns — irrelevant/ignored when
+  // metaTemplateName is blank (generic template uses
+  // [customer.name, messageContent] instead, hardcoded in the
+  // controller).
+  metaTemplateParams   Json?
   createdBy      User                @relation(fields: [createdById], references: [id])
   recipients     CampaignRecipient[]
 }
