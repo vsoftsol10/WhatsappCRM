@@ -155,10 +155,80 @@
 //   }
 // };
 
+// // Template message with an Image header + body text variables.
+// // Requires a Meta-approved template whose Header format is set to "Image"
+// // (e.g. "custom_campaign_image_message"). imageUrl must be a publicly
+// // accessible URL (your Cloudinary link works fine).
+// const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = [], languageCode = "en_US") => {
+
+//   if (!to || typeof to !== "string" || !to.trim()) {
+//     return {
+//       success: false,
+//       error: {
+//         message: "Recipient phone number is required",
+//       },
+//     };
+//   }
+
+//   if (!imageUrl || typeof imageUrl !== "string" || !imageUrl.trim()) {
+//     return {
+//       success: false,
+//       error: {
+//         message: "Image URL is required",
+//       },
+//     };
+//   }
+
+//   try {
+//     const response = await axios.post(
+//       `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_PHONE_NUMBER_ID}/messages`,
+//       {
+//         messaging_product: "whatsapp",
+//         to: to.trim(),
+//         type: "template",
+//         template: {
+//           name: templateName,
+//           language: { code: languageCode },
+//           components: [
+//             {
+//               type: "header",
+//               parameters: [
+//                 {
+//                   type: "image",
+//                   image: { link: imageUrl },
+//                 },
+//               ],
+//             },
+//             {
+//               type: "body",
+//               parameters: params.map((p) => ({
+//                 type: "text",
+//                 text: sanitizeTemplateParam(p),
+//               })),
+//             },
+//           ],
+//         },
+//       },
+//       {
+//         headers: {
+//           Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+//           "Content-Type": "application/json",
+//         },
+//       }
+//     );
+
+//     return { success: true, data: response.data };
+//   } catch (error) {
+//     console.error("WhatsApp Image Template Error:", error.response?.data || error.message);
+//     return { success: false, error: error.response?.data || error.message };
+//   }
+// };
+
 // module.exports = {
 //   sendTextMessage,
 //   sendImageMessage,
 //   sendTemplateMessage,
+//   sendCampaignImageTemplate,
 // };
 
 const axios = require("axios");
@@ -275,7 +345,7 @@ const sanitizeTemplateParam = (text) =>
     .replace(/ {2,}/g, " ")     // collapse repeated spaces
     .trim();
 
-const sendTemplateMessage = async (to, templateName, params = []) => {
+const sendTemplateMessage = async (to, templateName, params = [], languageCode = "en_US") => {
 
   if (!to || typeof to !== "string" || !to.trim()) {
     return {
@@ -295,7 +365,7 @@ const sendTemplateMessage = async (to, templateName, params = []) => {
         type: "template",
         template: {
           name: templateName,
-          language: { code: "en_US" },
+          language: { code: languageCode },
           components: params.length > 0 ? [
             {
               type: "body",

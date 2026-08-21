@@ -17,6 +17,7 @@
 //     messageType: "TEXT",
 //     content: "",
 //     status: "DRAFT",
+//     metaTemplateName: "",
 //   });
 
 //   const [errors, setErrors] = useState({});
@@ -29,6 +30,7 @@
 //         messageType: template.messageType || "TEXT",
 //         content: template.content || "",
 //         status: template.status || "DRAFT",
+//         metaTemplateName: template.metaTemplateName || "",
 //       });
 
 //       setErrors({});
@@ -246,6 +248,30 @@
 //               )}
 //             </div>
 
+//             {/* Meta Template Name */}
+//             <div>
+//               <label className="block mb-2 font-medium text-gray-700">
+//                 Meta Approved Template Name (optional)
+//               </label>
+
+//               <input
+//                 type="text"
+//                 name="metaTemplateName"
+//                 placeholder="e.g. vedaconnect_meetup_invite — leave blank to use the default"
+//                 value={formData.metaTemplateName}
+//                 onChange={handleChange}
+//                 className="w-full rounded-lg border border-gray-300 focus:border-[#25D366] px-4 py-3 outline-none"
+//               />
+
+//               <p className="text-gray-500 text-xs mt-1">
+//                 Only fill this in if this exact message was approved as its
+//                 own template in WhatsApp Business Manager (full formatting
+//                 baked in, only the customer's name as a variable). Leave
+//                 blank to send via the generic template — line breaks won't
+//                 be preserved on WhatsApp for that one.
+//               </p>
+//             </div>
+
 //             {/* Status */}
 //             <div>
 //               <label className="block mb-2 font-medium text-gray-700">
@@ -298,7 +324,6 @@
 //   );
 // }
 
-
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
@@ -319,6 +344,7 @@ export default function EditTemplateModal({
     content: "",
     status: "DRAFT",
     metaTemplateName: "",
+    metaTemplateLanguage: "en_US",
   });
 
   const [errors, setErrors] = useState({});
@@ -332,6 +358,7 @@ export default function EditTemplateModal({
         content: template.content || "",
         status: template.status || "DRAFT",
         metaTemplateName: template.metaTemplateName || "",
+        metaTemplateLanguage: template.metaTemplateLanguage || "en_US",
       });
 
       setErrors({});
@@ -572,6 +599,31 @@ export default function EditTemplateModal({
                 be preserved on WhatsApp for that one.
               </p>
             </div>
+
+            {/* Meta Template Language */}
+            {formData.metaTemplateName && (
+              <div>
+                <label className="block mb-2 font-medium text-gray-700">
+                  Meta Template Language
+                </label>
+
+                <input
+                  type="text"
+                  name="metaTemplateLanguage"
+                  placeholder="e.g. en_US or en"
+                  value={formData.metaTemplateLanguage}
+                  onChange={handleChange}
+                  className="w-full rounded-lg border border-gray-300 focus:border-[#25D366] px-4 py-3 outline-none"
+                />
+
+                <p className="text-gray-500 text-xs mt-1">
+                  Must match the language shown for this template in
+                  WhatsApp Business Manager exactly (e.g. "en_US" for
+                  "English (US)", "en" for plain "English") — a mismatch
+                  makes WhatsApp reject the send.
+                </p>
+              </div>
+            )}
 
             {/* Status */}
             <div>

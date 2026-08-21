@@ -163,18 +163,14 @@ model Campaign {
   createdAt      DateTime            @default(now())
   updatedAt      DateTime            @updatedAt
   imageUrl       String?
-  // Same purpose as Template.metaTemplateName: the actual
-  // Meta-approved WhatsApp template to send this campaign through.
-  // Defaults (application layer) to "custom_campaign_message" (text)
-  // / "campaign" (image header) — both take the whole message as a
-  // single {{2}} parameter, so WhatsApp strips any newlines out of
-  // it. Set this when the campaign has its own dedicated
-  // Meta-approved template with the full formatted body baked in
-  // (only {{1}}=customer name as a parameter) so real line
-  // breaks/formatting reach the customer. Not wired into
-  // campaignController.js's send logic yet — reserved for when a
-  // dedicated campaign template is approved.
+  // Same purpose as Template.metaTemplateName below — set this when
+  // the campaign has its own dedicated Meta-approved template (full
+  // formatted body baked in, only {{1}}=customer name as a parameter)
+  // instead of the generic "custom_campaign_message" wrapper.
   metaTemplateName String?
+  // Language code Meta approved this template under — see
+  // Template.metaTemplateLanguage for details.
+  metaTemplateLanguage String? @default("en_US")
   createdBy      User                @relation(fields: [createdById], references: [id])
   recipients     CampaignRecipient[]
 }
@@ -235,6 +231,12 @@ model Template {
   // name as a parameter) so real line breaks/formatting reach the
   // customer — e.g. "vedaconnect_meetup_invite".
   metaTemplateName String?
+  // Language code Meta approved this template under (shown in
+  // WhatsApp Manager > Message Templates, e.g. "en_US" for
+  // "English (US)" or "en" for plain "English"). Sending with the
+  // wrong code makes Meta reject the send as template-not-found.
+  // Only relevant when metaTemplateName is set.
+  metaTemplateLanguage String? @default("en_US")
   createdBy   User                @relation(fields: [createdById], references: [id])
   recipients  TemplateRecipient[]
 }

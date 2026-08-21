@@ -13,6 +13,7 @@
 //       category,
 //       messageType,
 //       content,
+//       metaTemplateName,
 //     } = req.body;
 
 //     if (!name || !content) {
@@ -28,6 +29,9 @@
 //         category,
 //         messageType,
 //         content,
+//         // Empty string means "use the default generic template" —
+//         // store it as null so the send logic's fallback is clean.
+//         metaTemplateName: metaTemplateName?.trim() || null,
 //         createdById: req.user.userId,
 //       },
 //     });
@@ -169,6 +173,7 @@
 //       messageType,
 //       content,
 //       status,
+//       metaTemplateName,
 //     } = req.body;
 
 //     const existingTemplate = await prisma.template.findUnique({
@@ -192,6 +197,9 @@
 //         messageType,
 //         content,
 //         status,
+//         ...(metaTemplateName !== undefined && {
+//           metaTemplateName: metaTemplateName?.trim() || null,
+//         }),
 //       },
 //     });
 
@@ -359,14 +367,25 @@
 
 // try {
 
-//     // Uses the same Meta-approved generic template as campaigns
-//     // ("custom_campaign_message") so this is a real WhatsApp Template
-//     // send — works even outside the 24-hour window — instead of a
-//     // free-form text message that only worked when the window was open.
+//     // Templates without their own dedicated Meta-approved template
+//     // fall back to the generic "custom_campaign_message" — which
+//     // takes the whole body as a single {{2}} parameter, so WhatsApp
+//     // strips any newlines out of it (Meta doesn't allow \n inside
+//     // template parameter values). A template with metaTemplateName
+//     // set has its own Meta-approved template with the full formatted
+//     // body baked in server-side — only the customer's name goes in
+//     // as {{1}}, so real line breaks/emojis/numbered lists reach the
+//     // customer intact.
+//     const usesDedicatedMetaTemplate = Boolean(template.metaTemplateName);
+
 //     const result = await sendTemplateMessage(
 //         customer.phone,
-//         "custom_campaign_message", // your approved template name
-//         [customer.name, personalizedContent] // fills {{1}} and {{2}}
+//         usesDedicatedMetaTemplate
+//           ? template.metaTemplateName
+//           : "custom_campaign_message",
+//         usesDedicatedMetaTemplate
+//           ? [customer.name] // fills {{1}} only — body is static on Meta's side
+//           : [customer.name, personalizedContent] // fills {{1}} and {{2}}
 //     );
 
 //     console.log("WhatsApp Result:", result);
@@ -596,6 +615,7 @@ const createTemplate = async (req, res) => {
       messageType,
       content,
       metaTemplateName,
+      metaTemplateLanguage,
     } = req.body;
 
     if (!name || !content) {
@@ -614,6 +634,7 @@ const createTemplate = async (req, res) => {
         // Empty string means "use the default generic template" —
         // store it as null so the send logic's fallback is clean.
         metaTemplateName: metaTemplateName?.trim() || null,
+        metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
         createdById: req.user.userId,
       },
     });
@@ -756,6 +777,7 @@ const updateTemplate = async (req, res) => {
       content,
       status,
       metaTemplateName,
+      metaTemplateLanguage,
     } = req.body;
 
     const existingTemplate = await prisma.template.findUnique({
@@ -781,6 +803,9 @@ const updateTemplate = async (req, res) => {
         status,
         ...(metaTemplateName !== undefined && {
           metaTemplateName: metaTemplateName?.trim() || null,
+        }),
+        ...(metaTemplateLanguage !== undefined && {
+          metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
         }),
       },
     });
@@ -967,7 +992,10 @@ try {
           : "custom_campaign_message",
         usesDedicatedMetaTemplate
           ? [customer.name] // fills {{1}} only — body is static on Meta's side
-          : [customer.name, personalizedContent] // fills {{1}} and {{2}}
+          : [customer.name, personalizedContent], // fills {{1}} and {{2}}
+        usesDedicatedMetaTemplate
+          ? (template.metaTemplateLanguage || "en_US")
+          : "en_US"
     );
 
     console.log("WhatsApp Result:", result);
