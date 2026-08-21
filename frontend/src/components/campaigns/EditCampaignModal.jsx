@@ -21,6 +21,7 @@ const fileInputRef = useRef(null);
     type: "PROMOTIONAL",
     messageContent: "",
     scheduledAt: "",
+    metaTemplateName: "",
   });
 
 useEffect(() => {
@@ -34,6 +35,7 @@ useEffect(() => {
       scheduledAt: campaign.scheduledAt
         ? campaign.scheduledAt.slice(0, 16)
         : "",
+      metaTemplateName: campaign.metaTemplateName || "",
     });
 
     setImagePreview(campaign.imageUrl || "");
@@ -95,6 +97,7 @@ const removeImage = () => {
         type: "PROMOTIONAL",
         messageContent: "",
         scheduledAt: "",
+        metaTemplateName: "",
       });
 
       onClose();
@@ -208,6 +211,29 @@ const removeImage = () => {
                 onChange={handleChange}
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#25D366]"
               />
+            </div>
+
+            {/* Meta Approved Template Name */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Meta Approved Template Name (optional)
+              </label>
+
+              <input
+                type="text"
+                name="metaTemplateName"
+                placeholder="e.g. vedaconnect_campaign — leave blank to use the default"
+                value={formData.metaTemplateName}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-[#25D366]"
+              />
+
+              <p className="mt-1 text-xs text-gray-500">
+                Only fill this in if this exact message + image was approved
+                as its own template in WhatsApp Business Manager. Leave
+                blank to send via the generic template — line breaks won't
+                be preserved on WhatsApp for that one.
+              </p>
             </div>
 
             <div>
