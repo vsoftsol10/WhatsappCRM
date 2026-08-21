@@ -34,17 +34,10 @@ export const createCampaign = async (campaignData) => {
     formData.append("metaTemplateName", campaignData.metaTemplateName);
   }
 
-  if (campaignData.metaTemplateLanguage) {
+  if (campaignData.templateParams && campaignData.templateParams.length > 0) {
     formData.append(
-      "metaTemplateLanguage",
-      campaignData.metaTemplateLanguage
-    );
-  }
-
-  if (campaignData.metaTemplateParams) {
-    formData.append(
-      "metaTemplateParams",
-      JSON.stringify(campaignData.metaTemplateParams)
+      "templateParams",
+      JSON.stringify(campaignData.templateParams)
     );
   }
 
@@ -106,17 +99,10 @@ export const updateCampaign = async (
     );
   }
 
-  if (campaignData.metaTemplateLanguage !== undefined) {
+  if (campaignData.templateParams !== undefined) {
     formData.append(
-      "metaTemplateLanguage",
-      campaignData.metaTemplateLanguage || "en_US"
-    );
-  }
-
-  if (campaignData.metaTemplateParams !== undefined) {
-    formData.append(
-      "metaTemplateParams",
-      JSON.stringify(campaignData.metaTemplateParams || [])
+      "templateParams",
+      JSON.stringify(campaignData.templateParams || [])
     );
   }
 

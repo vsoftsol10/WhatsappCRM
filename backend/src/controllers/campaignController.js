@@ -17,20 +17,32 @@ const {
 const { getIO } = require("../config/socket");
 const { fillTemplatePlaceholders } = require("../utils/templatePlaceholders");
 
-// metaTemplateParams arrives over multipart/form-data as a JSON string
-// (an ordered array of body-variable values for a dedicated Meta
-// template, e.g. '["Eco Meetup","22 Aug 2026","4:30 PM","Vannarpet","9095422237"]').
-// Parse it defensively — malformed/empty input just falls back to [].
-const parseMetaTemplateParams = (raw) => {
-  if (raw === undefined || raw === null || raw === "") return undefined;
-  if (Array.isArray(raw)) return raw;
-
-  try {
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : undefined;
-  } catch {
-    return undefined;
+// The frontend sends templateParams either as a real JSON-stringified
+// array (multipart form fields are always strings) or, if a field is
+// left blank, as undefined. Normalizes all of that into either a clean
+// string[] or null. Never throws — a bad/legacy payload just falls
+// back to null instead of blocking campaign creation.
+const parseTemplateParams = (raw) => {
+  if (raw === undefined || raw === null || raw === "") return undefined; // not touched
+  if (Array.isArray(raw)) {
+    return raw.map((v) => String(v ?? "").trim());
   }
+  if (typeof raw === "string") {
+    try {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        return parsed.map((v) => String(v ?? "").trim());
+      }
+    } catch (_) {
+      // not JSON — fall through
+    }
+    // Fallback: newline or comma separated plain string
+    return raw
+      .split(/\r?\n|,/)
+      .map((v) => v.trim())
+      .filter((v) => v.length > 0);
+  }
+  return null;
 };
 
 // =====================================================
@@ -45,8 +57,7 @@ exports.createCampaign = async (req, res) => {
   scheduledAt,
   customerIds,
   metaTemplateName,
-  metaTemplateLanguage,
-  metaTemplateParams,
+  templateParams,
 } = req.body;
 
 // =============================
@@ -93,10 +104,7 @@ if (req.file) {
         imageUrl,
 
         metaTemplateName: metaTemplateName?.trim() || null,
-
-        metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
-
-        metaTemplateParams: parseMetaTemplateParams(metaTemplateParams) ?? undefined,
+        templateParams: parseTemplateParams(templateParams) ?? null,
 
         scheduledAt: scheduledAt
           ? new Date(scheduledAt)
@@ -278,8 +286,7 @@ exports.updateCampaign = async (req, res) => {
       status,
       scheduledAt,
       metaTemplateName,
-      metaTemplateLanguage,
-      metaTemplateParams,
+      templateParams,
     } = req.body;
 
     // Find campaign
@@ -318,11 +325,8 @@ if (req.file) {
         ...(metaTemplateName !== undefined && {
           metaTemplateName: metaTemplateName?.trim() || null,
         }),
-        ...(metaTemplateLanguage !== undefined && {
-          metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
-        }),
-        ...(metaTemplateParams !== undefined && {
-          metaTemplateParams: parseMetaTemplateParams(metaTemplateParams) ?? [],
+        ...(parseTemplateParams(templateParams) !== undefined && {
+          templateParams: parseTemplateParams(templateParams),
         }),
 
         imageUrl,
@@ -609,15 +613,44 @@ try {
   // Campaigns are business-initiated, so they must always go
   // through an approved template (never plain sendTextMessage).
   // A campaign with its own dedicated Meta-approved template
-  // (metaTemplateName set) has the full body baked in on Meta's
-  // side, with its own body-variable count/order defined by that
-  // specific template — captured per-campaign in metaTemplateParams
-  // (ordered array, admin-entered to match the approved template).
-  // Falls back to the generic templates when no dedicated one is set.
+  // (metaTemplateName set) has its own body variables baked in on
+  // Meta's side — those variables' actual values live in
+  // campaign.templateParams (set once when the campaign is created,
+  // e.g. [eventName, date, time, location, contact]), NOT in
+  // messageContent. Falls back to the generic templates only when
+  // no dedicated template is set at all.
   const usesDedicatedMetaTemplate = Boolean(campaign.metaTemplateName);
-  const dedicatedParams = Array.isArray(campaign.metaTemplateParams)
-    ? campaign.metaTemplateParams
-    : [];
+
+  // Bug history: this used to silently send `[]` as the body params
+  // for any dedicated template, which only worked for templates with
+  // zero body variables. Against a template with real {{1}}..{{n}}
+  // placeholders (e.g. vedaconnect_campaign, which has 5), Meta either
+  // rejects the send or — worse — WhatsApp clients have shown stale/
+  // mismatched cached content in that failure mode. Rather than
+  // guessing the param count, we require templateParams to be set
+  // whenever metaTemplateName is set, and fail this recipient loudly
+  // (not fall back to the wrong generic template) if it's missing.
+  if (usesDedicatedMetaTemplate) {
+    const hasParams =
+      Array.isArray(campaign.templateParams) &&
+      campaign.templateParams.length > 0;
+
+    if (!hasParams) {
+      throw new Error(
+        `Campaign "${campaign.name}" has metaTemplateName="${campaign.metaTemplateName}" set but no templateParams. ` +
+        `Edit the campaign and fill in the body parameter values for this template before sending.`
+      );
+    }
+  }
+
+  // Per-recipient personalization: templateParams may itself contain
+  // {{customer_name}} etc. tokens (same convention as messageContent),
+  // so run each value through the same filler before sending.
+  const dedicatedTemplateParams = usesDedicatedMetaTemplate
+    ? campaign.templateParams.map((p) =>
+        fillTemplatePlaceholders(String(p ?? ""), customer)
+      )
+    : null;
 
   if (campaign.imageUrl) {
 
@@ -628,11 +661,9 @@ try {
         : "campaign", // approved IMAGE-header template name (Meta template: "campaign")
        campaign.imageUrl,
       usesDedicatedMetaTemplate
-        ? dedicatedParams // fills {{1}}..{{n}} per this template's approved body
-        : [customer.name, personalizedMessage], // fills {{1}} and {{2}}
-      usesDedicatedMetaTemplate
-        ? (campaign.metaTemplateLanguage || "en_US")
-        : "en" // Meta approved the generic image template under "English", not "English (US)"
+        ? dedicatedTemplateParams // fills {{1}}..{{n}} on the dedicated template's body
+        : [customer.name, personalizedMessage], // fills {{1}} and {{2}} on "campaign"
+      "en" // Meta approved this template under "English", not "English (US)"
     );
 
   } else {
@@ -643,11 +674,8 @@ try {
         ? campaign.metaTemplateName
         : "custom_campaign_message", // approved text-only template name
       usesDedicatedMetaTemplate
-        ? dedicatedParams // fills {{1}}..{{n}} per this template's approved body
-        : [customer.name, personalizedMessage], // fills {{1}} and {{2}}
-      usesDedicatedMetaTemplate
-        ? (campaign.metaTemplateLanguage || "en_US")
-        : "en_US"
+        ? dedicatedTemplateParams
+        : [customer.name, personalizedMessage] // fills {{1}} and {{2}}
     );
 
   }

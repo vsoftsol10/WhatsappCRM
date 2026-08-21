@@ -27,9 +27,10 @@ const fileInputRef = useRef(null);
     messageContent: "",
     scheduledAt: "",
     metaTemplateName: "",
-    metaTemplateLanguage: "en_US",
-    metaTemplateParams: [],
   });
+  // One line per Meta template body placeholder, in order: line 1 fills
+  // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
+  const [templateParamsText, setTemplateParamsText] = useState("");
 
   // =========================
   // RESET MODAL
@@ -42,9 +43,9 @@ const resetForm = () => {
     messageContent: "",
     scheduledAt: "",
     metaTemplateName: "",
-    metaTemplateLanguage: "en_US",
-    metaTemplateParams: [],
   });
+
+  setTemplateParamsText("");
 
   setSelectedCustomers([]);
 
@@ -83,8 +84,6 @@ const resetForm = () => {
       messageContent: aiCampaign.messageContent || "",
       scheduledAt: "",
       metaTemplateName: "",
-      metaTemplateLanguage: "en_US",
-      metaTemplateParams: [],
     });
   }, [aiCampaign]);
 
@@ -132,35 +131,6 @@ const resetForm = () => {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
-
-  // =========================
-  // META TEMPLATE PARAMS ({{1}}..{{n}} values, in order, for a
-  // dedicated approved template's body)
-  // =========================
-
-  const updateTemplateParam = (index, value) => {
-    setFormData((prev) => {
-      const next = [...prev.metaTemplateParams];
-      next[index] = value;
-      return { ...prev, metaTemplateParams: next };
-    });
-  };
-
-  const addTemplateParam = () => {
-    setFormData((prev) => ({
-      ...prev,
-      metaTemplateParams: [...prev.metaTemplateParams, ""],
-    }));
-  };
-
-  const removeTemplateParam = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      metaTemplateParams: prev.metaTemplateParams.filter(
-        (_, i) => i !== index
-      ),
     }));
   };
 
@@ -240,9 +210,21 @@ const removeImage = () => {
       return toast.error("Campaign message is required.");
     }
 
+    const templateParams = templateParamsText
+      .split("\n")
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
+
+    if (formData.metaTemplateName.trim() && templateParams.length === 0) {
+      return toast.error(
+        "You set a Meta template name — add its body parameter values below (one per line), or leave the template name blank."
+      );
+    }
+
     try {
    const campaign = await addCampaign({
   ...formData,
+  templateParams,
   customerIds: selectedCustomers,
   image,
 });
@@ -410,83 +392,28 @@ return (
 
           </div>
 
-          {/* Meta Template Language */}
+          {/* Dedicated Template Body Parameters */}
 
-          {formData.metaTemplateName && (
+          {formData.metaTemplateName.trim() && (
             <div>
 
               <label className="mb-2 block font-medium text-gray-700">
-                Meta Template Language
+                Template Body Parameters (one per line, in order)
               </label>
 
-              <input
-                type="text"
-                name="metaTemplateLanguage"
-                value={formData.metaTemplateLanguage}
-                onChange={handleChange}
-                placeholder="e.g. en_US or en"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+              <textarea
+                rows={5}
+                value={templateParamsText}
+                onChange={(e) => setTemplateParamsText(e.target.value)}
+                placeholder={
+                  "Eco & Natural Product Entrepreneurs Meetup\n22 August 2026, Saturday\n4:30 PM – 6:30 PM\nVannarpet, Tirunelveli\n9095422237"
+                }
+                className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#25D366]"
               />
 
               <p className="mt-1 text-xs text-gray-500">
-                Must match the language shown for this template in WhatsApp
-                Business Manager exactly (e.g. "en_US" for "English (US)",
-                "en" for plain "English") — a mismatch makes WhatsApp
-                reject the send.
+                Line 1 fills {"{{1}}"} in "{formData.metaTemplateName.trim()}", line 2 fills {"{{2}}"}, and so on — match the exact order and count approved in WhatsApp Manager, or Meta will reject the send. You can use {"{{customer_name}}"} in any line to personalize it per recipient.
               </p>
-
-            </div>
-          )}
-
-          {/* Meta Template Body Params ({{1}}..{{n}}) */}
-
-          {formData.metaTemplateName && (
-            <div>
-
-              <label className="mb-2 block font-medium text-gray-700">
-                Template Variables ({"{{1}}"}, {"{{2}}"}, ...)
-              </label>
-
-              <p className="mb-2 text-xs text-gray-500">
-                Enter the values in order, matching the approved
-                template's body variables exactly — e.g. for {"{{1}}"}
-                = event name, {"{{2}}"} = date, add them in that order
-                below.
-              </p>
-
-              {formData.metaTemplateParams.map((param, index) => (
-                <div key={index} className="mb-2 flex items-center gap-2">
-                  <span className="w-14 shrink-0 text-xs text-gray-500">
-                    {`{{${index + 1}}}`}
-                  </span>
-
-                  <input
-                    type="text"
-                    value={param}
-                    onChange={(e) =>
-                      updateTemplateParam(index, e.target.value)
-                    }
-                    placeholder={`Value for {{${index + 1}}}`}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 outline-none transition focus:border-[#25D366]"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => removeTemplateParam(index)}
-                    className="shrink-0 rounded-lg border border-gray-300 px-2 py-2 text-gray-500 hover:bg-gray-100"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
-
-              <button
-                type="button"
-                onClick={addTemplateParam}
-                className="mt-1 text-sm font-medium text-[#25D366] hover:underline"
-              >
-                + Add variable
-              </button>
 
             </div>
           )}
