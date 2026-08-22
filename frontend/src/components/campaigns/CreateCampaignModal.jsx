@@ -27,6 +27,7 @@ const fileInputRef = useRef(null);
     messageContent: "",
     scheduledAt: "",
     metaTemplateName: "",
+    metaTemplateLanguage: "en_US",
   });
   // One line per Meta template body placeholder, in order: line 1 fills
   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
@@ -43,6 +44,7 @@ const resetForm = () => {
     messageContent: "",
     scheduledAt: "",
     metaTemplateName: "",
+    metaTemplateLanguage: "en_US",
   });
 
   setTemplateParamsText("");
@@ -84,6 +86,7 @@ const resetForm = () => {
       messageContent: aiCampaign.messageContent || "",
       scheduledAt: "",
       metaTemplateName: "",
+      metaTemplateLanguage: "en_US",
     });
   }, [aiCampaign]);
 
@@ -413,6 +416,34 @@ return (
 
               <p className="mt-1 text-xs text-gray-500">
                 Line 1 fills {"{{1}}"} in "{formData.metaTemplateName.trim()}", line 2 fills {"{{2}}"}, and so on — match the exact order and count approved in WhatsApp Manager, or Meta will reject the send. You can use {"{{customer_name}}"} in any line to personalize it per recipient.
+              </p>
+
+            </div>
+          )}
+
+          {/* Meta Template Language */}
+
+          {formData.metaTemplateName.trim() && (
+            <div>
+
+              <label className="mb-2 block font-medium text-gray-700">
+                Meta Template Language
+              </label>
+
+              <input
+                type="text"
+                name="metaTemplateLanguage"
+                value={formData.metaTemplateLanguage}
+                onChange={handleChange}
+                placeholder="e.g. en_US or en"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+              />
+
+              <p className="mt-1 text-xs text-gray-500">
+                Must match the language shown for this template in
+                WhatsApp Business Manager exactly (e.g. "en_US" for
+                "English (US)", "en" for plain "English") — a mismatch
+                makes WhatsApp reject the send.
               </p>
 
             </div>

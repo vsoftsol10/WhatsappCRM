@@ -57,6 +57,7 @@ exports.createCampaign = async (req, res) => {
   scheduledAt,
   customerIds,
   metaTemplateName,
+  metaTemplateLanguage,
   templateParams,
 } = req.body;
 
@@ -104,6 +105,7 @@ if (req.file) {
         imageUrl,
 
         metaTemplateName: metaTemplateName?.trim() || null,
+        metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
         templateParams: parseTemplateParams(templateParams) ?? null,
 
         scheduledAt: scheduledAt
@@ -286,6 +288,7 @@ exports.updateCampaign = async (req, res) => {
       status,
       scheduledAt,
       metaTemplateName,
+      metaTemplateLanguage,
       templateParams,
     } = req.body;
 
@@ -324,6 +327,9 @@ if (req.file) {
         ...(status && { status }),
         ...(metaTemplateName !== undefined && {
           metaTemplateName: metaTemplateName?.trim() || null,
+        }),
+        ...(metaTemplateLanguage !== undefined && {
+          metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
         }),
         ...(parseTemplateParams(templateParams) !== undefined && {
           templateParams: parseTemplateParams(templateParams),
@@ -663,7 +669,9 @@ try {
       usesDedicatedMetaTemplate
         ? dedicatedTemplateParams // fills {{1}}..{{n}} on the dedicated template's body
         : [customer.name, personalizedMessage], // fills {{1}} and {{2}} on "campaign"
-      "en" // Meta approved this template under "English", not "English (US)"
+      usesDedicatedMetaTemplate
+        ? (campaign.metaTemplateLanguage || "en_US")
+        : "en" // Meta approved the generic "campaign" template under "English", not "English (US)"
     );
 
   } else {
@@ -675,7 +683,10 @@ try {
         : "custom_campaign_message", // approved text-only template name
       usesDedicatedMetaTemplate
         ? dedicatedTemplateParams
-        : [customer.name, personalizedMessage] // fills {{1}} and {{2}}
+        : [customer.name, personalizedMessage], // fills {{1}} and {{2}}
+      usesDedicatedMetaTemplate
+        ? (campaign.metaTemplateLanguage || "en_US")
+        : "en_US" // approved language of "custom_campaign_message"
     );
 
   }

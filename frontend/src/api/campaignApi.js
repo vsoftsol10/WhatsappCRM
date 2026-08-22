@@ -34,6 +34,13 @@ export const createCampaign = async (campaignData) => {
     formData.append("metaTemplateName", campaignData.metaTemplateName);
   }
 
+  if (campaignData.metaTemplateLanguage) {
+    formData.append(
+      "metaTemplateLanguage",
+      campaignData.metaTemplateLanguage
+    );
+  }
+
   if (campaignData.templateParams && campaignData.templateParams.length > 0) {
     formData.append(
       "templateParams",
@@ -96,6 +103,13 @@ export const updateCampaign = async (
     formData.append(
       "metaTemplateName",
       campaignData.metaTemplateName || ""
+    );
+  }
+
+  if (campaignData.metaTemplateLanguage !== undefined) {
+    formData.append(
+      "metaTemplateLanguage",
+      campaignData.metaTemplateLanguage || ""
     );
   }
 
