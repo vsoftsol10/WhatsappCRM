@@ -450,7 +450,7 @@ try {
           : [customer.name, personalizedContent], // fills {{1}} and {{2}}
         usesDedicatedMetaTemplate
           ? (template.metaTemplateLanguage || "en_US")
-          : "en_US"
+          : "en" // "custom_campaign_message" is approved under "English", not "English (US)" — same as the "campaign" image template
     );
 
     console.log("WhatsApp Result:", result);
