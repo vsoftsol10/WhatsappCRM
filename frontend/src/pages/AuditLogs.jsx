@@ -97,7 +97,7 @@ function AuditLogs() {
   // ===========================
 
   return (
-    <div className="crm-page bg-slate-100">
+    <div className="crm-page">
       <AuditLogHeader onRefresh={handleRefresh} refreshing={refreshing} />
 
       <AuditLogStats stats={stats} />
