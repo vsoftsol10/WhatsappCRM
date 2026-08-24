@@ -1,4 +1,5 @@
 import { useState, useEffect, useLayoutEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   MoreVertical,
   Eye,
@@ -60,9 +61,23 @@ function TicketTable({
 
   const menuRef = useRef(null);
 
+  const portalMenuRef = useRef(null);
+
   const buttonRefs = useRef({});
 
+  // The dropdown menu is rendered into document.body via a portal (see
+  // below) instead of staying inside the table's DOM tree. It has to
+  // escape the table entirely because .crm-table-scroll uses
+  // overflow-x-auto for horizontal scrolling on narrow screens — any
+  // overflow value other than "visible" clips absolutely-positioned
+  // descendants that try to render outside that box, regardless of
+  // z-index. Portaling to <body> and positioning with fixed coordinates
+  // (from the trigger button's getBoundingClientRect()) sidesteps that
+  // clipping entirely.
   const [menuPosition, setMenuPosition] = useState("down");
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
+
+  const MENU_WIDTH = 160; // matches w-40 below
 
   useLayoutEffect(() => {
     if (!openMenu) return;
@@ -77,15 +92,35 @@ function TicketTable({
 
     const spaceBelow = window.innerHeight - rect.bottom;
 
-    setMenuPosition(spaceBelow < menuHeight ? "up" : "down");
+    const goUp = spaceBelow < menuHeight;
+
+    setMenuPosition(goUp ? "up" : "down");
+
+    // getBoundingClientRect() is viewport-relative, which is exactly
+    // what "position: fixed" coordinates need — no scroll-offset math
+    // required, and it stays correct even inside a scrolled table.
+    setMenuCoords({
+      top: goUp ? rect.top - 8 : rect.bottom + 8,
+      // Right-align the menu under the button, clamped so it never
+      // renders off the left edge of the viewport.
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
   }, [openMenu]);
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
+      const clickedTrigger =
+        menuRef.current && menuRef.current.contains(event.target);
+
+      // The dropdown itself now lives in a portal outside menuRef's DOM
+      // subtree, so also check whether the click landed inside it —
+      // otherwise every click on a menu item would look like an
+      // "outside" click and close the menu before onClick fires.
+      const clickedMenu =
+        portalMenuRef.current &&
+        portalMenuRef.current.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
         setOpenMenu(null);
       }
     }
@@ -258,48 +293,61 @@ function TicketTable({
                           <MoreVertical size={18} />
                         </button>
 
-                        {openMenu === id && (
-                          <div
-                            className={`absolute right-0 z-[9999] w-40 rounded-xl border border-gray-200 bg-white shadow-xl ${
-                              menuPosition === "up"
-                                ? "bottom-full mb-2"
-                                : "top-full mt-2"
-                            }`}
-                          >
-                            <button
-                              onClick={() => {
-                                handleView(ticket);
-                                setOpenMenu(null);
+                        {openMenu === id &&
+                          createPortal(
+                            <div
+                              ref={portalMenuRef}
+                              style={{
+                                position: "fixed",
+                                top: menuCoords.top,
+                                left: menuCoords.left,
+                                width: MENU_WIDTH,
+                                // When flipped "up", the menu should grow
+                                // upward from its bottom edge rather than
+                                // downward from top, so translate it fully
+                                // above the computed anchor point.
+                                transform:
+                                  menuPosition === "up"
+                                    ? "translateY(-100%)"
+                                    : "none",
                               }}
-                              className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
+                              className="z-[9999] rounded-xl border border-gray-200 bg-white shadow-xl"
                             >
-                              <Eye size={16} />
-                              View
-                            </button>
+                              <button
+                                onClick={() => {
+                                  handleView(ticket);
+                                  setOpenMenu(null);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
+                              >
+                                <Eye size={16} />
+                                View
+                              </button>
 
-                            <button
-                              onClick={() => {
-                                handleEdit(ticket);
-                                setOpenMenu(null);
-                              }}
-                              className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
-                            >
-                              <Pencil size={16} />
-                              Edit
-                            </button>
+                              <button
+                                onClick={() => {
+                                  handleEdit(ticket);
+                                  setOpenMenu(null);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm transition hover:bg-gray-100"
+                              >
+                                <Pencil size={16} />
+                                Edit
+                              </button>
 
-                            <button
-                              onClick={() => {
-                                handleDelete(id);
-                                setOpenMenu(null);
-                              }}
-                              className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </div>
-                        )}
+                              <button
+                                onClick={() => {
+                                  handleDelete(id);
+                                  setOpenMenu(null);
+                                }}
+                                className="flex w-full items-center gap-3 px-4 py-3 text-sm text-red-600 transition hover:bg-red-50"
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>,
+                            document.body
+                          )}
                       </div>
                     </td>
                   )}
@@ -314,4 +362,3 @@ function TicketTable({
 }
 
 export default TicketTable;
-
