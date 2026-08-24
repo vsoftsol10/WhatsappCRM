@@ -37,6 +37,21 @@ export const getTemplateRecipients = async (id) => {
 };
 
 
+// ================= GET META-APPROVED TEMPLATES (for dropdown) =================
+// Populates the "Meta Approved Template" dropdown in the Campaign and
+// Template modals, fetched live from WhatsApp Business Manager — the
+// customer picks from what's actually approved instead of typing a
+// name/language by hand.
+export const getMetaApprovedTemplates = async () => {
+
+  const response = await apiClient.get(
+    "/api/templates/meta/approved"
+  );
+
+  return response.data;
+
+};
+
 // ================= CREATE TEMPLATE =================
 export const createTemplate = async (
   templateData

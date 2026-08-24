@@ -14,6 +14,7 @@ import {
   from "lucide-react";
 import useTemplateStore from "../../store/templateStore";
 import toast from "react-hot-toast";
+import useMetaApprovedTemplates from "../../hooks/useMetaApprovedTemplates";
 
 export default function CreateTemplateModal({
   isOpen,
@@ -77,6 +78,48 @@ export default function CreateTemplateModal({
   ];
 
   const [errors, setErrors] = useState({});
+
+  // Live list of Meta-approved templates for the dropdown below — see
+  // the hook for why this replaces the old free-text name/language
+  // inputs.
+  const {
+    templates: approvedTemplates,
+    loading: templatesLoading,
+    error: templatesError,
+  } = useMetaApprovedTemplates(isOpen);
+
+  const selectedMetaTemplate = approvedTemplates.find(
+    (t) =>
+      t.name === formData.metaTemplateName &&
+      t.language === formData.metaTemplateLanguage
+  );
+
+  const handleTemplateSelect = (e) => {
+    const key = e.target.value;
+
+    if (!key) {
+      setFormData((prev) => ({
+        ...prev,
+        metaTemplateName: "",
+        metaTemplateLanguage: "en_US",
+      }));
+
+      return;
+    }
+
+    // Keys are built as "name__language" — see the <option> values below.
+    const separatorIndex = key.lastIndexOf("__");
+
+    const name = key.slice(0, separatorIndex);
+
+    const language = key.slice(separatorIndex + 2);
+
+    setFormData((prev) => ({
+      ...prev,
+      metaTemplateName: name,
+      metaTemplateLanguage: language,
+    }));
+  };
 
   if (!isOpen) return null;
 
@@ -440,32 +483,52 @@ export default function CreateTemplateModal({
               )}
             </div>
 
-            {/* Meta Template Name */}
+            {/* Meta Approved Template — fetched live from WhatsApp
+                Business Manager, so only real approved (name, language)
+                pairs are selectable. */}
             <div>
               <label className="block mb-2 font-medium text-gray-700">
-                Meta Approved Template Name (optional)
+                Meta Approved Template (optional)
               </label>
 
-              <input
-                type="text"
-                name="metaTemplateName"
-                placeholder="e.g. vedaconnect_meetup_invite — leave blank to use the default"
-                value={formData.metaTemplateName}
-                onChange={handleChange}
-                className="w-full rounded-lg border border-gray-300 focus:border-[#25D366] px-4 py-3 outline-none"
-              />
+              <select
+                value={
+                  formData.metaTemplateName
+                    ? `${formData.metaTemplateName}__${formData.metaTemplateLanguage}`
+                    : ""
+                }
+                onChange={handleTemplateSelect}
+                className="w-full rounded-lg border border-gray-300 bg-white focus:border-[#25D366] px-4 py-3 outline-none"
+              >
+                <option value="">— Use the default generic template —</option>
+
+                {templatesLoading && <option disabled>Loading templates…</option>}
+
+                {approvedTemplates.map((t) => (
+                  <option
+                    key={`${t.name}__${t.language}`}
+                    value={`${t.name}__${t.language}`}
+                  >
+                    {t.name} ({t.language}) — {t.category}
+                  </option>
+                ))}
+              </select>
+
+              {templatesError && (
+                <p className="mt-1 text-xs text-red-500">{templatesError}</p>
+              )}
 
               <p className="text-gray-500 text-xs mt-1">
-                Only fill this in if this exact message was approved as its
-                own template in WhatsApp Business Manager (full formatting
-                baked in, only the customer's name as a variable). Leave
-                blank to send via the generic template — line breaks won't
-                be preserved on WhatsApp for that one.
+                This list is pulled live from WhatsApp Business Manager —
+                only templates Meta has already approved show up here. Pick
+                one to send that exact template, or leave it on the default
+                to send via the generic template (line breaks won't be
+                preserved on that one).
               </p>
             </div>
 
             {/* Dedicated Template Body Parameters */}
-            {formData.metaTemplateName.trim() && (
+            {selectedMetaTemplate && (
               <div>
                 <label className="block mb-2 font-medium text-gray-700">
                   Template Body Parameters (one per line, in order)
@@ -482,32 +545,20 @@ export default function CreateTemplateModal({
                 />
 
                 <p className="text-gray-500 text-xs mt-1">
-                  Line 1 fills {"{{1}}"} in "{formData.metaTemplateName.trim()}", line 2 fills {"{{2}}"}, and so on — match the exact order and count approved in WhatsApp Manager, or Meta will reject the send. You can use {"{{customer_name}}"} in any line to personalize it per recipient.
-                </p>
-              </div>
-            )}
-
-            {/* Meta Template Language */}
-            {formData.metaTemplateName && (
-              <div>
-                <label className="block mb-2 font-medium text-gray-700">
-                  Meta Template Language
-                </label>
-
-                <input
-                  type="text"
-                  name="metaTemplateLanguage"
-                  placeholder="e.g. en_US or en"
-                  value={formData.metaTemplateLanguage}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 focus:border-[#25D366] px-4 py-3 outline-none"
-                />
-
-                <p className="text-gray-500 text-xs mt-1">
-                  Must match the language shown for this template in
-                  WhatsApp Business Manager exactly (e.g. "en_US" for
-                  "English (US)", "en" for plain "English") — a mismatch
-                  makes WhatsApp reject the send.
+                  This template needs{" "}
+                  <strong>
+                    {selectedMetaTemplate.paramCount} parameter
+                    {selectedMetaTemplate.paramCount === 1 ? "" : "s"}
+                  </strong>
+                  , one per line, in order — line 1 fills {"{{1}}"}, line 2
+                  fills {"{{2}}"}, and so on. You can use{" "}
+                  {"{{customer_name}}"} in any line to personalize it per
+                  recipient.
+                  {selectedMetaTemplate.bodyText && (
+                    <>
+                      {" "}Approved body preview: "{selectedMetaTemplate.bodyText}"
+                    </>
+                  )}
                 </p>
               </div>
             )}

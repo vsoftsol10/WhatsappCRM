@@ -1,6 +1,6 @@
 const prisma = require("../config/prisma");
 const { generateTemplate } = require("../services/geminiService");
-const { sendTextMessage, sendTemplateMessage } = require("../services/whatsappService");
+const { sendTextMessage, sendTemplateMessage, getMessageTemplates } = require("../services/whatsappService");
 const {
   getOrCreateConversation,
 } = require("../helpers/conversationHelper");
@@ -450,7 +450,7 @@ try {
           : [customer.name, personalizedContent], // fills {{1}} and {{2}}
         usesDedicatedMetaTemplate
           ? (template.metaTemplateLanguage || "en_US")
-          : "en" // "custom_campaign_message" is approved under "English", not "English (US)" — same as the "campaign" image template
+          : "en_US" // "custom_campaign_message" is approved under "English (US)"
     );
 
     console.log("WhatsApp Result:", result);
@@ -653,6 +653,39 @@ const getTemplateRecipients = async (req, res) => {
   }
 };
 
+// ================= GET META-APPROVED TEMPLATES (for dropdown) =================
+// Powers the "Meta Approved Template" dropdown in both the Campaign and
+// Template modals. Replaces the old free-text "type the exact name and
+// language" fields, which is what caused the earlier 132001 errors
+// (typo'd name, guessed-wrong language). The frontend only ever shows
+// what this returns, so an invalid name/language pair can no longer be
+// submitted.
+const getMetaApprovedTemplates = async (req, res) => {
+  try {
+    const result = await getMessageTemplates();
+
+    if (!result.success) {
+      return res.status(502).json({
+        success: false,
+        message:
+          "Could not fetch templates from WhatsApp Business Manager. Please try again shortly.",
+        error: result.error,
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: result.data,
+    });
+  } catch (error) {
+    console.error("Get Meta Approved Templates Error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching approved templates",
+    });
+  }
+};
+
 module.exports = {
   createTemplate,
   getTemplates,
@@ -662,4 +695,5 @@ module.exports = {
   sendTemplate,
   generateTemplateWithAI,
   getTemplateRecipients,
+  getMetaApprovedTemplates,
 };
