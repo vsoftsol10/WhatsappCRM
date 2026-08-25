@@ -9,6 +9,7 @@ import CustomerStatCard from "../components/customers/CustomerStatCard";
 import ConfirmModal from "../components/common/ConfirmModal";
 import AddCustomerModal from "../components/customers/AddCustomerModal";
 import EditCustomerModal from "../components/customers/EditCustomerModal";
+import ImportCustomersModal from "../components/customers/ImportCustomersModal";
 
 function Customers() {
   const customers =
@@ -35,6 +36,7 @@ function Customers() {
   const [deleteTargetId, setDeleteTargetId] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
   const [editCustomerId, setEditCustomerId] = useState(null);
 
   const ROWS_PER_PAGE = 10;
@@ -242,12 +244,21 @@ function Customers() {
             </p>
           </div>
 
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="crm-primary-button w-full sm:w-auto"
-          >
-            + Add Customer
-          </button>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <button
+              onClick={() => setShowImportModal(true)}
+              className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 sm:w-auto"
+            >
+              Import Customers
+            </button>
+
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="crm-primary-button w-full sm:w-auto"
+            >
+              + Add Customer
+            </button>
+          </div>
         </div>
 
         {/* ================= STATS + FILTER CHIPS ================= */}
@@ -543,6 +554,12 @@ function Customers() {
       <AddCustomerModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
+        onSuccess={handleModalSuccess}
+      />
+
+      <ImportCustomersModal
+        isOpen={showImportModal}
+        onClose={() => setShowImportModal(false)}
         onSuccess={handleModalSuccess}
       />
 
