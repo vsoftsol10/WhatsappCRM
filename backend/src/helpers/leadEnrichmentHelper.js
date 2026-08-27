@@ -69,6 +69,13 @@ const nextMissingStep = (lead, afterStep = null) => {
   return null;
 };
 
+// Public helper: true if this lead is still missing name, company, or
+// email. Used by the webhook to decide whether to (re-)start
+// enrichment for a lead that already existed (not just brand-new
+// leads) — e.g. an old lead created before enrichment questions were
+// answered, or one that timed out (see releaseStalePendingLeads).
+const leadNeedsEnrichment = (lead) => nextMissingStep(lead) !== null;
+
 const askQuestion = async (conversation, question) => {
   await sendAndSaveOutgoingMessage(conversation, question);
 };
@@ -399,4 +406,5 @@ module.exports = {
   startLeadEnrichment,
   handlePendingLeadAnswer,
   releaseStalePendingLeads,
+  leadNeedsEnrichment,
 };

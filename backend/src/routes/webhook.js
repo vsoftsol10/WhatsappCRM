@@ -71,6 +71,7 @@ const {
 const {
   startLeadEnrichment,
   handlePendingLeadAnswer,
+  leadNeedsEnrichment,
 } = require("../helpers/leadEnrichmentHelper");
 
 const {
@@ -235,10 +236,15 @@ const processWebhookPayload = async (value) => {
               text
             );
 
-            // Step 6b: only kick off enrichment/forwarding the first time
-            // this lead is created — not on every follow-up message about
-            // the same product.
-            if (isNew && lead) {
+            // Step 6b: kick off enrichment/forwarding whenever this
+            // lead is still missing name/company/email — whether it's
+            // brand new, or an existing lead from before enrichment
+            // was answered/finished (e.g. an old test lead, or one
+            // that timed out via releaseStalePendingLeads). We never
+            // call this for leads that already have everything, so a
+            // fully-enriched lead won't get re-finalized or
+            // re-forwarded to the CRM on every follow-up message.
+            if (lead && (isNew || leadNeedsEnrichment(lead))) {
               await startLeadEnrichment(conversation, classification.product, lead);
             }
           } catch (leadError) {
