@@ -1,5 +1,5 @@
 // const prisma = require("../config/prisma");
-// const bcrypt = require("bcrypt");
+// const bcrypt = require("bcryptjs");
 // const jwt = require("jsonwebtoken");
 // const crypto = require("crypto");
 // const sendPasswordResetEmail = require("../services/passwordResetEmail");
@@ -239,8 +239,11 @@
 //       },
 //     });
 
+//     const frontendUrl =
+//       process.env.FRONTEND_URL || "http://localhost:5173";
+
 //     const resetLink =
-//       `http://localhost:5173/reset-password/${resetToken}`;
+//       `${frontendUrl}/reset-password/${resetToken}`;
 
 //     await sendPasswordResetEmail(
 //       email,
@@ -323,6 +326,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
 const sendPasswordResetEmail = require("../services/passwordResetEmail");
+const { recordAuditLog } = require("../services/auditLogService");
 
 // ========================
 // REGISTER USER
@@ -359,6 +363,15 @@ const registerUser = async (req, res) => {
       },
     });
 
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "USER_REGISTERED",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} (${user.email})`,
+      actorId: req.user?.userId,
+    });
+
     return res.status(201).json({
       message: "User registered successfully",
       user,
@@ -382,6 +395,17 @@ const loginUser = async (req, res) => {
     });
 
     if (!user) {
+      // No user row exists, so entityId can't reference one — the
+      // attempted email is the only useful identifier here, and
+      // actorId stays null since nobody authenticated.
+      await recordAuditLog({
+        action: "LOGIN_FAILED",
+        entityType: "User",
+        entityId: email || "unknown",
+        details: `Login attempt for unknown email: ${email}`,
+        actorId: null,
+      });
+
       return res.status(400).json({
         message: "User not found",
       });
@@ -393,10 +417,27 @@ const loginUser = async (req, res) => {
     );
 
     if (!isPasswordValid) {
+      await recordAuditLog({
+        action: "LOGIN_FAILED",
+        entityType: "User",
+        entityId: user.id,
+        details: `Incorrect password for ${user.email}`,
+        actorId: null,
+      });
+
       return res.status(400).json({
         message: "Invalid password",
       });
     }
+
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "LOGIN_SUCCESS",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} logged in`,
+      actorId: user.id,
+    });
 
     const token = jwt.sign(
       {
@@ -519,6 +560,15 @@ const changePassword = async (req, res) => {
       },
     });
 
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "PASSWORD_CHANGED",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} changed their password`,
+      actorId: user.id,
+    });
+
     return res.status(200).json({
       message: "Password changed successfully",
     });
@@ -570,6 +620,15 @@ const forgotPassword = async (req, res) => {
       resetLink
     );
 
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "PASSWORD_RESET_REQUESTED",
+      entityType: "User",
+      entityId: user.id,
+      details: `Password reset requested for ${user.email}`,
+      actorId: null,
+    });
+
     return res.status(200).json({
       message: "Password reset email sent successfully",
     });
@@ -616,6 +675,15 @@ const resetPassword = async (req, res) => {
         resetTokenExpiry: null,
         isFirstLogin: false,
       },
+    });
+
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "PASSWORD_RESET_COMPLETED",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} completed a password reset`,
+      actorId: user.id,
     });
 
     return res.status(200).json({
