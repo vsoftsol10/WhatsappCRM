@@ -11,6 +11,7 @@ export default function LeadFilters({
     "QUALIFIED",
     "WON",
     "CONVERTED",
+    "LOST",
   ];
 
   return (
