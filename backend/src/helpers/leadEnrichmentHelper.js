@@ -331,15 +331,14 @@ const finalizeEnrichment = async (conversation, { name, company, email, product 
 
   // Same info that just went onto the Lead also makes this person a
   // Customer — never let a customer-creation hiccup break the reply
-  // the customer is waiting for.
+  // the customer is waiting for. Note: we intentionally do NOT flip
+  // isConverted here — customer creation and lead conversion are kept
+  // separate, so the lead stays visible under its normal status
+  // (NEW/CONTACTED/etc.) instead of moving to the "Converted" tab.
+  // isConverted is set explicitly elsewhere (e.g. by an agent) when a
+  // lead is actually won/converted.
   try {
-    const customer = await getOrCreateCustomerFromLead(conversation, updatedLead);
-    if (customer && !updatedLead.isConverted) {
-      await prisma.lead.update({
-        where: { id: updatedLead.id },
-        data: { isConverted: true },
-      });
-    }
+    await getOrCreateCustomerFromLead(conversation, updatedLead);
   } catch (customerError) {
     console.error(
       `Failed to auto-create/link customer for lead #${updatedLead.id}:`,
