@@ -8,8 +8,6 @@ function CustomerStatCard({
   totalCustomers,
   activeCustomers,
   inactiveCustomers,
-  statusFilter,
-  setStatusFilter,
 }) {
   const cards = [
     {

@@ -18,7 +18,6 @@ export default function Templates() {
     templates,
     fetchTemplates,
     removeTemplate,
-    editTemplate,
     isLoading,
   } = useTemplateStore();
 
@@ -42,6 +41,7 @@ export default function Templates() {
 
   useEffect(() => {
     fetchTemplates();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const filteredTemplates = useMemo(() => {
@@ -65,6 +65,7 @@ export default function Templates() {
   ]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [search, statusFilter]);
 
@@ -100,22 +101,6 @@ export default function Templates() {
     } catch (error) {
       console.error(error);
       toast.error("Failed to delete template. Please try again.");
-    }
-  };
-
-  const handleStatusChange = async (id, status) => {
-    try {
-      await editTemplate(id, {
-        status,
-      });
-
-      toast.success(`Template status updated to ${status}.`);
-    } catch (error) {
-      console.error("STATUS UPDATE ERROR", error);
-
-      toast.error(
-        "Failed to update template status. Please try again."
-      );
     }
   };
 

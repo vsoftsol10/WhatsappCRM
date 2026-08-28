@@ -2,7 +2,7 @@ const prisma = require("../config/prisma");
 
 const getDashboardStats = async (req, res) => {
   try {
-    const { id, role } = req.user;
+    const { userId: id, role } = req.user;
 
     // ===========================
     // General Statistics (Optimized)

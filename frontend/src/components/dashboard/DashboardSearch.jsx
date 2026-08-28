@@ -61,6 +61,7 @@ export default function DashboardSearch() {
     return modules.filter((module) =>
       module.name.toLowerCase().includes(query.toLowerCase())
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
 
   return (

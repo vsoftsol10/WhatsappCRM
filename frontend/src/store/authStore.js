@@ -6,7 +6,7 @@ import {
 } from "../api/authApi";
 import { changePassword } from "../api/authApi";
 
-export const useAuthStore = create((set, get) => ({
+export const useAuthStore = create((set) => ({
   user: JSON.parse(localStorage.getItem('user')) || null,
   token: localStorage.getItem('token') || null,
   isAuthenticated: !!localStorage.getItem('token'),

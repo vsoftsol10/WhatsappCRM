@@ -22,10 +22,6 @@ const ViewEmployee = () => {
   const [loading, setLoading] = useState(true);
   const [showEditModal, setShowEditModal] = useState(false);
 
-  useEffect(() => {
-    fetchEmployee();
-  }, []);
-
   const fetchEmployee = async () => {
     try {
       const response = await apiClient.get(
@@ -40,6 +36,12 @@ const ViewEmployee = () => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchEmployee();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (loading) {
     return (

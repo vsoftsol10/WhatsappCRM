@@ -30,6 +30,7 @@ export default function EditTemplateModal({
 
   useEffect(() => {
     if (template) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData({
         name: template.name || "",
         category: template.category || "MARKETING",

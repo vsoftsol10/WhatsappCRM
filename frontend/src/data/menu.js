@@ -9,7 +9,6 @@ import {
   FileText,
   UserPlus,
   Settings,
-  Package,
 } from "lucide-react";
 
 export const menuItems = [
@@ -83,14 +82,6 @@ export const menuItems = [
     section: "Support",
     path: "/tickets",
     icon: Ticket,
-    roles: ["ADMIN", "USER"],
-  },
-  {
-    key: "products",
-    name: "Products",
-    section: "Inventory",
-    path: "/products",
-    icon: Package,
     roles: ["ADMIN", "USER"],
   },
   {

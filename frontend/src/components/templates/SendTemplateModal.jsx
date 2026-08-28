@@ -26,43 +26,6 @@ export default function SendTemplateModal({
     console.log("sentCustomers Updated:", sentCustomers);
   }, [sentCustomers]);
 
-  useEffect(() => {
-    if (!isOpen || !template) return;
-
-    const loadData = () => {
-      fetchCustomers();
-      fetchTemplateHistory();
-
-      setSelectedCustomers([]);
-      setSearch("");
-    };
-
-    loadData();
-  }, [isOpen, template]);
-
-  // const fetchTemplateHistory = async () => {
-  //   try {
-  //     const response = await getTemplateById(template.id);
-
-  //     console.log("Template API Response:", response.data);
-
-  //     const recipients = response.data.recipients || [];
-
-  //     //console.log("Recipients:", recipients);
-
-  //     const ids = recipients.map(
-  //       (item) => item.customerId
-  //     );
-
-  //     //console.log("Sent Customer IDs:", ids);
-
-  //     setSentCustomers(ids);
-  //   } catch (err) {
-  //     console.error(err);
-  //     setSentCustomers([]);
-  //   }
-  // };
-
   const fetchTemplateHistory = async () => {
     try {
 
@@ -98,6 +61,44 @@ export default function SendTemplateModal({
       setCustomers([]);
     }
   };
+
+  useEffect(() => {
+    if (!isOpen || !template) return;
+
+    const loadData = () => {
+      fetchCustomers();
+      fetchTemplateHistory();
+
+      setSelectedCustomers([]);
+      setSearch("");
+    };
+
+    loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, template]);
+
+  // const fetchTemplateHistory = async () => {
+  //   try {
+  //     const response = await getTemplateById(template.id);
+
+  //     console.log("Template API Response:", response.data);
+
+  //     const recipients = response.data.recipients || [];
+
+  //     //console.log("Recipients:", recipients);
+
+  //     const ids = recipients.map(
+  //       (item) => item.customerId
+  //     );
+
+  //     //console.log("Sent Customer IDs:", ids);
+
+  //     setSentCustomers(ids);
+  //   } catch (err) {
+  //     console.error(err);
+  //     setSentCustomers([]);
+  //   }
+  // };
 
   if (!isOpen || !template) return null;
 

@@ -103,37 +103,6 @@ const resetForm = () => {
 };
 
   // =========================
-  // LOAD WHEN MODAL OPENS
-  // =========================
-
-  useEffect(() => {
-    if (!isOpen) return;
-
-    fetchCustomers();
-
-    if (!aiCampaign) {
-      resetForm();
-    }
-  }, [isOpen]);
-
-  // =========================
-  // AUTO FILL FROM AI
-  // =========================
-
-  useEffect(() => {
-    if (!aiCampaign) return;
-
-    setFormData({
-      name: aiCampaign.name || "",
-      type: aiCampaign.type || "PROMOTIONAL",
-      messageContent: aiCampaign.messageContent || "",
-      scheduledAt: "",
-      metaTemplateName: "",
-      metaTemplateLanguage: "en_US",
-    });
-  }, [aiCampaign]);
-
-    // =========================
   // FETCH CUSTOMERS
   // =========================
 
@@ -166,6 +135,40 @@ const resetForm = () => {
       setLoadingCustomers(false);
     }
   };
+
+  // =========================
+  // LOAD WHEN MODAL OPENS
+  // =========================
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchCustomers();
+
+    if (!aiCampaign) {
+      resetForm();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
+
+  // =========================
+  // AUTO FILL FROM AI
+  // =========================
+
+  useEffect(() => {
+    if (!aiCampaign) return;
+
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormData({
+      name: aiCampaign.name || "",
+      type: aiCampaign.type || "PROMOTIONAL",
+      messageContent: aiCampaign.messageContent || "",
+      scheduledAt: "",
+      metaTemplateName: "",
+      metaTemplateLanguage: "en_US",
+    });
+  }, [aiCampaign]);
 
   // =========================
   // HANDLE INPUT CHANGE

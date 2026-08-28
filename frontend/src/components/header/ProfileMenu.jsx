@@ -1,4 +1,4 @@
-import { FaChevronDown, FaUserCircle } from "react-icons/fa";
+import { FaUserCircle } from "react-icons/fa";
 import { useAuthStore } from "../../store/authStore";
 
 function ProfileMenu() {

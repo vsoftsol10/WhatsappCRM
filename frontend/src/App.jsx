@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import {
   BrowserRouter,
   Routes,
@@ -22,7 +22,6 @@ import Campaigns from "./pages/Campaigns";
 import TicketsPage from "./pages/TicketsPage";
 import Conversations from "./pages/Conversations";
 import Tasks from "./pages/Task";
-//import Products from "./pages/Products";
 //import DealsPage from "./pages/DealsPage";
 import Settings from "./pages/settings/Settings";
 import CustomerProfile from "./pages/CustomerProfile";
@@ -117,8 +116,6 @@ function App() {
             />
  
             {/* <Route path="/deals" element={<DealsPage />} /> */}
- 
-            {/* <Route path="/products" element={<Products />} /> */}
  
             <Route path="/leads" element={<Leads />} />
  

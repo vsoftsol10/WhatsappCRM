@@ -25,8 +25,6 @@ const useConversationStore = create((set) => ({
     });
   },
 
-  loading: false,
-
 
   // GET ALL CONVERSATIONS
   fetchConversations: async () => {

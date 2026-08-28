@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import {
   FiMail,
@@ -348,4 +348,3 @@ const ForgotPassword = () => {
 };
 
 export default ForgotPassword;
-

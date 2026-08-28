@@ -1,4 +1,4 @@
-import { CalendarDays, Clock3, Sparkles } from "lucide-react";
+import { CalendarDays, Sparkles } from "lucide-react";
 
 export default function DashboardHeader() {
   const currentHour = new Date().getHours();

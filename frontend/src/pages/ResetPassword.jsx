@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useAuthStore } from "../store/authStore";
 import {
   FiLock,
@@ -455,4 +455,3 @@ const ResetPassword = () => {
 };
 
 export default ResetPassword;
-

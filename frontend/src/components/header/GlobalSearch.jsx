@@ -10,8 +10,10 @@ function GlobalSearch() {
   const [search, setSearch] = useState("");
   const [showResults, setShowResults] = useState(false);
 
-  // Get logged in role
-  const role = localStorage.getItem("role") || "ADMIN";
+  // Get logged in role from the stored user object (authStore saves the
+  // user as JSON under the "user" key — there's no separate "role" key).
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const role = storedUser?.role || "USER";
 
   // Filter menu items
   const filteredItems = useMemo(() => {
@@ -120,21 +122,3 @@ function GlobalSearch() {
 }
 
 export default GlobalSearch;
-
-// import { FaSearch } from "react-icons/fa";
-
-// function GlobalSearch() {
-//   return (
-//     <div className="relative w-full max-w-2xl">
-//       <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-
-//       <input
-//         type="text"
-//         placeholder="Search pages..."
-//         className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-11 pr-4 shadow-sm outline-none focus:border-[#25D366]"
-//       />
-//     </div>
-//   );
-// }
-
-// export default GlobalSearch;

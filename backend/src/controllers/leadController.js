@@ -227,6 +227,16 @@ const updateLead = async (req, res) => {
       });
     }
 
+    if (
+      req.user.role !== "ADMIN" &&
+      existingLead.assignedToId !== req.user.userId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to update this lead",
+      });
+    }
+
     // Validate assigned employee (optional)
     if (assignedToId) {
       const employee = await prisma.user.findUnique({
@@ -381,6 +391,16 @@ const updateLeadStatus = async (req, res) => {
       });
     }
 
+    if (
+      req.user.role !== "ADMIN" &&
+      existingLead.assignedToId !== req.user.userId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to update this lead",
+      });
+    }
+
     // Prevent status changes after conversion
     if (existingLead.isConverted) {
       return res.status(400).json({
@@ -440,6 +460,16 @@ const convertLeadToCustomer = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Lead not found",
+      });
+    }
+
+    if (
+      req.user.role !== "ADMIN" &&
+      lead.assignedToId !== req.user.userId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to convert this lead",
       });
     }
 
@@ -546,6 +576,27 @@ console.log("Matched Customer:", existingCustomer);
 const deleteLead = async (req, res) => {
   try {
     const { id } = req.params;
+
+    const existingLead = await prisma.lead.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!existingLead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    if (
+      req.user.role !== "ADMIN" &&
+      existingLead.assignedToId !== req.user.userId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to delete this lead",
+      });
+    }
 
     const deletedLead = await prisma.lead.update({
       where: {

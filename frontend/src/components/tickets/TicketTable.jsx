@@ -187,7 +187,7 @@ function TicketTable({
 
           {/* Body */}
           <tbody>
-            {tickets.map((ticket, index) => {
+            {tickets.map((ticket) => {
 
               const id = ticket.id;
 

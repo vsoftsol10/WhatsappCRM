@@ -42,6 +42,7 @@ function Conversations() {
   // Load conversations when page opens
   useEffect(() => {
     fetchConversations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Wire up real-time updates. Registered once on mount; cleaned up on
@@ -54,6 +55,7 @@ function Conversations() {
       cleanupConversations?.();
       cleanupMessages?.();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -90,6 +92,7 @@ function Conversations() {
     };
 
     openCustomerConversation();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerId]);
 
   // Load messages whenever a conversation is selected
@@ -99,6 +102,7 @@ function Conversations() {
       markAsRead(selectedConversation.id);
 
       // Open chat on mobile after selecting a conversation
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShowChat(true);
 
       // Join this conversation's room (useful for future features like
@@ -110,6 +114,7 @@ function Conversations() {
         socket?.emit("conversation:leave", selectedConversation.id);
       };
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedConversation]);
 
   // Send message

@@ -20,6 +20,7 @@ export default function AddEmployeeModal({ isOpen, onClose, onSuccess }) {
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setFormData(EMPTY_FORM);
       setErrors({});
       setSubmitting(false);

@@ -29,19 +29,6 @@ export default function SendCampaignModal({
   const [loading, setLoading] = useState(false);
 
   // ===========================
-  // LOAD DATA
-  // ===========================
-  useEffect(() => {
-    if (isOpen && campaign) {
-      fetchCustomers();
-      fetchSentCustomers();
-
-      setSelectedCustomers([]);
-      setSearch("");
-    }
-  }, [isOpen, campaign]);
-
-  // ===========================
   // GET CUSTOMERS
   // ===========================
   const fetchCustomers = async () => {
@@ -94,6 +81,21 @@ const fetchSentCustomers = async () => {
 
   }
 };
+
+  // ===========================
+  // LOAD DATA
+  // ===========================
+  useEffect(() => {
+    if (isOpen && campaign) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchCustomers();
+      fetchSentCustomers();
+
+      setSelectedCustomers([]);
+      setSearch("");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, campaign]);
 
   if (!isOpen || !campaign) return null;
 

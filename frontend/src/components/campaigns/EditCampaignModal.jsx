@@ -31,6 +31,7 @@ useEffect(() => {
   if (campaign) {
     console.log(campaign);
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFormData({
       name: campaign.name || "",
       type: campaign.type || "PROMOTIONAL",

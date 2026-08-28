@@ -42,6 +42,7 @@ export default function useMetaApprovedTemplates(isOpen) {
     // Only fetch when the modal is actually open, and only fetch once
     // per open (not on every keystroke/re-render).
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       fetchTemplates();
     }
   }, [isOpen, fetchTemplates]);

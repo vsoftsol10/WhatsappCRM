@@ -214,14 +214,26 @@ const updateCustomer = async (req, res) => {
 
     const { name, phone, email, company, source, requirements, status } = req.body;
 
+    let normalizedPhone = existingCustomer.phone;
+    if (phone !== undefined) {
+      normalizedPhone = normalizeIndianPhone(phone);
+
+      if (!normalizedPhone) {
+        return res.status(400).json({
+          success: false,
+          message: "Please enter a valid Indian mobile number.",
+        });
+      }
+    }
+
     // Track what actually changed for a readable audit entry (same
     // pattern as EMPLOYEE_UPDATED in employeeController.js).
     const changes = [];
     if (name !== undefined && name !== existingCustomer.name) {
       changes.push(`name: ${existingCustomer.name} -> ${name}`);
     }
-    if (phone !== undefined && phone !== existingCustomer.phone) {
-      changes.push(`phone: ${existingCustomer.phone} -> ${phone}`);
+    if (phone !== undefined && normalizedPhone !== existingCustomer.phone) {
+      changes.push(`phone: ${existingCustomer.phone} -> ${normalizedPhone}`);
     }
     if (email !== undefined && email !== existingCustomer.email) {
       changes.push(`email: ${existingCustomer.email} -> ${email}`);
@@ -239,7 +251,7 @@ const updateCustomer = async (req, res) => {
       },
       data: {
         name,
-        phone,
+        phone: normalizedPhone,
         email,
         company,
         source,
