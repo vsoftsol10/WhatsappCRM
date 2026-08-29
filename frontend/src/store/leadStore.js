@@ -158,7 +158,7 @@ convertLead: async (id) => {
   }
 },
 
-  // ================= DELETE LEAD =================
+  // ================= DELETE LEAD (soft-delete: marks as LOST) =================
   removeLead: async (id) => {
     set({
       isLoading: true,
@@ -168,9 +168,16 @@ convertLead: async (id) => {
     try {
       await deleteLead(id);
 
+      // The backend doesn't actually delete the row — it sets
+      // status: "LOST" (a soft delete) so history/work notes are
+      // kept, per the confirmation dialog's own wording. Removing
+      // the lead from local state entirely (the old behavior) made
+      // it vanish from every tab instead of showing up under "Lost"
+      // — update its status in place instead, matching what the
+      // server actually did.
       set((state) => ({
-        leads: state.leads.filter(
-          (lead) => lead.id !== id
+        leads: state.leads.map((lead) =>
+          lead.id === id ? { ...lead, status: "LOST" } : lead
         ),
         isLoading: false,
       }));
@@ -195,4 +202,3 @@ convertLead: async (id) => {
 }));
 
 export default useLeadStore;
-
