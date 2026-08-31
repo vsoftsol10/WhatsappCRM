@@ -22,7 +22,19 @@ const broadcastMessage = (message, conversation) => {
 
 const WELCOME_MESSAGE =
   process.env.WHATSAPP_WELCOME_MESSAGE ||
-  `Hi 👋 Welcome to Vsoft Solutions. Thanks for contacting us.`;
+  `Hi,
+
+   We're pleased to welcome you to VsoftSolutions! Thank you for connecting with us.
+
+   This message confirms your successful engagement. Our team is dedicated to providing you with exceptional service and support.
+
+   Should you require any immediate assistance, please do not hesitate to contact us.
+
+   You can reach us via:
+   Phone: 9095422237
+   Email: info@thevsoft.com
+
+   We look forward to assisting you.`;
 
 // Sent right after the welcome message, only for a brand-new
 // conversation — nudges the customer to say what they're actually
@@ -185,9 +197,39 @@ const sendAndSaveOutgoingMessage = async (conversation, text) => {
   return savedMessage;
 };
 
+// Step 6: persists the outcome of an AI classification attempt onto
+// the Message row itself, so a Gemini failure leaves a durable,
+// queryable record ("show me every message where classification
+// failed") instead of relying solely on the one-time admin
+// notification firing and being seen. Deliberately swallows its own
+// errors — failing to WRITE this tracking metadata should never take
+// down the actual classification/lead/ticket flow around it.
+const recordMessageClassification = async (
+  messageId,
+  { status, attempts = 0, errorMessage = null, model = null }
+) => {
+  if (!messageId) return;
+
+  try {
+    await prisma.message.update({
+      where: { id: messageId },
+      data: {
+        classificationStatus: status,
+        classificationAttempts: attempts,
+        classificationError: errorMessage,
+        classificationModel: model,
+        classifiedAt: new Date(),
+      },
+    });
+  } catch (error) {
+    console.error("Failed to record message classification status:", error);
+  }
+};
+
 module.exports = {
   saveIncomingMessage,
   sendWelcomeReplyIfNeeded,
   sendAndSaveOutgoingMessage,
+  recordMessageClassification,
   INTENT_QUESTION,
 };

@@ -112,6 +112,24 @@ model Message {
   updatedAt      DateTime     @updatedAt
   imageUrl       String?
   conversation   Conversation @relation(fields: [conversationId], references: [id])
+
+  // AI classification tracking (Step 6 of the Gemini reliability
+  // work). All nullable/additive — untouched for outgoing messages,
+  // and for existing rows created before this migration.
+  //   classificationStatus: "SUCCESS" | "FAILED" | "SKIPPED" | null
+  //     - null: never attempted (e.g. an outgoing message)
+  //     - SKIPPED: deliberately not classified (e.g. this message was
+  //       the customer's answer to a pending enrichment question)
+  //     - SUCCESS: Gemini responded, regardless of the resulting
+  //       confidence score (a genuine low-confidence "Other" result
+  //       is SUCCESS, not FAILED)
+  //     - FAILED: every retry attempt hit a transient Gemini error;
+  //       this is the "needs manual review" case
+  classificationStatus   String?
+  classificationAttempts Int?      @default(0)
+  classificationError    String?
+  classificationModel    String?
+  classifiedAt           DateTime?
 }
 
 model Lead {

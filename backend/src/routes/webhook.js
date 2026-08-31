@@ -57,6 +57,7 @@ const {
   saveIncomingMessage,
   sendWelcomeReplyIfNeeded,
   sendAndSaveOutgoingMessage,
+  recordMessageClassification,
   INTENT_QUESTION,
 } = require("../helpers/messageHelper");
 
@@ -140,8 +141,10 @@ const processWebhookPayload = async (value) => {
       // constraint error lets us detect and skip a duplicate
       // delivery instead of fully reprocessing (double AI
       // classification, double lead/ticket, double reply).
+      let savedMessage = null;
+
       try {
-        await saveIncomingMessage(conversation.id, text, message.id || null);
+        savedMessage = await saveIncomingMessage(conversation.id, text, message.id || null);
         console.log("Message saved successfully");
       } catch (saveError) {
         if (saveError.code === "P2002") {
@@ -189,6 +192,12 @@ const processWebhookPayload = async (value) => {
         }
       }
 
+      if (skipClassification) {
+        await recordMessageClassification(savedMessage?.id, {
+          status: "SKIPPED",
+        });
+      }
+
       // Step 4: AI analysis. Classifies the message text into a product
       // + intent so Step 5 (Product Router) can decide where it goes.
       if (!skipClassification) {
@@ -199,6 +208,21 @@ const processWebhookPayload = async (value) => {
       } catch (classificationError) {
         console.error("AI classification error:", classificationError);
       }
+
+      // Step 6: persist the classification outcome on the message row
+      // itself — a durable, queryable record distinct from the
+      // one-time admin notification below, so a failure can be found
+      // later even if that notification was missed (off hours, etc.).
+      await recordMessageClassification(savedMessage?.id, {
+        status: classification
+          ? classification.aiUnavailable
+            ? "FAILED"
+            : "SUCCESS"
+          : "FAILED",
+        attempts: classification?.attempts ?? 0,
+        errorMessage: classification?.errorMessage ?? null,
+        model: classification?.model ?? "gemini-2.5-flash",
+      });
 
       // Gemini was down/overloaded for every retry — don't let this
       // message quietly disappear as if it were "hi" with nothing to
