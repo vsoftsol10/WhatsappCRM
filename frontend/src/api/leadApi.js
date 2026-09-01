@@ -92,3 +92,11 @@ export const deleteLeadWorkNote = async (noteId) => {
 
   return response.data;
 };
+
+// Manual "Send to ERP-CRM" — used from the Conversations page when AI
+// classification failed and an employee reviewed the lead by hand.
+export const sendLeadToErp = async (id) => {
+  const response = await apiClient.post(`/api/leads/${id}/send-to-erp`);
+
+  return response.data;
+};

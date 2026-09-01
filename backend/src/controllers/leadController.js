@@ -5,6 +5,7 @@ const {
   NotificationType,
 } = require("../services/notificationService");
 const { recordAuditLog } = require("../services/auditLogService");
+const { sendLeadToErpCrm } = require("../services/erpCrmService");
 
 // ======================================================
 // COMMON INCLUDE
@@ -631,6 +632,60 @@ const deleteLead = async (req, res) => {
   }
 };
 
+// ================= MANUAL SEND TO ERP-CRM =================
+// Exposes the same sendLeadToErpCrm() the automated AI pipeline uses
+// after enrichment (see erpCrmService.js), as a manual action for
+// when AI classification failed and an employee reviews the
+// conversation themselves — reuses the exact same logic/payload
+// shape, no duplicated business rules.
+const sendLeadToErp = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const lead = await prisma.lead.findUnique({
+      where: { id: Number(id) },
+    });
+
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: "Lead not found",
+      });
+    }
+
+    const result = await sendLeadToErpCrm(lead);
+
+    if (!result.success) {
+      return res.status(502).json({
+        success: false,
+        message: "Failed to reach the ERP-CRM system. Please try again shortly.",
+        error: result.error,
+      });
+    }
+
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "LEAD_MANUALLY_SENT_TO_ERP",
+      entityType: "Lead",
+      entityId: lead.id,
+      details: `${lead.name} manually forwarded to ERP-CRM by an employee`,
+      actorId: req.user?.userId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Lead sent to ERP-CRM successfully",
+    });
+  } catch (error) {
+    console.error("Manual Send To ERP Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Something went wrong while sending this lead to ERP-CRM",
+    });
+  }
+};
+
 module.exports = {
   createLead,
   getLeads,
@@ -638,4 +693,5 @@ module.exports = {
   updateLeadStatus,
   convertLeadToCustomer,
   deleteLead,
+  sendLeadToErp,
 };

@@ -47,3 +47,14 @@ export const deleteMessage = async (id) => {
 
   return response.data;
 };
+
+// Clears the "AI classification failed" review flag once an employee
+// has manually handled that message (created a Lead, sent it to
+// ERP-CRM, or decided no action was needed).
+export const resolveMessageClassification = async (id) => {
+  const response = await apiClient.patch(
+    `/api/messages/${id}/resolve-classification`
+  );
+
+  return response.data;
+};

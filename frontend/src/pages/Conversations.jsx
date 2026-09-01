@@ -6,6 +6,7 @@ import ChatHeader from "../components/conversation/ChatHeader";
 import MessageList from "../components/conversation/MessageList";
 import MessageInput from "../components/conversation/MessageInput";
 import CustomerDetails from "../components/conversation/CustomerDetails";
+import AiReviewBanner from "../components/conversation/AiReviewBanner";
 
 import useConversationStore from "../store/conversationStore";
 import useMessageStore from "../store/messageStore";
@@ -19,6 +20,11 @@ function Conversations() {
   // Mobile Navigation State
   const [showChat, setShowChat] = useState(false);
   const [showCustomerDetails, setShowCustomerDetails] = useState(false);
+
+  // Locally dismissed "AI review" banners, keyed by message id — so
+  // the banner disappears immediately on Dismiss/Resolve without
+  // waiting for a full messages re-fetch.
+  const [dismissedReviewIds, setDismissedReviewIds] = useState([]);
 
   // Conversation Store
   const {
@@ -172,6 +178,32 @@ function Conversations() {
           setShowChat={setShowChat}
           setShowCustomerDetails={setShowCustomerDetails}
         />
+
+        {/* AI Review Banner — shown when the latest inbound message's
+            AI classification failed after all retries. Looks at the
+            last CUSTOMER message only, since that's the one an
+            employee would actually need to act on. */}
+        {(() => {
+          const lastCustomerMessage = [...messages]
+            .reverse()
+            .find((m) => m.sender === "CUSTOMER");
+
+          const needsReview =
+            lastCustomerMessage?.classificationStatus === "FAILED" &&
+            !dismissedReviewIds.includes(lastCustomerMessage.id);
+
+          if (!needsReview) return null;
+
+          return (
+            <AiReviewBanner
+              message={lastCustomerMessage}
+              conversation={selectedConversation}
+              onResolved={(messageId) =>
+                setDismissedReviewIds((prev) => [...prev, messageId])
+              }
+            />
+          );
+        })()}
 
         {/* Messages */}
         <div className="min-h-0 flex-1">

@@ -238,9 +238,53 @@ const deleteMessage = async (req, res) => {
   }
 };
 
+// ================= MARK CLASSIFICATION AS MANUALLY RESOLVED =================
+// Clears the "AI classification failed" review flag once an employee
+// has handled it by hand (created a Lead, sent it to ERP-CRM, or
+// decided it needed no action) — so the conversation stops showing
+// the "Needs Review" banner. Reuses the same classificationStatus
+// column the AI pipeline already writes to (see recordMessageClassification
+// in messageHelper.js), just with a status value that means "a human
+// handled this", not "the AI succeeded".
+const resolveMessageClassification = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const message = await prisma.message.findUnique({ where: { id } });
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: "Message not found",
+      });
+    }
+
+    const updated = await prisma.message.update({
+      where: { id },
+      data: {
+        classificationStatus: "MANUALLY_RESOLVED",
+      },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Marked as manually resolved",
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Resolve Message Classification Error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Failed to update this message",
+    });
+  }
+};
+
 module.exports = {
   sendMessage,
   getMessagesByConversation,
   editMessage,
   deleteMessage,
+  resolveMessageClassification,
 };
