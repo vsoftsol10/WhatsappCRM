@@ -22,19 +22,14 @@ const broadcastMessage = (message, conversation) => {
 
 const WELCOME_MESSAGE =
   process.env.WHATSAPP_WELCOME_MESSAGE ||
-  `Hi,
+  `Hello,
 
-   We're pleased to welcome you to VsoftSolutions! Thank you for connecting with us.
+Welcome to VsoftSolutions, and thank you for connecting with us. We're pleased to have the opportunity to assist you.
 
-   This message confirms your successful engagement. Our team is dedicated to providing you with exceptional service and support.
+For any assistance, please contact us:
+📞 9095422237 | 📧 [info@thevsoft.com](mailto:info@thevsoft.com)
 
-   Should you require any immediate assistance, please do not hesitate to contact us.
-
-   You can reach us via:
-   Phone: 9095422237
-   Email: info@thevsoft.com
-
-   We look forward to assisting you.`;
+We look forward to serving you.`;
 
 // Sent right after the welcome message, only for a brand-new
 // conversation — nudges the customer to say what they're actually
