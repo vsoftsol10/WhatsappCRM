@@ -184,19 +184,29 @@ function Conversations() {
             last CUSTOMER message only, since that's the one an
             employee would actually need to act on. */}
         {(() => {
-          const lastCustomerMessage = [...messages]
+          // Search for the most recent UNRESOLVED failed message, not
+          // just the very last message in the conversation. If we
+          // only checked the last message, a customer replying again
+          // afterward (even with something unrelated, like giving
+          // their name) would hide the banner while the ORIGINAL
+          // failed enquiry sits unresolved in the DB — exactly the
+          // bug that let a real lead slip through unnoticed.
+          const lastFailedMessage = [...messages]
             .reverse()
-            .find((m) => m.sender === "CUSTOMER");
+            .find(
+              (m) =>
+                m.sender === "CUSTOMER" && m.classificationStatus === "FAILED"
+            );
 
           const needsReview =
-            lastCustomerMessage?.classificationStatus === "FAILED" &&
-            !dismissedReviewIds.includes(lastCustomerMessage.id);
+            !!lastFailedMessage &&
+            !dismissedReviewIds.includes(lastFailedMessage.id);
 
           if (!needsReview) return null;
 
           return (
             <AiReviewBanner
-              message={lastCustomerMessage}
+              message={lastFailedMessage}
               conversation={selectedConversation}
               onResolved={(messageId) =>
                 setDismissedReviewIds((prev) => [...prev, messageId])
