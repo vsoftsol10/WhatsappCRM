@@ -22,14 +22,19 @@ const broadcastMessage = (message, conversation) => {
 
 const WELCOME_MESSAGE =
   process.env.WHATSAPP_WELCOME_MESSAGE ||
-  `Hello,
+  `Hi,
 
-Welcome to VsoftSolutions, and thank you for connecting with us. We're pleased to have the opportunity to assist you.
+   We're pleased to welcome you to VsoftSolutions! Thank you for connecting with us.
 
-For any assistance, please contact us:
-📞 9095422237 | 📧 [info@thevsoft.com](mailto:info@thevsoft.com)
+   This message confirms your successful engagement. Our team is dedicated to providing you with exceptional service and support.
 
-We look forward to serving you.`
+   Should you require any immediate assistance, please do not hesitate to contact us.
+
+   You can reach us via:
+   Phone: 9095422237
+   Email: info@thevsoft.com
+
+   We look forward to assisting you.`;
 
 // Sent right after the welcome message, only for a brand-new
 // conversation — nudges the customer to say what they're actually
@@ -38,8 +43,19 @@ We look forward to serving you.`
 // the next incoming message, same as if they'd said it unprompted.
 const INTENT_QUESTION =
   process.env.WHATSAPP_INTENT_QUESTION ||
-  `To help you faster, could you tell us what you're looking for today?
-We offer: ERP, WhatsApp CRM, Digital Marketing, and Vedacraft.`;
+  `To assist you better, please let us know which product or service you're interested in.
+
+*VSoft Solutions offers:*
+\u2022 ERP Solutions
+\u2022 WhatsApp CRM
+\u2022 Digital Marketing
+\u2022 Software & Web Development
+\u2022 Mobile Apps & UI/UX Design
+\u2022 Vedacraft Solutions
+\u2022 Training & Internship Programs
+\u2022 HRMS
+
+Please share your requirement, and our team will guide you with the right solution.`;
 
 // Sends a one-time acknowledgement to a customer the first time they
 // message us on a conversation, and saves that outbound message so it
