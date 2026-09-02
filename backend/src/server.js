@@ -55,12 +55,20 @@ app.use(helmet());
 // Only our own frontend (Hostinger-hosted) is allowed to call this
 // API from a browser. Previously cors() had no origin restriction,
 // so any website could make requests against this backend.
-const allowedOrigin =
-  process.env.FRONTEND_URL || "http://localhost:5173";
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 app.use(
   cors({
-    origin: allowedOrigin,
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
