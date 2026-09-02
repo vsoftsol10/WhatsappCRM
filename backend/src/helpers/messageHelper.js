@@ -27,7 +27,7 @@ const WELCOME_MESSAGE =
 Welcome to VsoftSolutions, and thank you for connecting with us. We're pleased to have the opportunity to assist you.
 
 For any assistance, please contact us:
-📞 9095422237 | 📧 [info@thevsoft.com](mailto:info@thevsoft.com)
+9095422237 | info@thevsoft.com
 
 We look forward to serving you.`;
 
