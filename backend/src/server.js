@@ -58,6 +58,7 @@ app.use(helmet());
 const allowedOrigins = [
   "http://localhost:5173",
   process.env.FRONTEND_URL,
+  
 ].filter(Boolean);
 
 app.use(

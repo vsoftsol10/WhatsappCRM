@@ -116,7 +116,15 @@ const extractRetryDelayMs = (error) => {
   }
 };
 
-const MAX_CLASSIFICATION_ATTEMPTS = 3; // 1 initial try + 2 retries
+// Only 1 attempt, no retries — a failed Gemini call now falls
+// straight to the "Needs Review" banner in the Conversations page
+// instead of the customer/employee waiting through 6-16+ seconds of
+// retry backoff. Trade-off: a quick transient hiccup that would have
+// self-healed on a 2nd attempt now goes to manual review instead —
+// acceptable since Gemini's paid tier makes genuine failures rarer,
+// and the manual Create Lead / Send to ERP-CRM flow makes recovering
+// from a failure fast and low-friction for an employee.
+const MAX_CLASSIFICATION_ATTEMPTS = 1;
 
 // Cap how long we'll actually wait on Gemini's own suggested delay.
 // It can legitimately ask for 50+ seconds under sustained free-tier
