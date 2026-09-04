@@ -7,6 +7,7 @@ import {
   FaTrashAlt,
   FaCheckCircle,
   FaRedo,
+  FaRobot,
 } from "react-icons/fa";
 import useConversationStore from "../../store/conversationStore";
 import useMessageStore from "../../store/messageStore";
@@ -20,6 +21,7 @@ function ChatHeader({
   const [showMenu, setShowMenu] = useState(false);
   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [toggling, setToggling] = useState(false);
   const menuRef = useRef(null);
 
   const markAsUnread = useConversationStore((state) => state.markAsUnread);
@@ -27,6 +29,7 @@ function ChatHeader({
   const editConversationStatus = useConversationStore(
     (state) => state.editConversationStatus
   );
+  const toggleBot = useConversationStore((state) => state.toggleBot);
   const clearMessages = useMessageStore((state) => state.clearMessages);
 
   // Close menu on outside click
@@ -83,6 +86,20 @@ function ChatHeader({
   const handleReopenChat = () => {
     setShowMenu(false);
     editConversationStatus(selectedConversation.id, "OPEN");
+  };
+
+  // Treat undefined as ON (matches the schema default) so conversations
+  // fetched before this feature shipped still show the correct state.
+  const isBotOn = selectedConversation.botEnabled !== false;
+
+  const handleToggleBot = async () => {
+    if (toggling) return;
+    setToggling(true);
+    try {
+      await toggleBot(selectedConversation.id);
+    } finally {
+      setToggling(false);
+    }
   };
 
   return (
@@ -153,6 +170,25 @@ function ChatHeader({
 
         {/* Desktop Icons */}
         <div className="hidden items-center gap-6 lg:flex">
+          {/* Bot ON/OFF pill â€” per-conversation Grok auto-reply switch */}
+          <button
+            onClick={handleToggleBot}
+            disabled={toggling}
+            title={
+              isBotOn
+                ? "Grok is auto-replying in this chat. Click to hand it over to you."
+                : "Bot is off for this chat. Click to let Grok auto-reply again."
+            }
+            className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition disabled:opacity-60 ${
+              isBotOn
+                ? "border-[#25D366] bg-[#25D366]/10 text-[#128C7E]"
+                : "border-gray-300 bg-gray-100 text-gray-500"
+            }`}
+          >
+            <FaRobot size={12} />
+            Bot {isBotOn ? "ON" : "OFF"}
+          </button>
+
           <div ref={menuRef} className="relative">
             <button
               onClick={() => setShowMenu((prev) => !prev)}

@@ -131,22 +131,6 @@
 
 // httpServer.listen(PORT, () => {
 //   console.log(`Server running on port ${PORT}`);
-
-//   // TEMP DEBUG: confirm the deployed Prisma Client actually knows
-//   // about metaTemplateLanguage. Remove this block once the template
-//   // creation bug is confirmed fixed.
-//   try {
-//     const { Prisma } = require("@prisma/client");
-//     const templateModel = Prisma.dmmf.datamodel.models.find(
-//       (m) => m.name === "Template"
-//     );
-//     console.log(
-//       "DEBUG Template model fields:",
-//       templateModel ? templateModel.fields.map((f) => f.name) : "NOT FOUND"
-//     );
-//   } catch (e) {
-//     console.log("DEBUG Prisma field check failed:", e.message);
-//   }
 // });
 
 // // Step 6: every 5 minutes, release any WhatsApp conversation that's
@@ -197,6 +181,7 @@ const dealActivityRoutes = require("./routes/dealActivityRoutes");
 const webhookRoutes = require("./routes/webhook");
 const notificationRoutes = require("./routes/notificationRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes");
+const aiSettingsRoutes = require("./routes/aiSettingsRoutes");
 
 const {
   releaseStalePendingLeads,
@@ -282,6 +267,7 @@ app.use("/api/deals", dealActivityRoutes);
 app.use("/api/webhook", webhookRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
+app.use("/api/ai-settings", aiSettingsRoutes);
 
 // Test route
 app.get("/", (req, res) => {
@@ -297,6 +283,22 @@ initSocket(httpServer);
 
 httpServer.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+
+  // TEMP DEBUG: confirm the deployed Prisma Client actually knows
+  // about metaTemplateLanguage. Remove this block once the template
+  // creation bug is confirmed fixed.
+  try {
+    const { Prisma } = require("@prisma/client");
+    const templateModel = Prisma.dmmf.datamodel.models.find(
+      (m) => m.name === "Template"
+    );
+    console.log(
+      "DEBUG Template model fields:",
+      templateModel ? templateModel.fields.map((f) => f.name) : "NOT FOUND"
+    );
+  } catch (e) {
+    console.log("DEBUG Prisma field check failed:", e.message);
+  }
 });
 
 // Step 6: every 5 minutes, release any WhatsApp conversation that's

@@ -107,6 +107,15 @@ const sendMessage = async (req, res) => {
             increment: 1,
           },
         }),
+        // Grok Auto-Reply: an agent manually sending a message in this
+        // conversation means a human has taken over -- turn the bot off
+        // for just this conversation so it doesn't reply on top of the
+        // agent on the customer's next message. Doesn't touch any
+        // other conversation, and doesn't affect classification /
+        // Lead-Ticket / ERP-CRM forwarding, which keep running regardless.
+        ...(sender === "AGENT" && {
+          botEnabled: false,
+        }),
       },
     });
 

@@ -17,6 +17,7 @@ import {
   FaFileAlt,
   FaChevronRight,
   FaHistory,
+  FaRobot,
 } from "react-icons/fa";
 
 const sections = [
@@ -77,6 +78,11 @@ const sections = [
         name: "Audit Log",
         icon: FaHistory,
         path: "/audit-logs",
+      },
+      {
+        name: "AI Auto-Reply",
+        icon: FaRobot,
+        path: "/ai-auto-reply",
       },
       {
         name: "Tickets",
@@ -226,10 +232,11 @@ export default function Sidebar({
                   <div className="flex flex-col gap-2">
                     {section.items
                       .filter((item) => {
-                        // Hide Employees and Audit Log menu items for USER role
+                        // Hide Employees, Audit Log and AI Auto-Reply menu items for USER role
                         if (
                           (item.path === "/employees" ||
-                            item.path === "/audit-logs") &&
+                            item.path === "/audit-logs" ||
+                            item.path === "/ai-auto-reply") &&
                           user?.role !== "ADMIN"
                         ) {
                           return false;
