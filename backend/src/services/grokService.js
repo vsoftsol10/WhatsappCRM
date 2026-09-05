@@ -13,7 +13,7 @@ const { getAiSettings } = require("./aiSettingsService");
 // OpenAI's chat completions, just a different base URL and model
 // names. No new SDK needed, `axios` already covers this.
 const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
-const DEFAULT_MODEL = "grok-4-fast";
+const DEFAULT_MODEL = "grok-4.3";
 
 // AiSettings.apiKey (set from the admin UI) takes priority over the
 // env var, so an admin can rotate the key without a redeploy — but the
@@ -70,6 +70,19 @@ const describeGrokError = (error) => {
   const status = error?.response?.status || "UNKNOWN";
   const message =
     error?.response?.data?.error?.message || error?.message || "";
+
+  // The nested shape we normally expect isn't always what xAI sends
+  // back — log the raw body too so real failures (bad model id,
+  // unsupported param, malformed messages, etc.) are visible instead
+  // of Axios's generic "Request failed with status code 400".
+  if (error?.response?.data) {
+    try {
+      console.error("Grok raw error body:", JSON.stringify(error.response.data).slice(0, 500));
+    } catch (_) {
+      console.error("Grok raw error body (unstringifiable):", error.response.data);
+    }
+  }
+
   return `${status}${message ? " " + message : ""}`.slice(0, 200);
 };
 
