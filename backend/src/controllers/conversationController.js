@@ -350,7 +350,7 @@ const deleteConversation = async (req, res) => {
   }
 };
 
-// TOGGLE BOT (Grok Auto-Reply) FOR THIS CONVERSATION ONLY
+// TOGGLE BOT (Groq Auto-Reply) FOR THIS CONVERSATION ONLY
 // Lets an agent flip the "Bot ON/OFF" pill in ChatHeader. Only affects
 // this one conversation -- does not touch the global AiSettings master
 // switch, and does not stop classification/Lead-Ticket/ERP-CRM

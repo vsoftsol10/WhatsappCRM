@@ -12,7 +12,7 @@ function AiAutoReply() {
   const [apiKeyMasked, setApiKeyMasked] = useState(null);
   const [usingEnvKey, setUsingEnvKey] = useState(true);
   const [apiKeyInput, setApiKeyInput] = useState("");
-  const [model, setModel] = useState("grok-4-fast");
+  const [model, setModel] = useState("openai/gpt-oss-120b");
   const [systemPrompt, setSystemPrompt] = useState("");
   const [historyLimit, setHistoryLimit] = useState(10);
 
@@ -25,7 +25,7 @@ function AiAutoReply() {
       setAutoReplyEnabled(s.autoReplyEnabled);
       setApiKeyMasked(s.apiKeyMasked);
       setUsingEnvKey(s.usingEnvKey);
-      setModel(s.model || "grok-4-fast");
+      setModel(s.model || "openai/gpt-oss-120b");
       setSystemPrompt(s.systemPrompt || "");
       setHistoryLimit(s.historyLimit || 10);
     } catch (err) {
@@ -92,7 +92,7 @@ function AiAutoReply() {
         <div>
           <h1 className="crm-title text-slate-900">AI Auto-Reply</h1>
           <p className="mt-1 text-slate-500">
-            Configure Grok — the AI that classifies WhatsApp leads and
+            Configure Groq — the AI that classifies WhatsApp leads and
             auto-replies to customers.
           </p>
         </div>
@@ -106,7 +106,7 @@ function AiAutoReply() {
               Master Auto-Reply Switch
             </p>
             <p className="mt-1 text-sm text-slate-500">
-              Emergency kill-switch. Turning this OFF stops Grok from
+              Emergency kill-switch. Turning this OFF stops Groq from
               replying in EVERY conversation, regardless of each chat's
               own Bot ON/OFF pill. Lead classification and ERP-CRM
               forwarding keep working either way.
@@ -132,12 +132,12 @@ function AiAutoReply() {
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-3 flex items-center gap-2 text-slate-800">
             <KeyRound size={16} />
-            <p className="font-semibold">Grok API Key</p>
+            <p className="font-semibold">Groq API Key</p>
           </div>
 
           <p className="mb-3 text-sm text-slate-500">
             {usingEnvKey
-              ? "Currently using the GROK_API_KEY environment variable (no override saved here)."
+              ? "Currently using the GROQ_API_KEY environment variable (no override saved here)."
               : `Currently using an override key saved here: ${apiKeyMasked}`}
           </p>
 
@@ -145,23 +145,23 @@ function AiAutoReply() {
             type="password"
             value={apiKeyInput}
             onChange={(e) => setApiKeyInput(e.target.value)}
-            placeholder="Paste a new Grok API key to override the .env value..."
+            placeholder="Paste a new Groq API key (from console.groq.com/keys) to override the .env value..."
             className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-[#25D366]"
           />
         </div>
 
         {/* MODEL */}
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <p className="mb-3 font-semibold text-slate-800">Grok Model</p>
+          <p className="mb-3 font-semibold text-slate-800">Groq Model</p>
           <input
             type="text"
             value={model}
             onChange={(e) => setModel(e.target.value)}
-            placeholder="grok-4-fast"
+            placeholder="openai/gpt-oss-120b"
             className="w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm outline-none focus:border-[#25D366]"
           />
           <p className="mt-2 text-xs text-slate-400">
-            e.g. grok-4-fast, grok-4, grok-3
+            e.g. openai/gpt-oss-120b, openai/gpt-oss-20b, llama-3.3-70b-versatile (check console.groq.com/docs/models for the current list)
           </p>
         </div>
 
@@ -187,7 +187,7 @@ function AiAutoReply() {
             <p className="font-semibold">Conversation History Limit</p>
           </div>
           <p className="mb-3 text-sm text-slate-500">
-            How many of the most recent messages Grok reads for context
+            How many of the most recent messages Groq reads for context
             before writing a reply.
           </p>
           <input

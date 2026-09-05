@@ -9,34 +9,41 @@ const {
 
 const { getAiSettings } = require("./aiSettingsService");
 
-// xAI's Grok API is OpenAI-compatible — same request/response shape as
-// OpenAI's chat completions, just a different base URL and model
+// Groq (console.groq.com — the LPU inference company, NOT xAI's Grok)
+// exposes an OpenAI-compatible endpoint. Same request/response shape
+// as OpenAI's chat completions, just a different base URL and model
 // names. No new SDK needed, `axios` already covers this.
-const GROK_API_URL = "https://api.x.ai/v1/chat/completions";
-const DEFAULT_MODEL = "grok-4.3";
+const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+// Groq deprecates/renames models fairly often — check
+// https://console.groq.com/docs/models for the current production
+// list if this ever needs changing. gpt-oss-120b is currently listed
+// as a production-grade model with good instruction-following, which
+// matters for reliably returning clean JSON during classification.
+const DEFAULT_MODEL = "openai/gpt-oss-120b";
 
 // AiSettings.apiKey (set from the admin UI) takes priority over the
 // env var, so an admin can rotate the key without a redeploy — but the
 // env var still works out of the box for anyone who hasn't touched the
 // settings page yet.
 const resolveApiKey = (settings) =>
-  settings?.apiKey || process.env.GROK_API_KEY;
+  settings?.apiKey || process.env.GROQ_API_KEY;
 
 // Small delay helper for retry backoff.
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Grok occasionally returns 429 (rate limited) or a 500/502/503/504
+// Groq occasionally returns 429 (rate limited) or a 500/502/503/504
 // server-side hiccup — transient, usually clears up within seconds.
 // Anything else (401/403 invalid key, 400 malformed request, 404
 // invalid model) is permanent — retrying won't help.
-const isRetryableGrokError = (error) => {
+const isRetryableGroqError = (error) => {
   const status = error?.response?.status;
   return (
     status === 429 || status === 500 || status === 502 || status === 503 || status === 504
   );
 };
 
-// xAI (like most OpenAI-compatible APIs) sends a `retry-after` header
+// Groq (like most OpenAI-compatible APIs) sends a `retry-after` header
 // (seconds) on 429s. Prefer that over guessing with fixed backoff.
 const extractRetryDelayMs = (error) => {
   const raw = error?.response?.headers?.["retry-after"];
@@ -62,24 +69,25 @@ const getRetryDelayMs = (error, attempt) => {
   return getBackoffDelayMs(attempt);
 };
 
-// Builds a short, safe-to-store description of a Grok failure — never
+// Builds a short, safe-to-store description of a Groq failure — never
 // the raw error object (which could echo request details) and never
 // the API key, just an HTTP-style status + message.
-const describeGrokError = (error) => {
+const describeGroqError = (error) => {
   if (!error) return null;
   const status = error?.response?.status || "UNKNOWN";
   const message =
     error?.response?.data?.error?.message || error?.message || "";
 
-  // The nested shape we normally expect isn't always what xAI sends
-  // back — log the raw body too so real failures (bad model id,
-  // unsupported param, malformed messages, etc.) are visible instead
-  // of Axios's generic "Request failed with status code 400".
+  // The nested shape we normally expect isn't always what the API
+  // sends back — log the raw body too so real failures (bad model id,
+  // unsupported param, malformed messages, invalid key, etc.) are
+  // visible instead of Axios's generic "Request failed with status
+  // code 400".
   if (error?.response?.data) {
     try {
-      console.error("Grok raw error body:", JSON.stringify(error.response.data).slice(0, 500));
+      console.error("Groq raw error body:", JSON.stringify(error.response.data).slice(0, 500));
     } catch (_) {
-      console.error("Grok raw error body (unstringifiable):", error.response.data);
+      console.error("Groq raw error body (unstringifiable):", error.response.data);
     }
   }
 
@@ -95,9 +103,9 @@ const MAX_AUTOREPLY_ATTEMPTS = 1;
 
 const CLASSIFICATION_MODEL_FALLBACK = DEFAULT_MODEL;
 
-const callGrok = async ({ apiKey, model, messages, jsonMode }) => {
+const callGroq = async ({ apiKey, model, messages, jsonMode }) => {
   const response = await axios.post(
-    GROK_API_URL,
+    GROQ_API_URL,
     {
       model,
       messages,
@@ -146,11 +154,11 @@ const classifyCustomerMessage = async (messageText) => {
 
   const settings = await getAiSettings().catch(() => null);
   const apiKey = resolveApiKey(settings);
-  const model = settings?.model || process.env.GROK_MODEL || DEFAULT_MODEL;
+  const model = settings?.model || process.env.GROQ_MODEL || DEFAULT_MODEL;
 
   if (!apiKey) {
-    console.error("Grok Classification Error: no GROK_API_KEY configured.");
-    return { ...fallback, model, aiUnavailable: true, errorMessage: "Missing Grok API key" };
+    console.error("Groq Classification Error: no GROQ_API_KEY configured.");
+    return { ...fallback, model, aiUnavailable: true, errorMessage: "Missing Groq API key" };
   }
 
   const prompt = buildClassificationPrompt(messageText);
@@ -161,7 +169,7 @@ const classifyCustomerMessage = async (messageText) => {
     attemptsMade = attempt;
 
     try {
-      const raw = await callGrok({
+      const raw = await callGroq({
         apiKey,
         model,
         messages: [
@@ -209,10 +217,10 @@ const classifyCustomerMessage = async (messageText) => {
     } catch (error) {
       lastError = error;
 
-      if (isRetryableGrokError(error) && attempt < MAX_CLASSIFICATION_ATTEMPTS) {
+      if (isRetryableGroqError(error) && attempt < MAX_CLASSIFICATION_ATTEMPTS) {
         const delay = getRetryDelayMs(error, attempt);
         console.warn(
-          `Grok Classification attempt ${attempt} failed (transient), retrying in ${delay}ms:`,
+          `Groq Classification attempt ${attempt} failed (transient), retrying in ${delay}ms:`,
           error.message || error
         );
         await sleep(delay);
@@ -223,14 +231,14 @@ const classifyCustomerMessage = async (messageText) => {
     }
   }
 
-  console.error("Grok Classification Error (giving up):", lastError?.message || lastError);
+  console.error("Groq Classification Error (giving up):", describeGroqError(lastError));
 
   return {
     ...fallback,
     model,
-    aiUnavailable: isRetryableGrokError(lastError),
+    aiUnavailable: isRetryableGroqError(lastError),
     attempts: attemptsMade,
-    errorMessage: describeGrokError(lastError),
+    errorMessage: describeGroqError(lastError),
   };
 };
 
@@ -244,7 +252,7 @@ Reply to the customer's WhatsApp message in a short, warm, professional tone (2-
 - Never invent facts about the company you don't know.
 - Do not repeat the customer's message back to them.`;
 
-// Generates a Grok-written, context-aware reply to a customer's
+// Generates a Groq-written, context-aware reply to a customer's
 // WhatsApp message. Used as the conversational fallback for any
 // message that didn't already get a deterministic reply this turn
 // (see webhook.js) — e.g. small talk, a follow-up on an
@@ -261,10 +269,10 @@ const generateAutoReply = async (messageText, classification, conversationHistor
   }
 
   const apiKey = resolveApiKey(settings);
-  const model = settings?.model || process.env.GROK_MODEL || DEFAULT_MODEL;
+  const model = settings?.model || process.env.GROQ_MODEL || DEFAULT_MODEL;
 
   if (!apiKey) {
-    console.error("Grok Auto-Reply Error: no GROK_API_KEY configured.");
+    console.error("Groq Auto-Reply Error: no GROQ_API_KEY configured.");
     return null;
   }
 
@@ -285,7 +293,7 @@ const generateAutoReply = async (messageText, classification, conversationHistor
 
   for (let attempt = 1; attempt <= MAX_AUTOREPLY_ATTEMPTS; attempt++) {
     try {
-      const reply = await callGrok({
+      const reply = await callGroq({
         apiKey,
         model,
         messages: [
@@ -299,17 +307,17 @@ const generateAutoReply = async (messageText, classification, conversationHistor
       const trimmed = (reply || "").trim();
       return trimmed || null;
     } catch (error) {
-      if (isRetryableGrokError(error) && attempt < MAX_AUTOREPLY_ATTEMPTS) {
+      if (isRetryableGroqError(error) && attempt < MAX_AUTOREPLY_ATTEMPTS) {
         const delay = getRetryDelayMs(error, attempt);
         console.warn(
-          `Grok Auto-Reply attempt ${attempt} failed (transient), retrying in ${delay}ms:`,
+          `Groq Auto-Reply attempt ${attempt} failed (transient), retrying in ${delay}ms:`,
           error.message || error
         );
         await sleep(delay);
         continue;
       }
 
-      console.error("Grok Auto-Reply Error (giving up):", describeGrokError(error));
+      console.error("Groq Auto-Reply Error (giving up):", describeGroqError(error));
       return null;
     }
   }

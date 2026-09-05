@@ -170,14 +170,14 @@ function ChatHeader({
 
         {/* Desktop Icons */}
         <div className="hidden items-center gap-6 lg:flex">
-          {/* Bot ON/OFF pill â€” per-conversation Grok auto-reply switch */}
+          {/* Bot ON/OFF pill â€” per-conversation Groq auto-reply switch */}
           <button
             onClick={handleToggleBot}
             disabled={toggling}
             title={
               isBotOn
-                ? "Grok is auto-replying in this chat. Click to hand it over to you."
-                : "Bot is off for this chat. Click to let Grok auto-reply again."
+                ? "Groq is auto-replying in this chat. Click to hand it over to you."
+                : "Bot is off for this chat. Click to let Groq auto-reply again."
             }
             className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold transition disabled:opacity-60 ${
               isBotOn

@@ -77,14 +77,14 @@ model Conversation {
   customer    Customer? @relation(fields: [customerId], references: [id])
   messages    Message[]
 
-  // Grok Auto-Reply: per-conversation kill switch. true (default) means
+  // Groq Auto-Reply: per-conversation kill switch. true (default) means
   // the bot may auto-reply on this conversation. Flips to false either
   // manually (ChatHeader "Bot ON/OFF" pill) or automatically the moment
   // an agent sends a manual reply in this conversation (see
   // messageController.js sendMessage) — so the bot never talks over a
   // human who has taken over. Classification + Lead/Ticket creation +
   // ERP-CRM forwarding are NOT gated by this flag; only the outgoing
-  // Grok auto-reply message is.
+  // Groq auto-reply message is.
   botEnabled  Boolean   @default(true)
 
   // Lead-enrichment state (Step 6): tracks a pending "what's your
@@ -107,29 +107,29 @@ model Conversation {
   pendingTicketAskedAt     DateTime?
 }
 
-// Grok Auto-Reply: a single global settings row (singleton — the app
+// Groq Auto-Reply: a single global settings row (singleton — the app
 // always reads/creates the first row, see aiSettingsService.js). Holds
-// the master ON/OFF switch plus the Grok config an admin can tune from
+// the master ON/OFF switch plus the Groq config an admin can tune from
 // the AI Auto-Reply settings page, without needing a redeploy.
 model AiSettings {
   id               String   @id @default(uuid())
 
-  // Master kill-switch for Grok auto-reply across EVERY conversation.
+  // Master kill-switch for Groq auto-reply across EVERY conversation.
   // When false, no conversation gets a bot reply regardless of its own
   // botEnabled flag — but classification/Lead/Ticket/ERP-CRM forwarding
   // keep running as normal (see webhook.js).
   autoReplyEnabled Boolean  @default(true)
 
-  // Optional — if set, overrides the GROK_API_KEY env var. Lets an
+  // Optional — if set, overrides the GROQ_API_KEY env var. Lets an
   // admin rotate the key from the UI without a redeploy. Left null to
   // just use the env var.
   apiKey           String?
 
-  model            String   @default("grok-4-fast")
+  model            String   @default("openai/gpt-oss-120b")
 
-  // Instructions Grok follows when drafting an auto-reply (tone, what
+  // Instructions Groq follows when drafting an auto-reply (tone, what
   // to escalate to a human instead of answering, etc). Falls back to a
-  // sensible default in grokService.js when null.
+  // sensible default in groqService.js when null.
   systemPrompt     String?  @db.Text
 
   // How many of the most recent messages in a conversation to include

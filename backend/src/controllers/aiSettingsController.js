@@ -22,7 +22,7 @@ const getSettings = async (req, res) => {
         systemPrompt: settings.systemPrompt,
         historyLimit: settings.historyLimit,
         apiKeyMasked: maskApiKey(settings.apiKey),
-        usingEnvKey: !settings.apiKey, // true when falling back to GROK_API_KEY env var
+        usingEnvKey: !settings.apiKey, // true when falling back to GROQ_API_KEY env var
         updatedAt: settings.updatedAt,
       },
     });
