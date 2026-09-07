@@ -6,7 +6,7 @@ import {
   Eye,
   Trash2,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 
 function roleBadge(role) {
   switch ((role || "").toUpperCase()) {
@@ -38,8 +38,9 @@ export default function EmployeeTable({
   employees,
   handleDelete,
   onEdit,
+  onView,
 }) {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const [openMenu, setOpenMenu] = useState(null);
 
@@ -261,7 +262,7 @@ export default function EmployeeTable({
                       >
                         <button
                           onClick={() => {
-                            navigate(`/employees/${employee.id}`);
+                            onView?.(employee.id);
                             setOpenMenu(null);
                           }}
                           className="flex w-full items-center gap-3 px-4 py-3 text-sm hover:bg-gray-100 transition"

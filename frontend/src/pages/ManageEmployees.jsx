@@ -18,7 +18,8 @@ import EmployeeStats from "../components/employee/EmployeeStats";
 import EmployeeFilters from "../components/employee/EmployeeFilters";
 import AddEmployeeModal from "../components/employee/AddEmployeeModal";
 import EditEmployeeModal from "../components/employee/EditEmployeeModal";
- 
+import ViewEmployeeModal from "../components/employee/ViewEmployeeModal"; 
+
 import toast from "react-hot-toast";
 import Pagination from "../components/common/Pagination";
 import ConfirmModal from "../components/common/ConfirmModal";
@@ -38,6 +39,9 @@ const ManageEmployees = () => {
  
   const [showAddModal, setShowAddModal] =
     useState(false);
+
+  const [viewEmployeeId, setViewEmployeeId] =
+    useState(null);
  
   const [editEmployeeId, setEditEmployeeId] =
     useState(null);
@@ -254,6 +258,7 @@ const confirmDelete = async () => {
       employees={paginatedEmployees}
       handleDelete={handleDelete}
       onEdit={(id) => setEditEmployeeId(id)}
+      onView={(id) => setViewEmployeeId(id)}
     />
  
     <Pagination
@@ -283,6 +288,16 @@ const confirmDelete = async () => {
         onSuccess={fetchEmployees}
       />
  
+      <ViewEmployeeModal
+        isOpen={!!viewEmployeeId}
+        employeeId={viewEmployeeId}
+        onClose={() => setViewEmployeeId(null)}
+        onEdit={(id) => {
+          setViewEmployeeId(null);
+          setEditEmployeeId(id);
+        }}
+      />
+
       <EditEmployeeModal
         isOpen={!!editEmployeeId}
         employeeId={editEmployeeId}

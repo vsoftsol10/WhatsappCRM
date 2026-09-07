@@ -18,6 +18,7 @@ export default function CreateCampaignModal({
   const [customers, setCustomers] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [image, setImage] = useState(null);
 const [imagePreview, setImagePreview] = useState("");
 
@@ -146,6 +147,9 @@ const resetForm = () => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchCustomers();
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSubmitting(false);
+
     if (!aiCampaign) {
       resetForm();
     }
@@ -271,6 +275,8 @@ const removeImage = () => {
     }
 
     try {
+      setSubmitting(true);
+
    const campaign = await addCampaign({
   ...formData,
   templateParams,
@@ -292,6 +298,8 @@ onClose();
         error?.response?.data?.message ||
           "Unable to create campaign."
       );
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -724,16 +732,18 @@ return (
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 transition hover:bg-gray-100"
+                disabled={submitting}
+                className="rounded-lg border border-gray-300 px-6 py-3 text-gray-700 transition hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white transition hover:bg-[#128C7E]"
+                disabled={submitting}
+                className="rounded-lg bg-[#25D366] px-6 py-3 font-semibold text-white transition hover:bg-[#128C7E] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create Campaign
+                {submitting ? "Creating..." : "Create Campaign"}
               </button>
 
             </div>

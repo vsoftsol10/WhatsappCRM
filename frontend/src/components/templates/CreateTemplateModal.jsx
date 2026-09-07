@@ -42,6 +42,8 @@ export default function CreateTemplateModal({
 
   const [generating, setGenerating] = useState(false);
 
+  const [submitting, setSubmitting] = useState(false);
+
   const quickTemplates = [
     {
       label: "Payment Reminder",
@@ -223,6 +225,8 @@ export default function CreateTemplateModal({
     }
 
     try {
+      setSubmitting(true);
+
       await addTemplate({
         ...formData,
         templateParams,
@@ -248,6 +252,8 @@ export default function CreateTemplateModal({
     } catch (error) {
       toast.error("Failed to create template!");
       console.error(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -597,16 +603,18 @@ export default function CreateTemplateModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="crm-secondary-button"
+                disabled={submitting}
+                className="crm-secondary-button disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="crm-primary-button"
+                disabled={submitting}
+                className="crm-primary-button disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Create Template
+                {submitting ? "Creating..." : "Create Template"}
               </button>
             </div>
           </form>

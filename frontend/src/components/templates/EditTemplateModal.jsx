@@ -28,6 +28,8 @@ export default function EditTemplateModal({
 
   const [errors, setErrors] = useState({});
 
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     if (template) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -48,6 +50,7 @@ export default function EditTemplateModal({
       );
 
       setErrors({});
+      setSubmitting(false);
     }
   }, [template]);
 
@@ -160,6 +163,8 @@ export default function EditTemplateModal({
     }
 
     try {
+      setSubmitting(true);
+
       await editTemplate(template.id, {
         ...formData,
         templateParams,
@@ -183,6 +188,8 @@ export default function EditTemplateModal({
     } catch (error) {
       toast.error("Failed to update template. Please try again.");
       console.error(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -433,16 +440,18 @@ export default function EditTemplateModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="crm-secondary-button"
+                disabled={submitting}
+                className="crm-secondary-button disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="crm-primary-button"
+                disabled={submitting}
+                className="crm-primary-button disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Update Template
+                {submitting ? "Updating..." : "Update Template"}
               </button>
             </div>
           </form>

@@ -12,6 +12,7 @@ export default function CreateCampaignModal({
 }) {
   const { editCampaign } = useCampaignStore();
   const [image, setImage] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
 const [imagePreview, setImagePreview] = useState("");
 
@@ -51,6 +52,7 @@ useEffect(() => {
 
     setImagePreview(campaign.imageUrl || "");
     setImage(null);
+    setSubmitting(false);
   }
 }, [campaign]);
 
@@ -147,6 +149,8 @@ const removeImage = () => {
     }
 
     try {
+      setSubmitting(true);
+
       await editCampaign(
     campaign.id,
     {
@@ -171,6 +175,8 @@ const removeImage = () => {
     } catch (error) {
       toast.error("Failed to update campaign. Please try again.");
       console.error(error);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -425,16 +431,18 @@ const removeImage = () => {
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                disabled={submitting}
+                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition disabled:cursor-not-allowed disabled:opacity-60"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition"
+                disabled={submitting}
+                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Update Campaign
+                {submitting ? "Updating..." : "Update Campaign"}
               </button>
             </div>
           </form>

@@ -22,6 +22,7 @@ export default function AddLeadModal({
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
@@ -75,10 +76,12 @@ export default function AddLeadModal({
     }));
   };
 
-  const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
 
   if (!validateForm()) return;
+
+  setIsSubmitting(true);
 
   try {
     await addLead(formData);
@@ -106,6 +109,8 @@ export default function AddLeadModal({
       error?.response?.data?.message ||
       "Failed to create lead"
     );
+  } finally {
+    setIsSubmitting(false);
   }
 };
 
@@ -331,21 +336,27 @@ export default function AddLeadModal({
               )}
             </div>
 
+            
             {/* Buttons */}
             <div className="flex justify-end gap-3 pt-4 border-t mt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+                disabled={isSubmitting}
+                className="px-6 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>
 
               <button
                 type="submit"
-                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition"
+                disabled={isSubmitting}
+                className="px-6 py-3 rounded-lg bg-[#25D366] hover:bg-[#128C7E] text-gray-800 font-semibold transition disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                Save Lead
+                {isSubmitting && (
+                  <span className="w-4 h-4 border-2 border-gray-800 border-t-transparent rounded-full animate-spin" />
+                )}
+                {isSubmitting ? "Saving..." : "Save Lead"}
               </button>
             </div>
           </form>
