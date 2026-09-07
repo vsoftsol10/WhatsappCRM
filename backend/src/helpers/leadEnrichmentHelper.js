@@ -26,8 +26,18 @@ const isValidCompany = (text) => (text || "").trim().length >= 2;
 const isValidEmail = (text) => EMAIL_REGEX.test((text || "").trim());
 
 // Questions are asked in this order: NAME, then COMPANY, then EMAIL —
-// whichever of these the lead doesn't already have.
+// whichever of these the lead doesn't already have. Training &
+// Internship applicants are usually students, not company
+// representatives, so asking "what's your company name?" doesn't make
+// sense for that product — they skip straight from NAME to EMAIL.
 const ORDERED_STEPS = ["NAME", "COMPANY", "EMAIL"];
+
+const PRODUCTS_WITHOUT_COMPANY_STEP = ["Training & Internship Programs"];
+
+const getOrderedSteps = (product) =>
+  PRODUCTS_WITHOUT_COMPANY_STEP.includes(product)
+    ? ORDERED_STEPS.filter((step) => step !== "COMPANY")
+    : ORDERED_STEPS;
 
 // COMPANY's question mentions the product by name (e.g. "the right ERP
 // proposal", "the right HRMS proposal") so it still reads naturally
@@ -60,21 +70,26 @@ const isFieldMissing = (lead, step) => {
 };
 
 // Finds the next step (after `afterStep`, or from the start if omitted)
-// that's still missing on this lead. Returns null if nothing's missing.
-const nextMissingStep = (lead, afterStep = null) => {
-  const startIndex = afterStep ? ORDERED_STEPS.indexOf(afterStep) + 1 : 0;
-  for (let i = startIndex; i < ORDERED_STEPS.length; i++) {
-    if (isFieldMissing(lead, ORDERED_STEPS[i])) return ORDERED_STEPS[i];
+// that's still missing on this lead, using the step list for this
+// product (see getOrderedSteps — Training & Internship skips COMPANY).
+// Returns null if nothing's missing.
+const nextMissingStep = (lead, afterStep = null, product = null) => {
+  const steps = getOrderedSteps(product);
+  const startIndex = afterStep ? steps.indexOf(afterStep) + 1 : 0;
+  for (let i = startIndex; i < steps.length; i++) {
+    if (isFieldMissing(lead, steps[i])) return steps[i];
   }
   return null;
 };
 
-// Public helper: true if this lead is still missing name, company, or
-// email. Used by the webhook to decide whether to (re-)start
-// enrichment for a lead that already existed (not just brand-new
-// leads) — e.g. an old lead created before enrichment questions were
-// answered, or one that timed out (see releaseStalePendingLeads).
-const leadNeedsEnrichment = (lead) => nextMissingStep(lead) !== null;
+// Public helper: true if this lead is still missing name, company
+// (unless this product skips that step), or email. Used by the
+// webhook to decide whether to (re-)start enrichment for a lead that
+// already existed (not just brand-new leads) — e.g. an old lead
+// created before enrichment questions were answered, or one that
+// timed out (see releaseStalePendingLeads).
+const leadNeedsEnrichment = (lead, product = null) =>
+  nextMissingStep(lead, null, product) !== null;
 
 const askQuestion = async (conversation, question) => {
   await sendAndSaveOutgoingMessage(conversation, question);
@@ -160,7 +175,7 @@ const getOrCreateCustomerFromLead = async (conversation, lead) => {
 // product's CRM if one is wired up — see PRODUCT_CRM_SENDERS —
 // otherwise just a thank-you reply).
 const startLeadEnrichment = async (conversation, product, lead) => {
-  const firstStep = nextMissingStep(lead);
+  const firstStep = nextMissingStep(lead, null, product);
 
   if (!firstStep) {
     // Already have everything (e.g. linked Customer record already had
@@ -270,7 +285,7 @@ const handlePendingLeadAnswer = async (conversation, answerText) => {
 // already up to date because `conversation` is re-fetched fresh at the
 // start of every incoming webhook call.
 const advanceOrFinalize = async (conversation, lead, completedStep, justCollected, product) => {
-  const next = nextMissingStep(lead, completedStep);
+  const next = nextMissingStep(lead, completedStep, product);
 
   if (next) {
     await prisma.conversation.update({

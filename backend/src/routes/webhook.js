@@ -271,7 +271,7 @@ const processWebhookPayload = async (value) => {
             // call this for leads that already have everything, so a
             // fully-enriched lead won't get re-finalized or
             // re-forwarded to the CRM on every follow-up message.
-            if (lead && (isNew || leadNeedsEnrichment(lead))) {
+            if (lead && (isNew || leadNeedsEnrichment(lead, classification.product))) {
               await startLeadEnrichment(conversation, classification.product, lead);
             }
           } catch (leadError) {
