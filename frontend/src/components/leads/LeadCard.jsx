@@ -1,5 +1,5 @@
-import { 
-  MoreVertical, 
+import {
+  MoreVertical,
   Eye,
   Pencil,
   Trash2,
@@ -8,18 +8,18 @@ import {
   Trophy,
   UserPlus,
   CheckCircle2,
- } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+} from "lucide-react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
-
-export default function LeadCard({ 
+export default function LeadCard({
   lead,
   onView,
   onEdit,
   onDelete,
   onStatusChange,
   onConvert,
- }) {
+}) {
 
   const statusStyles = {
     NEW: "bg-[#DCF8C6] text-[#128C7E]",
@@ -31,31 +31,78 @@ export default function LeadCard({
 
   const [showMenu, setShowMenu] = useState(false);
 
-  const menuRef = useRef(null);
+  // ================= "MORE" KEBAB MENU =================
+  // Rendered via a portal into document.body instead of staying inside
+  // the card's DOM tree, for the same reason as AuditLogTable.jsx's
+  // three-dot menu: cards near the bottom of the grid, or inside any
+  // scrollable/clipped ancestor, would otherwise get their dropdown
+  // cut off regardless of z-index. Portaling to <body> with fixed
+  // coordinates (from the trigger button's getBoundingClientRect())
+  // sidesteps that clipping entirely and also keeps the menu visible
+  // even if a neighboring card in the grid would otherwise paint over it.
+  const [menuPosition, setMenuPosition] = useState("down");
+
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
+
+  const buttonRef = useRef(null);
+
+  const portalMenuRef = useRef(null);
+
+  const dropdownRef = useRef(null);
+
+  const MENU_WIDTH = 224; // w-56
 
   useEffect(() => {
-  function handleClickOutside(event) {
-    if (
-      menuRef.current &&
-      !menuRef.current.contains(event.target)
-    ) {
-      setShowMenu(false);
+    function handleClickOutside(event) {
+      const clickedTrigger =
+        buttonRef.current && buttonRef.current.contains(event.target);
+
+      const clickedMenu =
+        portalMenuRef.current && portalMenuRef.current.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
+        setShowMenu(false);
+      }
     }
-  }
 
-  document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
 
-  return () => {
-    document.removeEventListener(
-      "mousedown",
-      handleClickOutside
-    );
-  };
-}, []);
+    return () => {
+      document.removeEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!showMenu) return;
+
+    const button = buttonRef.current;
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    const dropdown = dropdownRef.current;
+    const menuHeight = dropdown ? dropdown.getBoundingClientRect().height : 300;
+
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    const goUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+
+    setMenuPosition(goUp ? "up" : "down");
+
+    setMenuCoords({
+      top: goUp ? rect.top - 8 : rect.bottom + 8,
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
+  }, [showMenu]);
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition min-h-[260px]">
-      
+
       {/* Header */}
       <div className="flex justify-between items-start mb-4">
         <div>
@@ -72,9 +119,10 @@ export default function LeadCard({
           </p>
         </div>
 
-        <div ref={menuRef} className="relative">
+        <div className="relative">
         <button
-          onClick={() => setShowMenu(!showMenu)}
+          ref={buttonRef}
+          onClick={() => setShowMenu((prev) => !prev)}
           className="p-2 rounded-lg hover:bg-gray-100"
         >
           <MoreVertical size={18} />
@@ -84,9 +132,23 @@ export default function LeadCard({
             ✓ Converted
           </div>
         )}
-      
-      {showMenu && (
-          <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg z-20">
+
+      {showMenu &&
+        createPortal(
+          <div
+            ref={(el) => {
+              dropdownRef.current = el;
+              portalMenuRef.current = el;
+            }}
+            style={{
+              position: "fixed",
+              top: menuCoords.top,
+              left: menuCoords.left,
+              width: MENU_WIDTH,
+              transform: menuPosition === "up" ? "translateY(-100%)" : "none",
+            }}
+            className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg z-[9999]"
+          >
 
           <button
             onClick={() => {
@@ -165,7 +227,6 @@ export default function LeadCard({
           {lead.status === "WON" && !lead.isConverted && (
             <button
               onClick={() => {
-                console.log("Convert button clicked", lead.id);
                 onConvert(lead.id);
                 setShowMenu(false);
               }}
@@ -182,60 +243,61 @@ export default function LeadCard({
               <span>Converted</span>
             </div>
           )}
-                </div>
-              )}
+          </div>,
+          document.body
+        )}
             </div>
-                  </div>
+          </div>
 
-                  {/* Contact Details */}
-                  <div className="space-y-2 mb-4">
-                    <p className="text-sm text-gray-700">
-                      📞 {lead.phone || "N/A"}
-                    </p>
+          {/* Contact Details */}
+          <div className="space-y-2 mb-4">
+            <p className="text-sm text-gray-700">
+              📞 {lead.phone || "N/A"}
+            </p>
 
-                    <p className="text-sm text-gray-700 break-all">
-                      ✉️ {lead.email || "N/A"}
-                    </p>
+            <p className="text-sm text-gray-700 break-all">
+              ✉️ {lead.email || "N/A"}
+            </p>
 
-                    <p className="text-sm text-gray-700">
-                      👤 {lead.assignedTo?.name || "Unassigned"}
-                    </p>
-                  </div>
+            <p className="text-sm text-gray-700">
+              👤 {lead.assignedTo?.name || "Unassigned"}
+            </p>
+          </div>
 
-                  {/* Requirements */}
-                  <div className="mb-5">
-                    <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
-                      Requirements
-                    </p>
+          {/* Requirements */}
+          <div className="mb-5">
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+              Requirements
+            </p>
 
-                    <p className="text-sm text-gray-700 line-clamp-3">
-                      {lead.requirements ||
-                        lead.notes ||
-                        "No requirements provided"}
-                    </p>
-                  </div>
+            <p className="text-sm text-gray-700 line-clamp-3">
+              {lead.requirements ||
+                lead.notes ||
+                "No requirements provided"}
+            </p>
+          </div>
 
-                  {/* Footer */}
-                  <div className="flex justify-between items-center mt-auto">
-                    {lead.isConverted ? (
-                      <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#DCF8C6] text-[#128C7E]">
-                        Converted
-                      </span>
-                    ) : (
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          statusStyles[lead.status] ||
-                          "bg-gray-100 text-gray-700"
-                        }`}
-                      >
-                        {lead.status}
-                      </span>
-                    )}
+          {/* Footer */}
+          <div className="flex justify-between items-center mt-auto">
+            {lead.isConverted ? (
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-[#DCF8C6] text-[#128C7E]">
+                Converted
+              </span>
+            ) : (
+              <span
+                className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                  statusStyles[lead.status] ||
+                  "bg-gray-100 text-gray-700"
+                }`}
+              >
+                {lead.status}
+              </span>
+            )}
 
-                    <span className="text-xs text-gray-400">
-                      Lead
-                    </span>
-                  </div>
-                </div>
-        );
-      }
+            <span className="text-xs text-gray-400">
+              Lead
+            </span>
+          </div>
+        </div>
+  );
+}

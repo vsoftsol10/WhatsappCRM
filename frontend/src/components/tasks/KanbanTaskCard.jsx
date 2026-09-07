@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { MoreVertical, Calendar, User, Flag } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 
@@ -12,12 +13,64 @@ export default function KanbanTaskCard({
 
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // ================= "ACTIONS" KEBAB MENU =================
+  // Rendered via a portal into document.body instead of staying inside
+  // the card's DOM tree, for the same reason as AuditLogTable.jsx's
+  // three-dot menu: the Kanban column (KanbanColumn.jsx) uses
+  // overflow-y-auto for vertical scrolling, and any overflow value
+  // other than "visible" clips absolutely-positioned descendants that
+  // try to render outside that box, regardless of z-index. Portaling
+  // to <body> with fixed coordinates (from the trigger button's
+  // getBoundingClientRect()) sidesteps that clipping entirely.
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
+
+  const buttonRef = useRef(null);
+
+  const portalMenuRef = useRef(null);
+
+  const MENU_WIDTH = 112; // w-28
+
   const isAdmin = user?.role === "ADMIN";
 
   const currentUserId = user?.id || user?.userId;
 
   const canUpdateStatus =
     isAdmin || task.assignedToId === currentUserId;
+
+  useLayoutEffect(() => {
+    if (!menuOpen) return;
+
+    const button = buttonRef.current;
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    setMenuCoords({
+      top: rect.bottom + 8,
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
+  }, [menuOpen]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      const clickedTrigger =
+        buttonRef.current && buttonRef.current.contains(event.target);
+
+      const clickedMenu =
+        portalMenuRef.current && portalMenuRef.current.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
+        setMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const getPriorityColor = (priority) => {
     switch (priority) {
@@ -60,34 +113,46 @@ export default function KanbanTaskCard({
       {isAdmin && (
         <div className="absolute top-3 right-3">
           <MoreVertical
+            ref={buttonRef}
             size={18}
             className="cursor-pointer text-gray-500"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={() => setMenuOpen((prev) => !prev)}
           />
 
-          {menuOpen && (
-            <div className="absolute right-0 mt-2 w-28 rounded-lg border bg-white shadow-lg z-20">
-              <button
-                onClick={() => {
-                  onEdit(task);
-                  setMenuOpen(false);
+          {menuOpen &&
+            createPortal(
+              <div
+                ref={portalMenuRef}
+                style={{
+                  position: "fixed",
+                  top: menuCoords.top,
+                  left: menuCoords.left,
+                  width: MENU_WIDTH,
                 }}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                className="z-[9999] rounded-lg border bg-white shadow-lg"
               >
-                Edit
-              </button>
+                <button
+                  onClick={() => {
+                    onEdit(task);
+                    setMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-100"
+                >
+                  Edit
+                </button>
 
-              <button
-                onClick={() => {
-                  onDelete(task.id);
-                  setMenuOpen(false);
-                }}
-                className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
-              >
-                Delete
-              </button>
-            </div>
-          )}
+                <button
+                  onClick={() => {
+                    onDelete(task.id);
+                    setMenuOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
+                  Delete
+                </button>
+              </div>,
+              document.body
+            )}
         </div>
       )}
 
