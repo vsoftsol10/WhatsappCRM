@@ -1,4 +1,5 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useLayoutEffect, useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { MoreVertical } from "lucide-react";
 import toast from "react-hot-toast";
@@ -27,14 +28,27 @@ function Customers() {
 
   const [openMenu, setOpenMenu] = useState(null);
 
-  // Which way the dropdown opens for the currently-open menu. Measured
-  // fresh each time a menu is opened (see handleToggleMenu) using the
-  // button's actual position on screen — NOT the row's index. An
-  // index-based guess (e.g. "last 2 rows flip up") breaks on short
-  // lists: with only a couple of customers, row 0 also satisfies
-  // "last 2 rows" and incorrectly flips upward into the table header.
+  // ================= "ACTION" KEBAB MENU =================
+  // Rendered via a portal into document.body instead of staying inside
+  // the table's DOM tree, for the same reason as AuditLogTable.jsx's
+  // three-dot menu: .crm-table-scroll uses overflow-x-auto for
+  // horizontal scrolling, and any overflow value other than "visible"
+  // clips absolutely-positioned descendants that try to render outside
+  // that box, regardless of z-index. Portaling to <body> with fixed
+  // coordinates (from the trigger button's getBoundingClientRect())
+  // sidesteps that clipping entirely.
+  //
+  // Which way the dropdown opens for the currently-open menu is
+  // measured fresh each time a menu is opened using the button's
+  // actual position on screen — NOT the row's index. An index-based
+  // guess (e.g. "last 2 rows flip up") breaks on short lists: with
+  // only a couple of customers, row 0 also satisfies "last 2 rows"
+  // and incorrectly flips upward into the table header.
   const [menuDirection, setMenuDirection] = useState("down");
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
   const buttonRefs = useRef({});
+  const portalMenuRef = useRef(null);
+  const MENU_WIDTH = 144; // w-36
 
   const [currentPage, setCurrentPage] =
     useState(1);
@@ -50,8 +64,6 @@ function Customers() {
 
   const ROWS_PER_PAGE = 10;
 
-  const menuRef = useRef(null);
-
   // Estimated dropdown height (3 items × ~40px + a little padding).
   // Good enough for deciding "does it fit below the button" without
   // needing to render the menu first just to measure it.
@@ -63,17 +75,26 @@ function Customers() {
       return;
     }
 
-    const buttonEl = buttonRefs.current[customerId];
-    if (buttonEl) {
-      const rect = buttonEl.getBoundingClientRect();
-      const spaceBelow = window.innerHeight - rect.bottom;
-      setMenuDirection(
-        spaceBelow < MENU_HEIGHT_ESTIMATE ? "up" : "down"
-      );
-    }
-
     setOpenMenu(customerId);
   };
+
+  useLayoutEffect(() => {
+    if (!openMenu) return;
+
+    const button = buttonRefs.current[openMenu];
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const goUp = spaceBelow < MENU_HEIGHT_ESTIMATE;
+
+    setMenuDirection(goUp ? "up" : "down");
+
+    setMenuCoords({
+      top: goUp ? rect.top - 8 : rect.bottom + 8,
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
+  }, [openMenu]);
 
   // =========================
   // CLOSE ACTION MENU
@@ -81,10 +102,15 @@ function Customers() {
 
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
+      const clickedTrigger =
+        buttonRefs.current[openMenu] &&
+        buttonRefs.current[openMenu].contains(event.target);
+
+      const clickedMenu =
+        portalMenuRef.current &&
+        portalMenuRef.current.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
         setOpenMenu(null);
       }
     };
@@ -100,7 +126,7 @@ function Customers() {
         handleClickOutside
       );
     };
-  }, []);
+  }, [openMenu]);
 
   // =========================
   // FETCH ALL CUSTOMERS (unfiltered, for KPI cards)
@@ -450,16 +476,22 @@ function Customers() {
                           />
                         </button>
 
-                        {openMenu ===
-                          customer.id && (
+                        {openMenu === customer.id &&
+                          createPortal(
                           <div
-                            ref={menuRef}
+                            ref={portalMenuRef}
                             onClick={(e) => e.stopPropagation()}
-                            className={`absolute right-0 z-[9999] w-36 rounded-lg border border-gray-200 bg-white shadow-lg ${
-                              menuDirection === "up"
-                                ? "bottom-full mb-2"
-                                : "top-full mt-2"
-                            }`}
+                            style={{
+                              position: "fixed",
+                              top: menuCoords.top,
+                              left: menuCoords.left,
+                              width: MENU_WIDTH,
+                              transform:
+                                menuDirection === "up"
+                                  ? "translateY(-100%)"
+                                  : "none",
+                            }}
+                            className="z-[9999] rounded-lg border border-gray-200 bg-white shadow-lg"
                           >
                             <button
                               onClick={() =>
@@ -492,7 +524,8 @@ function Customers() {
                             >
                               Delete
                             </button>
-                          </div>
+                          </div>,
+                          document.body
                         )}
                         </div>
                       </td>

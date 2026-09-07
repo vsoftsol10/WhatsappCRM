@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useLayoutEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   MoreVertical,
   Eye,
@@ -48,18 +49,34 @@ export default function LeadTable({
 
   const [menuPosition, setMenuPosition] = useState("down");
 
-  const menuRef = useRef(null);
+  // Menu is rendered via a portal into document.body instead of staying
+  // inside the table's DOM tree, same reason as AuditLogTable.jsx's
+  // three-dot menu: .crm-table-scroll uses overflow-x-auto for
+  // horizontal scrolling, and any overflow value other than "visible"
+  // clips absolutely-positioned descendants that try to render outside
+  // that box, regardless of z-index. Portaling to <body> with fixed
+  // coordinates (from the trigger button's getBoundingClientRect())
+  // sidesteps that clipping entirely.
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
 
   const buttonRefs = useRef({});
 
   const dropdownRef = useRef(null);
 
+  const portalMenuRef = useRef(null);
+
+  const MENU_WIDTH = 224; // w-56
+
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(event.target)
-      ) {
+      const clickedTrigger =
+        buttonRefs.current[openMenu] &&
+        buttonRefs.current[openMenu].contains(event.target);
+
+      const clickedMenu =
+        portalMenuRef.current && portalMenuRef.current.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
         setOpenMenu(null);
       }
     }
@@ -72,29 +89,36 @@ export default function LeadTable({
         handleClickOutside
       );
     };
-  }, []);
+  }, [openMenu]);
 
   useLayoutEffect(() => {
     if (!openMenu) return;
 
     const button = buttonRefs.current[openMenu];
+
+    if (!button) return;
+
+    const rect = button.getBoundingClientRect();
+
+    // Menu height varies (status-dependent extra items), so use the
+    // rendered portal node's height once available; fall back to a
+    // roomy estimate for the first-frame measurement.
     const dropdown = dropdownRef.current;
+    const menuHeight = dropdown ? dropdown.getBoundingClientRect().height : 260;
 
-    if (!button || !dropdown) return;
-
-    const buttonRect = button.getBoundingClientRect();
-    const menuHeight = dropdown.getBoundingClientRect().height;
-
-    const spaceBelow = window.innerHeight - buttonRect.bottom;
-    const spaceAbove = buttonRect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
 
     // Prefer opening down; only flip up if there isn't enough
     // room below AND there IS enough room above.
-    if (spaceBelow < menuHeight && spaceAbove > spaceBelow) {
-      setMenuPosition("up");
-    } else {
-      setMenuPosition("down");
-    }
+    const goUp = spaceBelow < menuHeight && spaceAbove > spaceBelow;
+
+    setMenuPosition(goUp ? "up" : "down");
+
+    setMenuCoords({
+      top: goUp ? rect.top - 8 : rect.bottom + 8,
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
   }, [openMenu]);
 
   if (!leads || leads.length === 0) {
@@ -220,7 +244,7 @@ export default function LeadTable({
 
               {/* Actions */}
               <td className="crm-td">
-                <div ref={menuRef} onClick={(e) => e.stopPropagation()} className="relative flex justify-center">
+                <div onClick={(e) => e.stopPropagation()} className="relative flex justify-center">
                   <button
                     ref={(el) => {
                       if (el) {
@@ -239,12 +263,21 @@ export default function LeadTable({
                     <MoreVertical size={18} />
                   </button>
 
-                  {openMenu === lead.id && (
+                  {openMenu === lead.id &&
+                    createPortal(
   <div
-    ref={dropdownRef}
-    className={`absolute right-0 z-[9999] max-h-[70vh] w-56 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg ${
-      menuPosition === "up" ? "bottom-full mb-2" : "top-full mt-2"
-    }`}
+    ref={(el) => {
+      dropdownRef.current = el;
+      portalMenuRef.current = el;
+    }}
+    style={{
+      position: "fixed",
+      top: menuCoords.top,
+      left: menuCoords.left,
+      width: MENU_WIDTH,
+      transform: menuPosition === "up" ? "translateY(-100%)" : "none",
+    }}
+    className="z-[9999] max-h-[70vh] overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-lg"
   >
     <button
       onClick={() => {
@@ -345,7 +378,8 @@ export default function LeadTable({
         Converted
       </div>
     )}
-  </div>
+  </div>,
+  document.body
 )}
                 </div>
               </td>

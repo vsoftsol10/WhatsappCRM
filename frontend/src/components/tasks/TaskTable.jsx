@@ -4,6 +4,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { createPortal } from "react-dom";
 import { useAuthStore } from "../../store/authStore";
 import {
   MoreVertical,
@@ -67,16 +68,34 @@ export default function TaskTable({
   const [menuPosition, setMenuPosition] =
     useState("down");
 
-  const wrapperRef = useRef(null);
+  // ================= "ACTIONS" KEBAB MENU =================
+  // Rendered via a portal into document.body instead of staying inside
+  // the table's DOM tree, for the same reason as AuditLogTable.jsx's
+  // three-dot menu: .crm-table-scroll uses overflow-x-auto for
+  // horizontal scrolling, and any overflow value other than "visible"
+  // clips absolutely-positioned descendants that try to render outside
+  // that box, regardless of z-index. Portaling to <body> with fixed
+  // coordinates (from the trigger button's getBoundingClientRect())
+  // sidesteps that clipping entirely.
+  const [menuCoords, setMenuCoords] = useState({ top: 0, left: 0 });
 
   const buttonRefs = useRef({});
 
+  const portalMenuRef = useRef(null);
+
+  const MENU_WIDTH = 176; // w-44
+
   useEffect(() => {
     function handleOutsideClick(event) {
-      if (
-        wrapperRef.current &&
-        !wrapperRef.current.contains(event.target)
-      ) {
+      const clickedTrigger =
+        buttonRefs.current[openMenu] &&
+        buttonRefs.current[openMenu].contains(event.target);
+
+      const clickedMenu =
+        portalMenuRef.current &&
+        portalMenuRef.current.contains(event.target);
+
+      if (!clickedTrigger && !clickedMenu) {
         setOpenMenu(null);
       }
     }
@@ -92,7 +111,7 @@ export default function TaskTable({
         handleOutsideClick
       );
     };
-  }, []);
+  }, [openMenu]);
 
   useLayoutEffect(() => {
     if (!openMenu) return;
@@ -110,11 +129,14 @@ export default function TaskTable({
     const spaceBelow =
       window.innerHeight - rect.bottom;
 
-    if (spaceBelow < menuHeight) {
-      setMenuPosition("up");
-    } else {
-      setMenuPosition("down");
-    }
+    const goUp = spaceBelow < menuHeight;
+
+    setMenuPosition(goUp ? "up" : "down");
+
+    setMenuCoords({
+      top: goUp ? rect.top - 8 : rect.bottom + 8,
+      left: Math.max(8, rect.right - MENU_WIDTH),
+    });
   }, [openMenu]);
 
   if (!tasks || tasks.length === 0) {
@@ -144,7 +166,6 @@ export default function TaskTable({
 
 return (
   <div
-    ref={wrapperRef}
     className="crm-table-shell mt-6 overflow-visible"
   >
     <div className="crm-table-scroll">
@@ -355,77 +376,78 @@ return (
                 {isAdmin && (
                   <td className="crm-td">
                     <div className="relative inline-block">
-                      {isAdmin ? (
-                        <>
-                          <button
-                            ref={(el) => {
-                              if (el) {
-                                buttonRefs.current[task.id] = el;
-                              }
-                            }}
-                            onClick={() =>
-                              setOpenMenu(
-                                openMenu === task.id
-                                  ? null
-                                  : task.id
-                              )
-                            }
-                            className="rounded-xl p-2 transition hover:bg-gray-100"
-                          >
-                            <MoreVertical
-                              size={18}
-                              className="text-gray-600"
-                            />
-                          </button>
+                      <button
+                        ref={(el) => {
+                          if (el) {
+                            buttonRefs.current[task.id] = el;
+                          }
+                        }}
+                        onClick={() =>
+                          setOpenMenu(
+                            openMenu === task.id
+                              ? null
+                              : task.id
+                          )
+                        }
+                        className="rounded-xl p-2 transition hover:bg-gray-100"
+                      >
+                        <MoreVertical
+                          size={18}
+                          className="text-gray-600"
+                        />
+                      </button>
 
-                          {openMenu === task.id && (
-                            <div
-                              className={`absolute right-0 z-[9999] w-44 rounded-xl border border-gray-200 bg-white shadow-xl ${
+                      {openMenu === task.id &&
+                        createPortal(
+                          <div
+                            ref={portalMenuRef}
+                            style={{
+                              position: "fixed",
+                              top: menuCoords.top,
+                              left: menuCoords.left,
+                              width: MENU_WIDTH,
+                              transform:
                                 menuPosition === "up"
-                                  ? "bottom-full mb-2"
-                                  : "top-full mt-2"
-                              }`}
+                                  ? "translateY(-100%)"
+                                  : "none",
+                            }}
+                            className="z-[9999] rounded-xl border border-gray-200 bg-white shadow-xl"
+                          >
+                            <button
+                              onClick={() => {
+                                setOpenMenu(null);
+                                onView(task);
+                              }}
+                              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
                             >
-                              <button
-                                onClick={() => {
-                                  setOpenMenu(null);
-                                  onView(task);
-                                }}
-                                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
-                              >
-                                <Eye size={16} />
-                                View Details
-                              </button>
+                              <Eye size={16} />
+                              View Details
+                            </button>
 
-                              <button
-                                onClick={() => {
-                                  setOpenMenu(null);
-                                  onEdit(task);
-                                }}
-                                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
-                              >
-                                <Pencil size={16} />
-                                Edit Task
-                              </button>
+                            <button
+                              onClick={() => {
+                                setOpenMenu(null);
+                                onEdit(task);
+                              }}
+                              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-slate-700 transition hover:bg-gray-50"
+                            >
+                              <Pencil size={16} />
+                              Edit Task
+                            </button>
 
-                              <button
-                                onClick={() => {
-                                  setOpenMenu(null);
-                                  onDelete(task.id);
-                                }}
-                                className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
-                              >
-                                <Trash2 size={16} />
-                                Delete Task
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-sm text-gray-400">
-                          —
-                        </span>
-                      )}
+                            <button
+                              onClick={() => {
+                                setOpenMenu(null);
+                                onDelete(task.id);
+                              }}
+                              className="flex w-full items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 transition hover:bg-red-50"
+                            >
+                              <Trash2 size={16} />
+                              Delete Task
+                            </button>
+                          </div>,
+                          document.body
+                        )}
                     </div>
                   </td>
                 )}
