@@ -27,6 +27,15 @@ function Customers() {
 
   const [openMenu, setOpenMenu] = useState(null);
 
+  // Which way the dropdown opens for the currently-open menu. Measured
+  // fresh each time a menu is opened (see handleToggleMenu) using the
+  // button's actual position on screen — NOT the row's index. An
+  // index-based guess (e.g. "last 2 rows flip up") breaks on short
+  // lists: with only a couple of customers, row 0 also satisfies
+  // "last 2 rows" and incorrectly flips upward into the table header.
+  const [menuDirection, setMenuDirection] = useState("down");
+  const buttonRefs = useRef({});
+
   const [currentPage, setCurrentPage] =
     useState(1);
 
@@ -42,6 +51,29 @@ function Customers() {
   const ROWS_PER_PAGE = 10;
 
   const menuRef = useRef(null);
+
+  // Estimated dropdown height (3 items × ~40px + a little padding).
+  // Good enough for deciding "does it fit below the button" without
+  // needing to render the menu first just to measure it.
+  const MENU_HEIGHT_ESTIMATE = 140;
+
+  const handleToggleMenu = (customerId) => {
+    if (openMenu === customerId) {
+      setOpenMenu(null);
+      return;
+    }
+
+    const buttonEl = buttonRefs.current[customerId];
+    if (buttonEl) {
+      const rect = buttonEl.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setMenuDirection(
+        spaceBelow < MENU_HEIGHT_ESTIMATE ? "up" : "down"
+      );
+    }
+
+    setOpenMenu(customerId);
+  };
 
   // =========================
   // CLOSE ACTION MENU
@@ -357,8 +389,6 @@ function Customers() {
             <tbody>
               {paginatedCustomers.length > 0 ? (
                 paginatedCustomers.map((customer, index) => {
-                const shouldOpenUp =
-                  index >= paginatedCustomers.length - 2;
 
                 return (
                     <tr
@@ -406,15 +436,12 @@ function Customers() {
                       <td className="crm-td">
                         <div className="relative flex justify-center">
                         <button
+                          ref={(el) => {
+                            buttonRefs.current[customer.id] = el;
+                          }}
                           onClick={(e) => {
                             e.stopPropagation();
-
-                            setOpenMenu(
-                              openMenu ===
-                                customer.id
-                                ? null
-                                : customer.id
-                            );
+                            handleToggleMenu(customer.id);
                           }}
                           className="rounded-full p-2 hover:bg-gray-100"
                         >
@@ -429,7 +456,7 @@ function Customers() {
                             ref={menuRef}
                             onClick={(e) => e.stopPropagation()}
                             className={`absolute right-0 z-[9999] w-36 rounded-lg border border-gray-200 bg-white shadow-lg ${
-                              shouldOpenUp
+                              menuDirection === "up"
                                 ? "bottom-full mb-2"
                                 : "top-full mt-2"
                             }`}

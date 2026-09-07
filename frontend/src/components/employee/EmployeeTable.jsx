@@ -308,7 +308,39 @@ export default function EmployeeTable({
   const [openMenu, setOpenMenu] =
     useState(null);
 
+  // Which way the dropdown opens for the currently-open menu. Measured
+  // fresh each time a menu is opened (see handleToggleMenu) using the
+  // button's actual position on screen — NOT the row's index. An
+  // index-based guess (e.g. "last 2 rows flip up") breaks on short
+  // lists: with only 2 employees, row 0 also satisfies "last 2 rows"
+  // and incorrectly flips upward into the table header.
+  const [menuDirection, setMenuDirection] = useState("down");
+
   const menuRef = useRef(null);
+  const buttonRefs = useRef({});
+
+  // Estimated dropdown height (3 items × ~44px + a little padding).
+  // Good enough for deciding "does it fit below the button" without
+  // needing to render the menu first just to measure it.
+  const MENU_HEIGHT_ESTIMATE = 150;
+
+  const handleToggleMenu = (employeeId) => {
+    if (openMenu === employeeId) {
+      setOpenMenu(null);
+      return;
+    }
+
+    const buttonEl = buttonRefs.current[employeeId];
+    if (buttonEl) {
+      const rect = buttonEl.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setMenuDirection(
+        spaceBelow < MENU_HEIGHT_ESTIMATE ? "up" : "down"
+      );
+    }
+
+    setOpenMenu(employeeId);
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -461,13 +493,10 @@ export default function EmployeeTable({
                   className="relative flex justify-center"
                 >
                   <button
-                    onClick={() =>
-                      setOpenMenu(
-                        openMenu === employee.id
-                          ? null
-                          : employee.id
-                      )
-                    }
+                    ref={(el) => {
+                      buttonRefs.current[employee.id] = el;
+                    }}
+                    onClick={() => handleToggleMenu(employee.id)}
                     className="rounded-lg p-2 hover:bg-gray-100 transition"
                   >
                     <MoreVertical size={18} />
@@ -476,7 +505,7 @@ export default function EmployeeTable({
                                     {openMenu === employee.id && (
                     <div
                       className={`absolute right-0 z-50 w-44 rounded-xl border border-gray-200 bg-white shadow-xl ${
-                        index >= employees.length - 2
+                        menuDirection === "up"
                           ? "bottom-10"
                           : "top-10"
                       }`}
