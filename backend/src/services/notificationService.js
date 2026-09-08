@@ -1,7 +1,6 @@
-const { PrismaClient, NotificationType } = require("@prisma/client");
+const { NotificationType } = require("@prisma/client");
 const { getIO } = require("../config/socket");
-
-const prisma = new PrismaClient();
+const prisma = require("../config/prisma");
 
 // ==========================================
 // EMIT HELPER

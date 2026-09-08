@@ -3,7 +3,6 @@ import {
   FaClipboardList,
   FaTicketAlt,
   FaUser,
-  FaHandshake,
   FaBullhorn,
   FaCog,
   FaBell,
@@ -36,12 +35,6 @@ export const NOTIFICATION_TYPE_CONFIG = {
     icon: FaUser,
     iconBg: "bg-teal-100",
     iconColor: "text-teal-600",
-  },
-  DEAL: {
-    label: "Deal",
-    icon: FaHandshake,
-    iconBg: "bg-pink-100",
-    iconColor: "text-pink-600",
   },
   CAMPAIGN: {
     label: "Campaign",
@@ -78,7 +71,6 @@ export const NOTIFICATION_FILTERS = [
   { key: "TASK", label: "Task" },
   { key: "TICKET", label: "Ticket" },
   { key: "CUSTOMER", label: "Customer" },
-  { key: "DEAL", label: "Deal" },
   { key: "CAMPAIGN", label: "Campaign" },
   { key: "SYSTEM", label: "System" },
 ];

@@ -407,6 +407,16 @@ model Notification {
   @@index([userId])
   @@index([isRead])
   @@index([createdAt])
+  // Composite indexes matching the actual query shapes in
+  // notificationController.getNotifications: every list/count query
+  // filters by userId first, then narrows by isRead (UNREAD filter),
+  // type (type-specific filter), or orders by createdAt (default
+  // "ALL" list). Postgres can satisfy each of these from a single
+  // composite index instead of intersecting the three single-column
+  // ones above, which matters once a user has thousands of rows.
+  @@index([userId, createdAt])
+  @@index([userId, isRead])
+  @@index([userId, type])
 }
 
 model AuditLog {
@@ -532,7 +542,6 @@ enum NotificationType {
   TASK
   TICKET
   CUSTOMER
-  DEAL
   CAMPAIGN
   SYSTEM
 }
