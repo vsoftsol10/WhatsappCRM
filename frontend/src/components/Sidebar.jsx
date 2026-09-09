@@ -89,11 +89,6 @@ const sections = [
         icon: FaTicketAlt,
         path: "/tickets",
       },
-      // {
-      //   name: "Deals",
-      //   icon: FaHandHoldingUsd,
-      //   path: "/deals",
-      // },
     ],
   },
 

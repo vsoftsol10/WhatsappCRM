@@ -88,8 +88,9 @@ export function formatLogDate(dateString) {
   });
 }
 
-// Known entity types across the CRM's audited modules (Deal
-// intentionally excluded — skipped per product decision).
+// Known entity types across the CRM's audited modules. (The Deal
+// module was fully removed from the product; no Deal entity type
+// exists here.)
 export const AUDIT_ENTITY_TYPES = [
   { key: "ALL", label: "All Entities" },
   { key: "Employee", label: "Employee" },

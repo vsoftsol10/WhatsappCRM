@@ -22,7 +22,6 @@ import Campaigns from "./pages/Campaigns";
 import TicketsPage from "./pages/TicketsPage";
 import Conversations from "./pages/Conversations";
 import Tasks from "./pages/Task";
-//import DealsPage from "./pages/DealsPage";
 import Settings from "./pages/settings/Settings";
 import AiAutoReply from "./pages/settings/AiAutoReply";
 import CustomerProfile from "./pages/CustomerProfile";
@@ -30,7 +29,7 @@ import CampaignDetails from "./pages/CampaignDetails";
 import Templates from "./pages/Templates";
  
  
-import ViewEmployee from "./pages/ViewEmployee";
+// import ViewEmployee from "./pages/ViewEmployee";
  
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
@@ -116,8 +115,6 @@ function App() {
               element={<CampaignDetails />}
             />
  
-            {/* <Route path="/deals" element={<DealsPage />} /> */}
- 
             <Route path="/leads" element={<Leads />} />
  
             <Route path="/campaigns" element={<Campaigns />} />
@@ -142,7 +139,7 @@ function App() {
                 element={<ManageEmployees />}
               />
  
-              <Route path="/employees/:id" element={<ViewEmployee />} />
+              {/* <Route path="/employees/:id" element={<ViewEmployee />} /> */}
  
               <Route path="/audit-logs" element={<AuditLogs />} />
 

@@ -24,11 +24,6 @@ export default function DashboardSearch() {
       route: "/leads",
     },
     {
-      name: "Deals",
-      description: "Manage deals",
-      route: "/deals",
-    },
-    {
       name: "Employees",
       description: "Manage employees",
       route: "/employees",
