@@ -231,18 +231,21 @@ model Campaign {
 }
 
 model CampaignRecipient {
-  id          String          @id @default(uuid())
-  campaignId  String
-  customerId  String
-  status      RecipientStatus @default(PENDING)
-  sentAt      DateTime?
-  deliveredAt DateTime?
-  readAt      DateTime?
-  createdAt   DateTime        @default(now())
-  campaign    Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  customer    Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  id            String          @id @default(uuid())
+  campaignId    String
+  customerId    String
+  status        RecipientStatus @default(PENDING)
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  failureReason String?
+  metaMessageId String?
+  createdAt     DateTime        @default(now())
+  campaign      Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer      Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
 
   @@unique([campaignId, customerId])
+  @@index([metaMessageId])
 }
 
 model TemplateRecipient {
@@ -253,6 +256,7 @@ model TemplateRecipient {
   sentAt        DateTime?
   deliveredAt   DateTime?
   readAt        DateTime?
+  failureReason String?
   metaMessageId String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
@@ -262,6 +266,7 @@ model TemplateRecipient {
   @@unique([templateId, customerId])
   @@index([templateId])
   @@index([customerId])
+  @@index([metaMessageId])
 }
 
 model Template {
