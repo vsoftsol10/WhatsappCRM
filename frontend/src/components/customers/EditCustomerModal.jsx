@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { getCustomerById, updateCustomer } from "../../api/customerApi";
 import toast from "react-hot-toast";
+import BusinessSelect from "../common/BusinessSelect";
 
 const EMPTY_FORM = {
   name: "",
@@ -11,6 +12,7 @@ const EMPTY_FORM = {
   source: "",
   requirements: "",
   status: "ACTIVE",
+  businessIds: [],
 };
 
 export default function EditCustomerModal({
@@ -43,6 +45,7 @@ export default function EditCustomerModal({
           source: data.customer.source || "",
           requirements: data.customer.requirements || "",
           status: data.customer.status || "ACTIVE",
+          businessIds: (data.customer.businesses || []).map((membership) => membership.businessId),
         });
         setErrors({});
       } catch (error) {
@@ -164,6 +167,11 @@ export default function EditCustomerModal({
               onSubmit={handleSubmit}
               className="p-6 space-y-8 max-h-[75vh] overflow-y-auto"
             >
+              <div>
+                <label className="block mb-2 font-semibold text-gray-700">Businesses <span className="text-red-500">*</span></label>
+                <BusinessSelect multiple required value={formData.businessIds} onChange={(businessIds) => setFormData((prev) => ({ ...prev, businessIds }))} />
+                <p className="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select more than one business.</p>
+              </div>
               <div>
                 <h3 className="text-lg font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
                   Customer Information

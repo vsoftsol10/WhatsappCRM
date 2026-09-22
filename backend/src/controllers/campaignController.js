@@ -934,6 +934,8 @@ exports.createCampaign = async (req, res) => {
   metaTemplateName,
   metaTemplateLanguage,
   templateParams,
+  businessId,
+  templateId,
 } = req.body;
 
 // =============================
@@ -952,6 +954,21 @@ console.log("Customer IDs:", customerIds);
 
 console.log("Customer IDs:", customerIds);
 console.log("Is Array:", Array.isArray(customerIds));
+    if (!businessId || !templateId) {
+      return res.status(400).json({ success: false, message: "Business and approved template are required." });
+    }
+    const selectedTemplate = await prisma.template.findFirst({
+      where: { id: templateId, businessId, status: "ACTIVE", metaApprovalStatus: "APPROVED", metaTemplateName: { not: null } },
+    });
+    if (!selectedTemplate) {
+      return res.status(400).json({ success: false, message: "Select an active approved template from the selected business." });
+    }
+    const selectedIds = [...new Set(customerIds)];
+    const allowedCustomers = await prisma.customer.count({ where: { id: { in: selectedIds }, businesses: { some: { businessId } } } });
+    if (allowedCustomers !== selectedIds.length) {
+      return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
+    }
+
     if (!name || !messageContent) {
       return res.status(400).json({
         success: false,
@@ -975,6 +992,8 @@ if (req.file) {
         name,
         type,
         messageContent,
+        businessId,
+        templateId,
 
         // NEW FIELD
         imageUrl,
@@ -1423,6 +1442,26 @@ exports.sendCampaign = async (req, res) => {
       });
     }
 
+    // Server-side isolation: client filtering is never trusted.
+    if (!campaign.businessId || !campaign.templateId) {
+      return res.status(400).json({ success: false, message: "Campaign must have a business and an approved business template." });
+    }
+
+    const template = await prisma.template.findFirst({
+      where: { id: campaign.templateId, businessId: campaign.businessId, status: "ACTIVE", metaApprovalStatus: "APPROVED", metaTemplateName: { not: null } },
+      select: { id: true },
+    });
+    if (!template) {
+      return res.status(400).json({ success: false, message: "Campaign template is not an active approved template for this business." });
+    }
+
+    const requestedCustomerIds = [...new Set(customerIds.map((id) => String(id)))];
+    const allowedCustomerCount = await prisma.customer.count({
+      where: { id: { in: requestedCustomerIds }, businesses: { some: { businessId: campaign.businessId } } },
+    });
+    if (allowedCustomerCount !== requestedCustomerIds.length) {
+      return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
+    }
     await prisma.campaign.update({
       where: { id: campaignId },
       data: { status: "SENDING" },

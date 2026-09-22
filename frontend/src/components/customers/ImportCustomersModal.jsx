@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { X, Upload, Download, AlertTriangle, CheckCircle2 } from "lucide-react";
 import toast from "react-hot-toast";
+import BusinessSelect from "../common/BusinessSelect";
 
 import {
   previewBulkImportCustomers,
@@ -88,6 +89,7 @@ export default function ImportCustomersModal({ isOpen, onClose, onSuccess }) {
   const [uploading, setUploading] = useState(false);
 
   const [importing, setImporting] = useState(false);
+  const [businessId, setBusinessId] = useState("");
 
   const [preview, setPreview] = useState(null); // { totalRows, ready, duplicates, invalid }
 
@@ -166,6 +168,7 @@ export default function ImportCustomersModal({ isOpen, onClose, onSuccess }) {
 
   const handleConfirmImport = async () => {
     if (!preview) return;
+    if (!businessId) { toast.error("Select a business for this import."); return; }
 
     const toCreate = preview.ready.map((r) => ({
       rowNumber: r.rowNumber,
@@ -180,7 +183,9 @@ export default function ImportCustomersModal({ isOpen, onClose, onSuccess }) {
         data: d.incoming,
       }));
 
-    if (toCreate.length === 0 && toUpdate.length === 0) {
+    const toLink = preview.duplicates.map((d) => d.existingCustomer.id);
+
+    if (toCreate.length === 0 && toUpdate.length === 0 && toLink.length === 0) {
       toast.error("Nothing to import — every row was skipped or invalid.");
       return;
     }
@@ -188,7 +193,7 @@ export default function ImportCustomersModal({ isOpen, onClose, onSuccess }) {
     setImporting(true);
 
     try {
-      const res = await confirmBulkImportCustomers({ toCreate, toUpdate });
+      const res = await confirmBulkImportCustomers({ toCreate, toUpdate, toLink, businessId });
 
       setResult(res.data);
 
@@ -233,6 +238,11 @@ export default function ImportCustomersModal({ isOpen, onClose, onSuccess }) {
 
           {/* Body */}
           <div className="max-h-[70vh] overflow-y-auto px-6 py-5">
+            <div className="mb-5">
+              <label className="mb-2 block text-sm font-semibold text-gray-700">Business <span className="text-red-500">*</span></label>
+              <BusinessSelect required value={businessId} onChange={setBusinessId} />
+              <p className="mt-1 text-xs text-gray-500">All imported customers, including existing duplicate contacts, will be associated with this business.</p>
+            </div>
             {/* ---------- STEP 1: UPLOAD ---------- */}
             {step === STEP.UPLOAD && (
               <div className="space-y-4">

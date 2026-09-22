@@ -12,6 +12,7 @@ import SendTemplateModal from "../components/templates/SendTemplateModal";
 import toast from "react-hot-toast";
 import Pagination from "../components/common/Pagination";
 import ConfirmModal from "../components/common/ConfirmModal";
+import { submitTemplateForMetaApproval, syncTemplateMetaStatus } from "../api/templateApi";
 
 export default function Templates() {
   const {
@@ -109,6 +110,15 @@ export default function Templates() {
     setShowPreviewModal(true);
   };
 
+  const handleSubmitMeta = async (template) => {
+    try { const response = await submitTemplateForMetaApproval(template.id); toast.success(response.message); await fetchTemplates(); }
+    catch (error) { toast.error(error.response?.data?.message || "Unable to submit template to Meta."); }
+  };
+
+  const handleSyncMeta = async (template) => {
+    try { const response = await syncTemplateMetaStatus(template.id); toast.success(response.message); await fetchTemplates(); }
+    catch (error) { toast.error(error.response?.data?.message || "Unable to refresh Meta status."); }
+  };
   const handleSend = (template) => {
     setSelectedTemplate(template);
     setShowSendModal(true);
@@ -189,6 +199,8 @@ export default function Templates() {
                   onDelete={handleDelete}
                   onPreview={handlePreview}
                   onSend={handleSend}
+                  onSubmitMeta={handleSubmitMeta}
+                  onSyncMeta={handleSyncMeta}
                 />
               )
             )}

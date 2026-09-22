@@ -705,7 +705,7 @@ const handleClearAll = () => {
 
 {/* Preview — exactly what the customer will see, using the first
     selected customer's name where available, before the actual send. */}
-<div className="px-5 pb-5">
+{/* <div className="px-5 pb-5">
   <label className="mb-2 block text-sm font-medium text-gray-700">
     Preview
   </label>
@@ -767,7 +767,7 @@ const handleClearAll = () => {
       : "a placeholder"}{" "}
     name. Each recipient still gets their own name filled in.
   </p>
-</div>
+</div> */}
                 {/* Customer List */}
 
         <div className="flex-1 overflow-y-auto px-5">

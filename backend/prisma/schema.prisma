@@ -57,6 +57,29 @@ model Customer {
   user               User                @relation(fields: [userId], references: [id])
   templateRecipients TemplateRecipient[]
   tickets            Ticket[]
+  businesses         CustomerBusiness[]
+}
+
+model Business {
+  id        String             @id @default(uuid())
+  name      String             @unique
+  isActive  Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  customers CustomerBusiness[]
+  templates Template[]
+  campaigns Campaign[]
+}
+
+model CustomerBusiness {
+  customerId String
+  businessId String
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+
+  @@id([customerId, businessId])
+  @@index([businessId])
 }
 
 model Conversation {
@@ -226,8 +249,15 @@ model Campaign {
   // "22 August 2026, Saturday", "4:30 PM - 6:30 PM", "Vannarpet, Tirunelveli",
   // "9095422237"]. Only used when metaTemplateName is set; ignored otherwise.
   templateParams   Json?
+  businessId       String?
+  templateId       String?
   createdBy      User                @relation(fields: [createdById], references: [id])
+  business       Business?           @relation(fields: [businessId], references: [id])
+  template       Template?           @relation(fields: [templateId], references: [id])
   recipients     CampaignRecipient[]
+
+  @@index([businessId])
+  @@index([templateId])
 }
 
 model CampaignRecipient {
@@ -284,8 +314,13 @@ model Template {
   metaTemplateName     String?
   metaTemplateLanguage String?    @default("en_US")
   templateParams       Json?
+  businessId           String?
   createdBy   User                @relation(fields: [createdById], references: [id])
+  business    Business?           @relation(fields: [businessId], references: [id])
   recipients  TemplateRecipient[]
+  campaigns   Campaign[]
+
+  @@index([businessId])
 }
 
 model Task {

@@ -52,6 +52,15 @@ export const getMetaApprovedTemplates = async () => {
 
 };
 
+export const submitTemplateForMetaApproval = async (id) => {
+  const response = await apiClient.post(`/api/templates/${id}/submit-meta`);
+  return response.data;
+};
+
+export const syncTemplateMetaStatus = async (id) => {
+  const response = await apiClient.post(`/api/templates/${id}/sync-meta-status`);
+  return response.data;
+};
 // ================= CREATE TEMPLATE =================
 export const createTemplate = async (
   templateData

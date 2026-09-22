@@ -27,6 +27,7 @@ import AiAutoReply from "./pages/settings/AiAutoReply";
 import CustomerProfile from "./pages/CustomerProfile";
 import CampaignDetails from "./pages/CampaignDetails";
 import Templates from "./pages/Templates";
+import Businesses from "./pages/Businesses";
  
  
 // import ViewEmployee from "./pages/ViewEmployee";
@@ -134,8 +135,8 @@ function App() {
  
             {/* ADMIN ROUTES */}
             <Route element={<AdminRoute />}>
-              <Route
-                path="/employees"
+              <Route path="/businesses" element={<Businesses />} />
+              <Route path="/employees"
                 element={<ManageEmployees />}
               />
  

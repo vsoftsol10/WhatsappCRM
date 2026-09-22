@@ -4,6 +4,21 @@ const { normalizeIndianPhone } = require("../utils/phoneUtils");
 const { recordAuditLog } = require("../services/auditLogService");
 const XLSX = require("xlsx");
 
+const parseBusinessIds = (value) => {
+  const ids = Array.isArray(value) ? value : value ? [value] : [];
+  return [...new Set(ids.map((id) => String(id).trim()).filter(Boolean))];
+};
+
+const validateBusinessIds = async (businessIds) => {
+  if (!businessIds.length) return false;
+  const count = await prisma.business.count({ where: { id: { in: businessIds }, isActive: true } });
+  return count === businessIds.length;
+};
+
+const businessInclude = {
+  businesses: { include: { business: { select: { id: true, name: true, isActive: true } } } },
+};
+
 const createCustomer = async (req, res) => {
   try {
     const validation = validateCustomer(req.body);
@@ -16,6 +31,10 @@ const createCustomer = async (req, res) => {
     }
 
     const { name, phone, email, company, source, requirements, status } = req.body;
+    const businessIds = parseBusinessIds(req.body.businessIds);
+    if (!(await validateBusinessIds(businessIds))) {
+      return res.status(400).json({ success: false, message: "Select at least one active business." });
+    }
 
     //console.log("req.user:", req.user);
 
@@ -29,6 +48,12 @@ const createCustomer = async (req, res) => {
     }
 
     const { userId } = req.user;
+    const existingCustomer = await prisma.customer.findUnique({ where: { phone: normalizedPhone } });
+    if (existingCustomer) {
+      await prisma.customerBusiness.createMany({ data: businessIds.map((businessId) => ({ customerId: existingCustomer.id, businessId })), skipDuplicates: true });
+      const customer = await prisma.customer.findUnique({ where: { id: existingCustomer.id }, include: businessInclude });
+      return res.status(200).json({ success: true, message: "Existing customer linked to the selected business(es).", customer });
+    }
 
     const customer = await prisma.customer.create({
       data: {
@@ -40,6 +65,7 @@ const createCustomer = async (req, res) => {
         requirements,
         status,
         userId,
+        businesses: { create: businessIds.map((businessId) => ({ businessId })) },
       },
     });
 
@@ -68,9 +94,10 @@ const createCustomer = async (req, res) => {
 
 const getCustomers = async (req, res) => {
   try {
-    const { status, search, page, limit } = req.query;
+    const { status, search, page, limit, businessId } = req.query;
 
-    const where = {}
+    const where = {};
+    if (businessId) where.businesses = { some: { businessId } };
 
     // Filter by status
     if (status) {
@@ -108,6 +135,7 @@ const getCustomers = async (req, res) => {
     if (!page) {
       const customers = await prisma.customer.findMany({
         where,
+        include: businessInclude,
         orderBy: {
           createdAt: "desc",
         },
@@ -125,6 +153,7 @@ const getCustomers = async (req, res) => {
     const [customers, total] = await Promise.all([
       prisma.customer.findMany({
         where,
+        include: businessInclude,
         orderBy: {
           createdAt: "desc",
         },
@@ -162,6 +191,7 @@ const getCustomerById = async (req, res) => {
       where: {
         id,
       },
+      include: businessInclude,
     });
 
     if (!customer) {
@@ -212,6 +242,10 @@ const updateCustomer = async (req, res) => {
     }
 
     const { name, phone, email, company, source, requirements, status } = req.body;
+    const businessIds = req.body.businessIds === undefined ? null : parseBusinessIds(req.body.businessIds);
+    if (businessIds && !(await validateBusinessIds(businessIds))) {
+      return res.status(400).json({ success: false, message: "Select at least one active business." });
+    }
 
     let normalizedPhone = existingCustomer.phone;
     if (phone !== undefined) {
@@ -230,6 +264,7 @@ const updateCustomer = async (req, res) => {
     const changes = [];
     if (name !== undefined && name !== existingCustomer.name) {
       changes.push(`name: ${existingCustomer.name} -> ${name}`);
+
     }
     if (phone !== undefined && normalizedPhone !== existingCustomer.phone) {
       changes.push(`phone: ${existingCustomer.phone} -> ${normalizedPhone}`);
@@ -594,16 +629,19 @@ const previewBulkImport = async (req, res) => {
 // the client, even though the preview step already checked once.
 const confirmBulkImport = async (req, res) => {
   try {
-    const { toCreate = [], toUpdate = [] } = req.body;
+    const { toCreate = [], toUpdate = [], toLink = [], businessId } = req.body;
+    if (!(await validateBusinessIds([businessId]))) {
+      return res.status(400).json({ success: false, message: "Select an active business for this import." });
+    }
 
-    if (toCreate.length === 0 && toUpdate.length === 0) {
+    if (toCreate.length === 0 && toUpdate.length === 0 && toLink.length === 0) {
       return res.status(400).json({
         success: false,
         message: "Nothing to import.",
       });
     }
 
-    if (toCreate.length + toUpdate.length > MAX_IMPORT_ROWS) {
+    if (toCreate.length + toUpdate.length + toLink.length > MAX_IMPORT_ROWS) {
       return res.status(400).json({
         success: false,
         message: "Too many rows in a single import.",
@@ -689,6 +727,19 @@ const confirmBulkImport = async (req, res) => {
       }
     }
 
+    // Link every newly-created customer to the import business in one batch.
+    const createdPhones = toCreate.map((item) => normalizeIndianPhone(item?.data?.phone)).filter(Boolean);
+    if (createdPhones.length) {
+      const createdCustomers = await prisma.customer.findMany({ where: { phone: { in: createdPhones } }, select: { id: true } });
+      await prisma.customerBusiness.createMany({ data: createdCustomers.map((customer) => ({ customerId: customer.id, businessId })), skipDuplicates: true });
+    }
+
+    // Duplicate rows are relationships, not new people. This happens even
+    // when the user chose "skip" for their profile data.
+    const linkIds = [...new Set([...toLink, ...toUpdate.map((item) => item?.existingCustomerId)].filter(Boolean))];
+    if (linkIds.length) {
+      await prisma.customerBusiness.createMany({ data: linkIds.map((customerId) => ({ customerId, businessId })), skipDuplicates: true });
+    }
     // ---- Updates (existing customers the user chose to update) ----
     for (const item of toUpdate) {
       const { existingCustomerId, data } = item || {};

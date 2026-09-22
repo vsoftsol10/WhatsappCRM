@@ -1,0 +1,12 @@
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { createBusiness, getBusinesses, updateBusiness } from "../api/businessApi";
+
+export default function Businesses() {
+  const [businesses, setBusinesses] = useState([]); const [name, setName] = useState(""); const [saving, setSaving] = useState(false);
+  const load = () => getBusinesses(true).then((r) => setBusinesses(r.data || [])).catch(() => toast.error("Failed to load businesses."));
+  useEffect(() => { load(); }, []);
+  const add = async (e) => { e.preventDefault(); if (!name.trim()) return; try { setSaving(true); await createBusiness(name.trim()); setName(""); load(); toast.success("Business added."); } catch (e) { toast.error(e.response?.data?.message || "Failed to add business."); } finally { setSaving(false); } };
+  const toggle = async (business) => { try { await updateBusiness(business.id, { isActive: !business.isActive }); load(); } catch { toast.error("Failed to update business."); } };
+  return <div className="p-6"><div className="mb-6"><h1 className="text-3xl font-bold">Businesses</h1><p className="mt-1 text-gray-500">Manage the brands available throughout the CRM.</p></div><form onSubmit={add} className="mb-6 flex max-w-xl gap-3"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Business or brand name" className="flex-1 rounded-xl border border-gray-300 px-4 py-3 outline-none focus:border-[#25D366]"/><button disabled={saving} className="rounded-xl bg-[#25D366] px-5 py-3 font-medium text-black">Add Business</button></form><div className="overflow-hidden rounded-xl bg-white shadow"><table className="w-full text-left"><thead className="bg-gray-50 text-sm text-gray-500"><tr><th className="px-5 py-3">Business</th><th className="px-5 py-3">Status</th><th className="px-5 py-3"></th></tr></thead><tbody>{businesses.map((b) => <tr key={b.id} className="border-t"><td className="px-5 py-4 font-medium">{b.name}</td><td className="px-5 py-4">{b.isActive ? "Active" : "Inactive"}</td><td className="px-5 py-4 text-right"><button onClick={() => toggle(b)} className="text-sm text-[#128C7E]">{b.isActive ? "Deactivate" : "Activate"}</button></td></tr>)}</tbody></table></div></div>;
+}

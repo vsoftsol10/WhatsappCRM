@@ -30,6 +30,7 @@ const webhookRoutes = require("./routes/webhook");
 const notificationRoutes = require("./routes/notificationRoutes");
 const auditLogRoutes = require("./routes/auditLogRoutes");
 const aiSettingsRoutes = require("./routes/aiSettingsRoutes");
+const businessRoutes = require("./routes/businessRoutes");
 
 const {
   releaseStalePendingLeads,
@@ -114,6 +115,7 @@ app.use("/api/webhook", webhookRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/audit-logs", auditLogRoutes);
 app.use("/api/ai-settings", aiSettingsRoutes);
+app.use("/api/businesses", businessRoutes);
 
 // Test route
 app.get("/", (req, res) => {

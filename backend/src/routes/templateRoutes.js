@@ -11,6 +11,8 @@ const {
   getTemplateRecipients,
   generateTemplateWithAI,
   getMetaApprovedTemplates,
+  submitTemplateForMetaApproval,
+  syncTemplateMetaStatus,
 } = require("../controllers/templateController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -24,6 +26,8 @@ router.post("/generate", authMiddleware, generateTemplateWithAI);
 // Must come before "/:id" — otherwise Express matches "meta/approved" as
 // an :id param and this route is never reached.
 router.get("/meta/approved", authMiddleware, getMetaApprovedTemplates);
+router.post("/:id/submit-meta", authMiddleware, submitTemplateForMetaApproval);
+router.post("/:id/sync-meta-status", authMiddleware, syncTemplateMetaStatus);
 
 router.get("/", authMiddleware, getTemplates);
 

@@ -767,6 +767,8 @@ import toast from "react-hot-toast";
 import { getCustomers } from "../../api/customerApi";
 import useCampaignStore from "../../store/campaignStore";
 import useMetaApprovedTemplates from "../../hooks/useMetaApprovedTemplates";
+import BusinessSelect from "../common/BusinessSelect";
+import { getTemplates } from "../../api/templateApi";
 
 export default function CreateCampaignModal({
   isOpen,
@@ -778,6 +780,7 @@ export default function CreateCampaignModal({
 } = useCampaignStore();
 
   const [customers, setCustomers] = useState([]);
+  const [businessTemplates, setBusinessTemplates] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -792,7 +795,14 @@ const fileInputRef = useRef(null);
     scheduledAt: "",
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
+    businessId: "",
+    templateId: "",
   });
+  useEffect(() => {
+    if (!formData.businessId) { setBusinessTemplates([]); return; }
+    getTemplates().then((res) => setBusinessTemplates((res.data || []).filter((t) => t.businessId === formData.businessId && t.status === "ACTIVE" && t.metaApprovalStatus === "APPROVED" && t.metaTemplateName))).catch(() => setBusinessTemplates([]));
+  }, [formData.businessId]);
+  useEffect(() => { if (isOpen && formData.businessId) fetchCustomers(); }, [isOpen, formData.businessId]);
   // One line per Meta template body placeholder, in order: line 1 fills
   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
   const [templateParamsText, setTemplateParamsText] = useState("");
@@ -820,6 +830,8 @@ const fileInputRef = useRef(null);
         ...prev,
         metaTemplateName: "",
         metaTemplateLanguage: "en_US",
+    businessId: "",
+    templateId: "",
       }));
 
       return;
@@ -851,6 +863,8 @@ const resetForm = () => {
     scheduledAt: "",
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
+    businessId: "",
+    templateId: "",
   });
 
   setTemplateParamsText("");
@@ -873,7 +887,7 @@ const resetForm = () => {
     try {
       setLoadingCustomers(true);
 
-      const response = await getCustomers();
+      const response = await getCustomers("", "", undefined, undefined, formData.businessId);
 
       console.log("Customers Response:", response);
 
@@ -933,6 +947,8 @@ const resetForm = () => {
       scheduledAt: "",
       metaTemplateName: "",
       metaTemplateLanguage: "en_US",
+    businessId: "",
+    templateId: "",
     });
   }, [aiCampaign]);
 
@@ -1016,6 +1032,8 @@ const removeImage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!formData.businessId || !formData.templateId) { return toast.error("Select a business and its approved template."); }
 
     if (!formData.name.trim()) {
       return toast.error("Campaign name is required.");
@@ -1110,6 +1128,16 @@ return (
           className="max-h-[75vh] space-y-5 overflow-y-auto p-6"
         >
 
+          <div>
+            <label className="mb-2 block font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
+            <BusinessSelect required value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, templateId: "" })); setSelectedCustomers([]); }} />
+          </div>
+          <div>
+            <label className="mb-2 block font-medium text-gray-700">Approved Template <span className="text-red-500">*</span></label>
+            <select required disabled={!formData.businessId} value={formData.templateId} onChange={(e) => { const template = businessTemplates.find((item) => item.id === e.target.value); setFormData((prev) => ({ ...prev, templateId: e.target.value, metaTemplateName: template?.metaTemplateName || "", metaTemplateLanguage: template?.metaTemplateLanguage || "en_US", messageContent: template?.content || prev.messageContent })); }} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-[#25D366]">
+              <option value="">Select approved template</option>{businessTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
+            </select>
+          </div>
           {/* Campaign Name */}
 
           <div>

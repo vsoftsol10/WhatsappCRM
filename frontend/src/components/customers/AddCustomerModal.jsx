@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { createCustomer } from "../../api/customerApi";
 import toast from "react-hot-toast";
+import BusinessSelect from "../common/BusinessSelect";
 
 const EMPTY_FORM = {
   name: "",
@@ -11,6 +12,7 @@ const EMPTY_FORM = {
   source: "",
   requirements: "",
   status: "ACTIVE",
+  businessIds: [],
 };
 
 export default function AddCustomerModal({ isOpen, onClose, onSuccess }) {

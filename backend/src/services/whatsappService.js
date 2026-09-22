@@ -226,6 +226,29 @@ const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = []
   }
 };
 
+const submitMessageTemplate = async ({ name, category, language, content }) => {
+  const metaCategory = category === "MARKETING" || category === "AUTHENTICATION" ? category : "UTILITY";
+  if (!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID) return { success: false, error: { message: "WhatsApp Business Account is not configured." } };
+  try {
+    const response = await whatsappApi.post(`https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`, {
+      name,
+      category,
+      language,
+      components: [{ type: "BODY", text: content }],
+    }, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`, "Content-Type": "application/json" } });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error("WhatsApp Template Submit Error:", error.response?.data || error.message);
+    return { success: false, error: error.response?.data || error.message };
+  }
+};
+
+const getMessageTemplateStatus = async ({ id, name, language }) => {
+  const result = await getMessageTemplates({ approvedOnly: false });
+  if (!result.success) return result;
+  const template = result.data.find((item) => (id && item.id === id) || (item.name === name && item.language === language));
+  return { success: true, data: template || null };
+};
 // ================= FETCH APPROVED TEMPLATES FROM META =================
 // Used to populate the Campaign/Template "Meta Approved Template" dropdown
 // in the frontend, instead of the customer typing a template name and
@@ -234,7 +257,7 @@ const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = []
 // earlier (a one-letter typo in the name, and a guessed-wrong language
 // code) — pulling the live, approved list directly from Meta makes that
 // entire class of mistake structurally impossible.
-const getMessageTemplates = async () => {
+const getMessageTemplates = async ({ approvedOnly = true } = {}) => {
   if (!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID) {
     return {
       success: false,
@@ -268,7 +291,7 @@ const getMessageTemplates = async () => {
       // PENDING/REJECTED ones in this same list, which would otherwise
       // show up as selectable options and fail exactly like the manual
       // typo did.
-      .filter((t) => t.status === "APPROVED")
+      .filter((t) => !approvedOnly || t.status === "APPROVED")
       .map((t) => {
         const bodyComponent = (t.components || []).find(
           (c) => c.type === "BODY"
@@ -290,12 +313,14 @@ const getMessageTemplates = async () => {
         );
 
         return {
+          id: t.id,
           name: t.name,
           language: t.language,
           category: t.category,
           bodyText: bodyComponent?.text || "",
           paramCount,
           hasImageHeader: headerComponent?.format === "IMAGE",
+          rejectionReason: t.rejected_reason || t.rejection_reason || null,
         };
       });
 
@@ -315,4 +340,6 @@ module.exports = {
   sendTemplateMessage,
   sendCampaignImageTemplate,
   getMessageTemplates,
+  submitMessageTemplate,
+  getMessageTemplateStatus,
 };

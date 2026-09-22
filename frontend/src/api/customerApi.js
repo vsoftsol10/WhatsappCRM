@@ -5,12 +5,14 @@ export const getCustomers = async (
   search = "",
   page,
   limit,
+  businessId,
 ) => {
   const response = await apiClient.get("/api/customers", {
     params: {
       status,
       search,
       ...(page ? { page, limit } : {}),
+      ...(businessId ? { businessId } : {}),
     },
   });
   return response.data;
@@ -52,10 +54,10 @@ export const previewBulkImportCustomers = async (file) => {
   return response.data;
 };
 
-export const confirmBulkImportCustomers = async ({ toCreate, toUpdate }) => {
+export const confirmBulkImportCustomers = async ({ toCreate, toUpdate, toLink, businessId }) => {
   const response = await apiClient.post(
     "/api/customers/bulk-import/confirm",
-    { toCreate, toUpdate }
+    { toCreate, toUpdate, toLink, businessId }
   );
 
   return response.data;

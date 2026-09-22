@@ -25,6 +25,8 @@
 //   formData.append("name", campaignData.name);
 //   formData.append("type", campaignData.type);
 //   formData.append("messageContent", campaignData.messageContent);
+//   formData.append("businessId", campaignData.businessId);
+//   formData.append("templateId", campaignData.templateId);
 
 //   if (campaignData.scheduledAt) {
 //     formData.append("scheduledAt", campaignData.scheduledAt);
@@ -239,6 +241,8 @@ export const createCampaign = async (campaignData) => {
   formData.append("name", campaignData.name);
   formData.append("type", campaignData.type);
   formData.append("messageContent", campaignData.messageContent);
+//   formData.append("businessId", campaignData.businessId);
+//   formData.append("templateId", campaignData.templateId);
 
   if (campaignData.scheduledAt) {
     formData.append("scheduledAt", campaignData.scheduledAt);
