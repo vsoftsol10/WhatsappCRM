@@ -1,6 +1,6 @@
 const prisma = require("../config/prisma");
 
-// CREATE CONVERSATION
+// CREATE CONVERSATIO
 // const createConversation = async (req, res) => {
 //   try {
 //     const {
