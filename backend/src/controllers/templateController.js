@@ -796,9 +796,6 @@ const createTemplate = async (req, res) => {
     if (!businessId || !(await prisma.business.findFirst({ where: { id: businessId, isActive: true } }))) {
       return res.status(400).json({ success: false, message: "Select an active business." });
     }
-    if (!metaTemplateName?.trim()) {
-      return res.status(400).json({ success: false, message: "An approved Meta template is required." });
-    }
     if (!name || !content) {
       return res.status(400).json({
         success: false,
