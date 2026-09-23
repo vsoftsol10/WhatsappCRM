@@ -768,7 +768,7 @@ const submitTemplateForMetaApproval = async (req, res) => {
     if (!template.businessId) return res.status(400).json({ success: false, message: "Template must belong to a business before submission." });
     const metaName = toMetaTemplateName(template.metaTemplateName || template.name);
     const result = await submitMessageTemplate({ name: metaName, category: template.category, language: template.metaTemplateLanguage || "en_US", content: template.content });
-    if (!result.success) return res.status(502).json({ success: false, message: result.error?.error?.message === "Invalid parameter" ? "Meta could not accept this template. Check the template body and try again; the CRM has converted its Meta name to the required lowercase format." : result.error?.error?.message || result.error?.message || "Meta could not accept this template. Please review its name, category, language and body." });
+    if (!result.success) return res.status(502).json({ success: false, message: result.userMessage || "Meta could not accept this template. Please review its name, category, language and body." });
     const updated = await prisma.template.update({ where: { id: template.id }, data: { metaTemplateId: result.data?.id || null, metaApprovalStatus: result.data?.status || "PENDING", metaRejectionReason: null, metaStatusSyncedAt: new Date(), metaTemplateName: metaName } });
     return res.json({ success: true, message: "Template submitted to Meta successfully. It is now waiting for Meta approval.", data: updated });
   } catch (error) { console.error("Submit template for Meta approval error:", error); return res.status(500).json({ success: false, message: "Unable to submit template to Meta right now." }); }

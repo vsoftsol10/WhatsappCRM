@@ -251,7 +251,8 @@ const submitMessageTemplate = async ({ name, category, language, content }) => {
     return { success: true, data: { ...response.data, name: metaName } };
   } catch (error) {
     console.error("WhatsApp Template Submit Error:", error.response?.data || error.message);
-    return { success: false, error: error.response?.data || error.message };
+    const metaError = error.response?.data?.error;
+    return { success: false, error: error.response?.data || error.message, userMessage: metaError?.error_user_msg || metaError?.error_data?.details || metaError?.message || "Meta could not validate this template." };
   }
 };
 
