@@ -742,7 +742,7 @@
 
 const prisma = require("../config/prisma");
 const { generateTemplate } = require("../services/geminiService");
-const { sendTextMessage, sendTemplateMessage, getMessageTemplates, submitMessageTemplate, getMessageTemplateStatus } = require("../services/whatsappService");
+const { sendTextMessage, sendTemplateMessage, getMessageTemplates, submitMessageTemplate, getMessageTemplateStatus, toMetaTemplateName } = require("../services/whatsappService");
 const {
   getOrCreateConversation,
 } = require("../helpers/conversationHelper");
@@ -818,6 +818,7 @@ const createTemplate = async (req, res) => {
         templateParams: parseTemplateParams(templateParams) ?? null,
         createdById: req.user.userId,
       },
+      include: { business: { select: { id: true, name: true } } },
     });
 
     // ================= AUDIT LOG =================
@@ -1011,6 +1012,7 @@ const updateTemplate = async (req, res) => {
           templateParams: parseTemplateParams(templateParams),
         }),
       },
+      include: { business: { select: { id: true, name: true } } },
     });
 
     // ================= AUDIT LOG =================
@@ -1072,6 +1074,7 @@ const deleteTemplate = async (req, res) => {
       where: {
         id,
       },
+      include: { business: { select: { id: true, name: true } } },
     });
 
     // ================= AUDIT LOG =================
@@ -1504,9 +1507,10 @@ const submitTemplateForMetaApproval = async (req, res) => {
     const template = await prisma.template.findUnique({ where: { id: req.params.id } });
     if (!template) return res.status(404).json({ success: false, message: "Template not found." });
     if (!template.businessId) return res.status(400).json({ success: false, message: "Template must belong to a business before submission." });
-    const result = await submitMessageTemplate({ name: template.metaTemplateName || template.name, category: template.category, language: template.metaTemplateLanguage || "en_US", content: template.content });
-    if (!result.success) return res.status(502).json({ success: false, message: result.error?.error?.message || result.error?.message || "Meta could not accept this template. Please review its name, category, language and body." });
-    const updated = await prisma.template.update({ where: { id: template.id }, data: { metaTemplateId: result.data?.id || null, metaApprovalStatus: result.data?.status || "PENDING", metaRejectionReason: null, metaStatusSyncedAt: new Date(), metaTemplateName: template.metaTemplateName || template.name } });
+    const metaName = toMetaTemplateName(template.metaTemplateName || template.name);
+    const result = await submitMessageTemplate({ name: metaName, category: template.category, language: template.metaTemplateLanguage || "en_US", content: template.content });
+    if (!result.success) return res.status(502).json({ success: false, message: result.error?.error?.message === "Invalid parameter" ? "Meta could not accept this template. Check the template body and try again; the CRM has converted its Meta name to the required lowercase format." : result.error?.error?.message || result.error?.message || "Meta could not accept this template. Please review its name, category, language and body." });
+    const updated = await prisma.template.update({ where: { id: template.id }, data: { metaTemplateId: result.data?.id || null, metaApprovalStatus: result.data?.status || "PENDING", metaRejectionReason: null, metaStatusSyncedAt: new Date(), metaTemplateName: metaName } });
     return res.json({ success: true, message: "Template submitted to Meta successfully. It is now waiting for Meta approval.", data: updated });
   } catch (error) { console.error("Submit template for Meta approval error:", error); return res.status(500).json({ success: false, message: "Unable to submit template to Meta right now." }); }
 };

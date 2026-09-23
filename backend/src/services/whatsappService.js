@@ -226,17 +226,29 @@ const sendCampaignImageTemplate = async (to, templateName, imageUrl, params = []
   }
 };
 
+const toMetaTemplateName = (value) => {
+  let normalized = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+  if (!/^[a-z]/.test(normalized)) normalized = `template_${normalized}`;
+  return normalized.slice(0, 512);
+};
+
 const submitMessageTemplate = async ({ name, category, language, content }) => {
+  const metaName = toMetaTemplateName(name);
   const metaCategory = category === "MARKETING" || category === "AUTHENTICATION" ? category : "UTILITY";
   if (!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID) return { success: false, error: { message: "WhatsApp Business Account is not configured." } };
   try {
     const response = await whatsappApi.post(`https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`, {
-      name,
-      category,
+      name: metaName,
+      category: metaCategory,
       language,
       components: [{ type: "BODY", text: content }],
     }, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`, "Content-Type": "application/json" } });
-    return { success: true, data: response.data };
+    return { success: true, data: { ...response.data, name: metaName } };
   } catch (error) {
     console.error("WhatsApp Template Submit Error:", error.response?.data || error.message);
     return { success: false, error: error.response?.data || error.message };
@@ -341,5 +353,6 @@ module.exports = {
   sendCampaignImageTemplate,
   getMessageTemplates,
   submitMessageTemplate,
+  toMetaTemplateName,
   getMessageTemplateStatus,
 };
