@@ -5,6 +5,11 @@
 // import { getCustomers } from "../../api/customerApi";
 // import useCampaignStore from "../../store/campaignStore";
 // import useMetaApprovedTemplates from "../../hooks/useMetaApprovedTemplates";
+// import BusinessSelect from "../common/BusinessSelect";
+// import { getTemplates } from "../../api/templateApi";
+
+// const normalizeMetaName = (value) => String(value || "").trim().toLowerCase();
+// const normalizeMetaLanguage = (value) => String(value || "").trim().toLowerCase().replace(/-/g, "_");
 
 // export default function CreateCampaignModal({
 //   isOpen,
@@ -16,6 +21,7 @@
 // } = useCampaignStore();
 
 //   const [customers, setCustomers] = useState([]);
+//   const [businessTemplates, setBusinessTemplates] = useState([]);
 //   const [selectedCustomers, setSelectedCustomers] = useState([]);
 //   const [loadingCustomers, setLoadingCustomers] = useState(false);
 //   const [submitting, setSubmitting] = useState(false);
@@ -30,7 +36,35 @@
 //     scheduledAt: "",
 //     metaTemplateName: "",
 //     metaTemplateLanguage: "en_US",
+//     businessId: "",
 //   });
+//   useEffect(() => {
+//     if (!isOpen || !formData.businessId) {
+//       setBusinessTemplates([]);
+//       return;
+//     }
+
+//     let cancelled = false;
+//     getTemplates()
+//       .then((res) => {
+//         if (cancelled) return;
+//         setBusinessTemplates(
+//           (res.data || []).filter(
+//             (t) =>
+//               t.businessId === formData.businessId &&
+//               t.metaTemplateName
+//           )
+//         );
+//       })
+//       .catch(() => {
+//         if (!cancelled) setBusinessTemplates([]);
+//       });
+
+//     return () => {
+//       cancelled = true;
+//     };
+//   }, [isOpen, formData.businessId]);
+//   useEffect(() => { if (isOpen && formData.businessId) fetchCustomers(); }, [isOpen, formData.businessId]);
 //   // One line per Meta template body placeholder, in order: line 1 fills
 //   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
 //   const [templateParamsText, setTemplateParamsText] = useState("");
@@ -89,6 +123,7 @@
 //     scheduledAt: "",
 //     metaTemplateName: "",
 //     metaTemplateLanguage: "en_US",
+//     businessId: "",
 //   });
 
 //   setTemplateParamsText("");
@@ -111,7 +146,7 @@
 //     try {
 //       setLoadingCustomers(true);
 
-//       const response = await getCustomers();
+//       const response = await getCustomers("", "", undefined, undefined, formData.businessId);
 
 //       console.log("Customers Response:", response);
 
@@ -171,6 +206,7 @@
 //       scheduledAt: "",
 //       metaTemplateName: "",
 //       metaTemplateLanguage: "en_US",
+//     businessId: "",
 //     });
 //   }, [aiCampaign]);
 
@@ -254,6 +290,8 @@
 
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
+
+//     if (!formData.businessId || !formData.metaTemplateName) { return toast.error("Select a business and an approved Meta template."); }
 
 //     if (!formData.name.trim()) {
 //       return toast.error("Campaign name is required.");
@@ -348,6 +386,11 @@
 //           className="max-h-[75vh] space-y-5 overflow-y-auto p-6"
 //         >
 
+//           <div>
+//             <label className="mb-2 block font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
+//             <BusinessSelect required value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
+//           </div>
+
 //           {/* Campaign Name */}
 
 //           <div>
@@ -431,7 +474,7 @@
 //           <div>
 
 //             <label className="mb-2 block font-medium text-gray-700">
-//               Meta Approved Template (optional)
+//               Meta Approved Template
 //             </label>
 
 //             <select
@@ -443,11 +486,19 @@
 //               onChange={handleTemplateSelect}
 //               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-[#25D366]"
 //             >
-//               <option value="">— Use the default generic template —</option>
+//               <option value="">Select an approved Meta template</option>
 
 //               {templatesLoading && <option disabled>Loading templates…</option>}
 
-//               {approvedTemplates.map((t) => (
+//               {approvedTemplates
+//                 .filter((t) =>
+//                   businessTemplates.some(
+//                     (local) =>
+//                       normalizeMetaName(local.metaTemplateName) === normalizeMetaName(t.name) &&
+//                       normalizeMetaLanguage(local.metaTemplateLanguage) === normalizeMetaLanguage(t.language)
+//                   )
+//                 )
+//                 .map((t) => (
 //                 <option
 //                   key={`${t.name}__${t.language}`}
 //                   value={`${t.name}__${t.language}`}
@@ -471,25 +522,26 @@
 
 //           </div>
 
-//           {/* Dedicated Template Body Parameters */}
+//           {/* Template Parameters — always available, whether or not a
+//               Meta-approved template is selected above. */}
 
-//           {selectedTemplate && (
-//             <div>
+//           <div>
 
-//               <label className="mb-2 block font-medium text-gray-700">
-//                 Template Body Parameters (one per line, in order)
-//               </label>
+//             <label className="mb-2 block font-medium text-gray-700">
+//               Parameters (one per line, in order)
+//             </label>
 
-//               <textarea
-//                 rows={5}
-//                 value={templateParamsText}
-//                 onChange={(e) => setTemplateParamsText(e.target.value)}
-//                 placeholder={
-//                   "Eco & Natural Product Entrepreneurs Meetup\n22 August 2026, Saturday\n4:30 PM – 6:30 PM\nVannarpet, Tirunelveli\n9095422237"
-//                 }
-//                 className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#25D366]"
-//               />
+//             <textarea
+//               rows={5}
+//               value={templateParamsText}
+//               onChange={(e) => setTemplateParamsText(e.target.value)}
+//               placeholder={
+//                 "Eco & Natural Product Entrepreneurs Meetup\n22 August 2026, Saturday\n4:30 PM – 6:30 PM\nVannarpet, Tirunelveli\n9095422237"
+//               }
+//               className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 font-mono text-sm outline-none transition focus:border-[#25D366]"
+//             />
 
+//             {selectedTemplate ? (
 //               <p className="mt-1 text-xs text-gray-500">
 //                 This template needs{" "}
 //                 <strong>
@@ -506,9 +558,92 @@
 //                   </>
 //                 )}
 //               </p>
+//             ) : (
+//               <p className="mt-1 text-xs text-gray-500">
+//                 Fill in one value per line for any {"{{1}}"}, {"{{2}}"},
+//                 etc. placeholders used in your message content above (in
+//                 order). You can use {"{{customer_name}}"}, {"{{company}}"},{" "}
+//                 {"{{phone}}"} or {"{{email}}"} in any line to personalize
+//                 it per recipient. Leave blank if your content has no
+//                 placeholders.
+//               </p>
+//             )}
 
+//           </div>
+
+//           {/* Preview — shows a sample of exactly what the customer will
+//               see on WhatsApp, using the first selected customer's name
+//               where available, before the campaign is actually sent. */}
+
+//           <div>
+
+//             <label className="mb-2 block font-medium text-gray-700">
+//               Preview
+//             </label>
+
+//             <div className="rounded-lg border border-gray-300 bg-[#e5ddd5] p-4">
+//               <div className="max-w-sm rounded-lg rounded-tl-none bg-white px-3 py-2 shadow">
+//                 {imagePreview && (
+//                   <img
+//                     src={imagePreview}
+//                     alt="Preview"
+//                     className="mb-2 max-h-40 w-full rounded-md object-cover"
+//                   />
+//                 )}
+
+//                 <p className="whitespace-pre-wrap text-sm text-gray-800">
+//                   {(() => {
+//                     const sampleName =
+//                       customers.find((c) =>
+//                         selectedCustomers.includes(c.id)
+//                       )?.name || "Customer";
+
+//                     const paramLines = templateParamsText
+//                       .split("\n")
+//                       .map((l) => l.trim())
+//                       .filter((l) => l.length > 0);
+
+//                     const fillSample = (text) =>
+//                       (text || "")
+//                         .replaceAll("{{customer_name}}", sampleName)
+//                         .replaceAll("{{company}}", "Your Company")
+//                         .replaceAll("{{phone}}", "—")
+//                         .replaceAll("{{email}}", "—");
+
+//                     if (selectedTemplate) {
+//                       let body = selectedTemplate.bodyText || "";
+//                       paramLines.forEach((val, idx) => {
+//                         body = body.replaceAll(
+//                           `{{${idx + 1}}}`,
+//                           fillSample(val)
+//                         );
+//                       });
+//                       return body || "Select a template to preview it here.";
+//                     }
+
+//                     return (
+//                       fillSample(formData.messageContent) ||
+//                       "Type your message content to preview it here."
+//                     );
+//                   })()}
+//                 </p>
+
+//                 <p className="mt-1 text-right text-[10px] text-gray-400">
+//                   Preview only — actual message may vary
+//                 </p>
+//               </div>
 //             </div>
-//           )}
+
+//             <p className="mt-1 text-xs text-gray-500">
+//               This is a sample of how the message will look on WhatsApp,
+//               using {customers.find((c) => selectedCustomers.includes(c.id))
+//                 ? "the first selected customer's"
+//                 : "a placeholder"}{" "}
+//               name.
+//             </p>
+
+//           </div>
+
 
 //           {/* Schedule */}
 
@@ -768,10 +903,6 @@ import { getCustomers } from "../../api/customerApi";
 import useCampaignStore from "../../store/campaignStore";
 import useMetaApprovedTemplates from "../../hooks/useMetaApprovedTemplates";
 import BusinessSelect from "../common/BusinessSelect";
-import { getTemplates } from "../../api/templateApi";
-
-const normalizeMetaName = (value) => String(value || "").trim().toLowerCase();
-const normalizeMetaLanguage = (value) => String(value || "").trim().toLowerCase().replace(/-/g, "_");
 
 export default function CreateCampaignModal({
   isOpen,
@@ -783,7 +914,6 @@ export default function CreateCampaignModal({
 } = useCampaignStore();
 
   const [customers, setCustomers] = useState([]);
-  const [businessTemplates, setBusinessTemplates] = useState([]);
   const [selectedCustomers, setSelectedCustomers] = useState([]);
   const [loadingCustomers, setLoadingCustomers] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -800,34 +930,6 @@ const fileInputRef = useRef(null);
     metaTemplateLanguage: "en_US",
     businessId: "",
   });
-  useEffect(() => {
-    if (!isOpen || !formData.businessId) {
-      setBusinessTemplates([]);
-      return;
-    }
-
-    let cancelled = false;
-    getTemplates()
-      .then((res) => {
-        if (cancelled) return;
-        setBusinessTemplates(
-          (res.data || []).filter(
-            (t) =>
-              t.businessId === formData.businessId &&
-              t.status === "ACTIVE" &&
-              t.metaApprovalStatus === "APPROVED" &&
-              t.metaTemplateName
-          )
-        );
-      })
-      .catch(() => {
-        if (!cancelled) setBusinessTemplates([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [isOpen, formData.businessId]);
   useEffect(() => { if (isOpen && formData.businessId) fetchCustomers(); }, [isOpen, formData.businessId]);
   // One line per Meta template body placeholder, in order: line 1 fills
   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
@@ -1254,15 +1356,7 @@ return (
 
               {templatesLoading && <option disabled>Loading templates…</option>}
 
-              {approvedTemplates
-                .filter((t) =>
-                  businessTemplates.some(
-                    (local) =>
-                      normalizeMetaName(local.metaTemplateName) === normalizeMetaName(t.name) &&
-                      normalizeMetaLanguage(local.metaTemplateLanguage) === normalizeMetaLanguage(t.language)
-                  )
-                )
-                .map((t) => (
+              {approvedTemplates.map((t) => (
                 <option
                   key={`${t.name}__${t.language}`}
                   value={`${t.name}__${t.language}`}

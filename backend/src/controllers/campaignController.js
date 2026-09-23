@@ -879,6 +879,8 @@ const {
   sendImageMessage,
   sendTemplateMessage,
   sendCampaignImageTemplate,
+  getMessageTemplateStatus,
+  toMetaTemplateName,
 } = require("../services/whatsappService");
 const { generateCampaign } = require("../services/geminiService");
 const { notifyAdmins } = require("../services/notificationService");
@@ -956,16 +958,45 @@ console.log("Is Array:", Array.isArray(customerIds));
     if (!businessId || !metaTemplateName || !metaTemplateLanguage) {
       return res.status(400).json({ success: false, message: "Business and an approved Meta template are required." });
     }
-    // The UI selects the live Meta name/language pair. Resolve it to this
-    // business's locally tracked, Meta-approved template; never trust a
-    // client-supplied template id from another brand.
-    const selectedTemplate = await prisma.template.findFirst({
-      where: { businessId, metaTemplateName, metaTemplateLanguage, status: "ACTIVE", metaApprovalStatus: "APPROVED" },
-      select: { id: true },
+    // A template must first be mapped to the selected business in the CRM.
+    // Its approval is checked live against Meta here, rather than relying on
+    // a stale local sync value from an earlier page visit.
+    const templateCandidates = await prisma.template.findMany({
+      where: { businessId, metaTemplateName: { not: null } },
+      select: { id: true, metaTemplateId: true, metaTemplateName: true, metaTemplateLanguage: true },
     });
+    const selectedTemplate = templateCandidates.find(
+      (template) =>
+        toMetaTemplateName(template.metaTemplateName) === toMetaTemplateName(metaTemplateName) &&
+        String(template.metaTemplateLanguage || "").trim().toLowerCase().replace(/-/g, "_") ===
+          String(metaTemplateLanguage || "").trim().toLowerCase().replace(/-/g, "_")
+    );
     if (!selectedTemplate) {
-      return res.status(400).json({ success: false, message: "Select an approved Meta template belonging to the selected business." });
+      return res.status(400).json({ success: false, message: "Select a Meta template mapped to the selected business." });
     }
+
+    const liveMetaStatus = await getMessageTemplateStatus({
+      id: selectedTemplate.metaTemplateId,
+      name: selectedTemplate.metaTemplateName,
+      language: selectedTemplate.metaTemplateLanguage,
+    });
+    if (!liveMetaStatus.success) {
+      return res.status(502).json({ success: false, message: "Unable to verify the selected template with Meta right now." });
+    }
+    if (!liveMetaStatus.data || liveMetaStatus.data.status !== "APPROVED") {
+      return res.status(400).json({ success: false, message: "The selected template is not approved by Meta yet." });
+    }
+
+    await prisma.template.update({
+      where: { id: selectedTemplate.id },
+      data: {
+        metaTemplateId: liveMetaStatus.data.id || selectedTemplate.metaTemplateId,
+        metaApprovalStatus: "APPROVED",
+        metaRejectionReason: null,
+        metaStatusSyncedAt: new Date(),
+        status: "ACTIVE",
+      },
+    });
     const templateId = selectedTemplate.id;
     const selectedIds = [...new Set(customerIds)];
     const allowedCustomers = await prisma.customer.count({ where: { id: { in: selectedIds }, businesses: { some: { businessId } } } });
