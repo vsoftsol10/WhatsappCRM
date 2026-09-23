@@ -415,6 +415,23 @@ const sendTemplate = async (req, res) => {
 
 
 
+    // A business template may only be sent to customers assigned to that
+    // business. Global templates (businessId null) remain available to all.
+    if (template.businessId) {
+      const uniqueCustomerIds = [...new Set(customerIds.map((id) => String(id)))];
+      const allowedCustomerCount = await prisma.customer.count({
+        where: {
+          id: { in: uniqueCustomerIds },
+          businesses: { some: { businessId: template.businessId } },
+        },
+      });
+      if (allowedCustomerCount !== uniqueCustomerIds.length) {
+        return res.status(400).json({
+          success: false,
+          message: "Every selected customer must belong to this template's business.",
+        });
+      }
+    }
     // Send template to each customer
 
     for (const customerId of customerIds) {

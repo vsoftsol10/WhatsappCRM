@@ -669,33 +669,18 @@
 //   // no dedicated template is set at all.
 //   const usesDedicatedMetaTemplate = Boolean(campaign.metaTemplateName);
 
-//   // Bug history: this used to silently send `[]` as the body params
-//   // for any dedicated template, which only worked for templates with
-//   // zero body variables. Against a template with real {{1}}..{{n}}
-//   // placeholders (e.g. vedaconnect_campaign, which has 5), Meta either
-//   // rejects the send or — worse — WhatsApp clients have shown stale/
-//   // mismatched cached content in that failure mode. Rather than
-//   // guessing the param count, we require templateParams to be set
-//   // whenever metaTemplateName is set, and fail this recipient loudly
-//   // (not fall back to the wrong generic template) if it's missing.
-//   if (usesDedicatedMetaTemplate) {
-//     const hasParams =
-//       Array.isArray(campaign.templateParams) &&
-//       campaign.templateParams.length > 0;
+//   // Meta templates can legitimately have zero body placeholders. In that
+  // case WhatsApp requires an empty parameters array, not a made-up value.
+  // Templates with placeholders are validated when the campaign is created.
+  const campaignTemplateParams = Array.isArray(campaign.templateParams)
+    ? campaign.templateParams
+    : [];
 
-//     if (!hasParams) {
-//       throw new Error(
-//         `Campaign "${campaign.name}" has metaTemplateName="${campaign.metaTemplateName}" set but no templateParams. ` +
-//         `Edit the campaign and fill in the body parameter values for this template before sending.`
-//       );
-//     }
-//   }
-
-//   // Per-recipient personalization: templateParams may itself contain
+  // Per-recipient personalization: templateParams may itself contain
 //   // {{customer_name}} etc. tokens (same convention as messageContent),
 //   // so run each value through the same filler before sending.
 //   const dedicatedTemplateParams = usesDedicatedMetaTemplate
-//     ? campaign.templateParams.map((p) =>
+//     ? campaignTemplateParams.map((p) =>
 //         fillTemplatePlaceholders(String(p ?? ""), customer)
 //       )
 //     : null;
@@ -1596,33 +1581,18 @@ try {
   // no dedicated template is set at all.
   const usesDedicatedMetaTemplate = Boolean(campaign.metaTemplateName);
 
-  // Bug history: this used to silently send `[]` as the body params
-  // for any dedicated template, which only worked for templates with
-  // zero body variables. Against a template with real {{1}}..{{n}}
-  // placeholders (e.g. vedaconnect_campaign, which has 5), Meta either
-  // rejects the send or — worse — WhatsApp clients have shown stale/
-  // mismatched cached content in that failure mode. Rather than
-  // guessing the param count, we require templateParams to be set
-  // whenever metaTemplateName is set, and fail this recipient loudly
-  // (not fall back to the wrong generic template) if it's missing.
-  if (usesDedicatedMetaTemplate) {
-    const hasParams =
-      Array.isArray(campaign.templateParams) &&
-      campaign.templateParams.length > 0;
-
-    if (!hasParams) {
-      throw new Error(
-        `Campaign "${campaign.name}" has metaTemplateName="${campaign.metaTemplateName}" set but no templateParams. ` +
-        `Edit the campaign and fill in the body parameter values for this template before sending.`
-      );
-    }
-  }
+  // Meta templates can legitimately have zero body placeholders. In that
+  // case WhatsApp requires an empty parameters array, not a made-up value.
+  // Templates with placeholders are validated when the campaign is created.
+  const campaignTemplateParams = Array.isArray(campaign.templateParams)
+    ? campaign.templateParams
+    : [];
 
   // Per-recipient personalization: templateParams may itself contain
   // {{customer_name}} etc. tokens (same convention as messageContent),
   // so run each value through the same filler before sending.
   const dedicatedTemplateParams = usesDedicatedMetaTemplate
-    ? campaign.templateParams.map((p) =>
+    ? campaignTemplateParams.map((p) =>
         fillTemplatePlaceholders(String(p ?? ""), customer)
       )
     : null;

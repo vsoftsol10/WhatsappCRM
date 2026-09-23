@@ -5,6 +5,7 @@ import { X, Send, Loader2 } from "lucide-react";
 import { getCustomers } from "../../api/customerApi";
 import { getTemplateRecipients } from "../../api/templateApi";
 import useTemplateStore from "../../store/templateStore";
+import BusinessSelect from "../common/BusinessSelect";
 
 export default function SendTemplateModal({
   isOpen,
@@ -20,6 +21,7 @@ export default function SendTemplateModal({
   const [sentCustomers, setSentCustomers] = useState([]);
 
   const [search, setSearch] = useState("");
+  const [businessFilterId, setBusinessFilterId] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -43,9 +45,9 @@ export default function SendTemplateModal({
     }
   };
 
-  const fetchCustomers = async () => {
+  const fetchCustomers = async (businessId = "") => {
     try {
-      const response = await getCustomers();
+      const response = await getCustomers("", "", undefined, undefined, businessId);
 
       if (Array.isArray(response)) {
         setCustomers(response);
@@ -66,7 +68,7 @@ export default function SendTemplateModal({
     if (!isOpen || !template) return;
 
     const loadData = () => {
-      fetchCustomers();
+      fetchCustomers(template.businessId || businessFilterId);
       fetchTemplateHistory();
 
       setSelectedCustomers([]);
@@ -75,7 +77,7 @@ export default function SendTemplateModal({
 
     loadData();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, template]);
+  }, [isOpen, template, businessFilterId]);
 
   // const fetchTemplateHistory = async () => {
   //   try {
@@ -218,6 +220,16 @@ export default function SendTemplateModal({
         {/* SEARCH */}
 
         <div className="p-5">
+          {template.businessId ? (
+            <p className="mb-3 text-sm font-medium text-green-700">
+              Customers are filtered to: {template.business?.name || "this template's business"}
+            </p>
+          ) : (
+            <div className="mb-3">
+              <label className="mb-1 block text-sm font-medium text-gray-700">Filter customers by business</label>
+              <BusinessSelect value={businessFilterId} onChange={(businessId) => setBusinessFilterId(businessId)} />
+            </div>
+          )}
           <input
             type="text"
             placeholder="Search customer..."

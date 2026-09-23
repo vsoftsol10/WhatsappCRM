@@ -33,7 +33,7 @@
 //   // ===========================
 //   const fetchCustomers = async () => {
 //     try {
-//       const response = await getCustomers();
+//       const response = await getCustomers("", "", undefined, undefined, campaign.businessId);
 
 //       console.log("Customers Response:", response);
 
@@ -459,7 +459,7 @@ export default function SendCampaignModal({
   // ===========================
   const fetchCustomers = async () => {
     try {
-      const response = await getCustomers();
+      const response = await getCustomers("", "", undefined, undefined, campaign.businessId);
 
       console.log("Customers Response:", response);
 
@@ -654,6 +654,10 @@ const handleClearAll = () => {
 
             <p className="text-gray-500 text-sm mt-1">
               {campaign.name}
+            </p>
+
+                      <p className="mt-1 text-xs font-medium text-green-700">
+              Customers are filtered to: {campaign.business?.name || "this campaign's business"}
             </p>
 
           </div>
