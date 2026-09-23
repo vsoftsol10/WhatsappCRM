@@ -935,7 +935,6 @@ exports.createCampaign = async (req, res) => {
   metaTemplateLanguage,
   templateParams,
   businessId,
-  templateId,
 } = req.body;
 
 // =============================
@@ -954,15 +953,20 @@ console.log("Customer IDs:", customerIds);
 
 console.log("Customer IDs:", customerIds);
 console.log("Is Array:", Array.isArray(customerIds));
-    if (!businessId || !templateId) {
-      return res.status(400).json({ success: false, message: "Business and approved template are required." });
+    if (!businessId || !metaTemplateName || !metaTemplateLanguage) {
+      return res.status(400).json({ success: false, message: "Business and an approved Meta template are required." });
     }
+    // The UI selects the live Meta name/language pair. Resolve it to this
+    // business's locally tracked, Meta-approved template; never trust a
+    // client-supplied template id from another brand.
     const selectedTemplate = await prisma.template.findFirst({
-      where: { id: templateId, businessId, status: "ACTIVE", metaApprovalStatus: "APPROVED", metaTemplateName: { not: null } },
+      where: { businessId, metaTemplateName, metaTemplateLanguage, status: "ACTIVE", metaApprovalStatus: "APPROVED" },
+      select: { id: true },
     });
     if (!selectedTemplate) {
-      return res.status(400).json({ success: false, message: "Select an active approved template from the selected business." });
+      return res.status(400).json({ success: false, message: "Select an approved Meta template belonging to the selected business." });
     }
+    const templateId = selectedTemplate.id;
     const selectedIds = [...new Set(customerIds)];
     const allowedCustomers = await prisma.customer.count({ where: { id: { in: selectedIds }, businesses: { some: { businessId } } } });
     if (allowedCustomers !== selectedIds.length) {

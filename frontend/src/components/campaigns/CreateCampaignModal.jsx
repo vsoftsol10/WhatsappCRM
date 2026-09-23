@@ -829,7 +829,6 @@ const fileInputRef = useRef(null);
         ...prev,
         metaTemplateName: "",
         metaTemplateLanguage: "en_US",
-    businessId: "",
       }));
 
       return;
@@ -1224,7 +1223,7 @@ return (
               onChange={handleTemplateSelect}
               className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-[#25D366]"
             >
-              <option value="">— Use the default generic template —</option>
+              <option value="">Select an approved Meta template</option>
 
               {templatesLoading && <option disabled>Loading templates…</option>}
 
