@@ -1504,15 +1504,21 @@ exports.sendCampaign = async (req, res) => {
     if (allowedCustomerCount !== requestedCustomerIds.length) {
       return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
     }
-    await prisma.campaign.update({
+    // Existing campaigns may contain the old, human-readable title. Always
+    // send Meta's canonical lowercase name from the linked template record.
+    const canonicalMetaTemplateName = toMetaTemplateName(template.metaTemplateName);
+    const campaignToSend = await prisma.campaign.update({
       where: { id: campaignId },
-      data: { status: "SENDING" },
+      data: {
+        status: "SENDING",
+        metaTemplateName: canonicalMetaTemplateName,
+        metaTemplateLanguage: template.metaTemplateLanguage || "en_US",
+      },
     });
 
-    // Not awaited on purpose — this runs after the response is sent.
-    // Errors inside are caught and logged there so they can't crash
-    // the process or leave an unhandled rejection.
-    processCampaignSend(campaign, customerIds);
+    // The actual send runs after the response so a large campaign does not
+    // exceed the web request timeout.
+    processCampaignSend(campaignToSend, customerIds);
 
     return res.status(202).json({
       success: true,
