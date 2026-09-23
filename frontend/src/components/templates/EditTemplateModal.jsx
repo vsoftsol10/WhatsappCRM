@@ -160,12 +160,6 @@ export default function EditTemplateModal({
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
 
-    if (formData.metaTemplateName.trim() && templateParams.length === 0) {
-      return toast.error(
-        "You set a Meta template name — add its body parameter values below (one per line), or leave the template name blank."
-      );
-    }
-
     try {
       setSubmitting(true);
 
