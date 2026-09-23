@@ -770,6 +770,9 @@ import useMetaApprovedTemplates from "../../hooks/useMetaApprovedTemplates";
 import BusinessSelect from "../common/BusinessSelect";
 import { getTemplates } from "../../api/templateApi";
 
+const normalizeMetaName = (value) => String(value || "").trim().toLowerCase();
+const normalizeMetaLanguage = (value) => String(value || "").trim().toLowerCase().replace(/-/g, "_");
+
 export default function CreateCampaignModal({
   isOpen,
   onClose,
@@ -798,9 +801,33 @@ const fileInputRef = useRef(null);
     businessId: "",
   });
   useEffect(() => {
-    if (!formData.businessId) { setBusinessTemplates([]); return; }
-    getTemplates().then((res) => setBusinessTemplates((res.data || []).filter((t) => t.businessId === formData.businessId && t.status === "ACTIVE" && t.metaApprovalStatus === "APPROVED" && t.metaTemplateName))).catch(() => setBusinessTemplates([]));
-  }, [formData.businessId]);
+    if (!isOpen || !formData.businessId) {
+      setBusinessTemplates([]);
+      return;
+    }
+
+    let cancelled = false;
+    getTemplates()
+      .then((res) => {
+        if (cancelled) return;
+        setBusinessTemplates(
+          (res.data || []).filter(
+            (t) =>
+              t.businessId === formData.businessId &&
+              t.status === "ACTIVE" &&
+              t.metaApprovalStatus === "APPROVED" &&
+              t.metaTemplateName
+          )
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setBusinessTemplates([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen, formData.businessId]);
   useEffect(() => { if (isOpen && formData.businessId) fetchCustomers(); }, [isOpen, formData.businessId]);
   // One line per Meta template body placeholder, in order: line 1 fills
   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
@@ -1227,7 +1254,15 @@ return (
 
               {templatesLoading && <option disabled>Loading templates…</option>}
 
-              {approvedTemplates.filter((t) => businessTemplates.some((local) => local.metaTemplateName === t.name && local.metaTemplateLanguage === t.language)).map((t) => (
+              {approvedTemplates
+                .filter((t) =>
+                  businessTemplates.some(
+                    (local) =>
+                      normalizeMetaName(local.metaTemplateName) === normalizeMetaName(t.name) &&
+                      normalizeMetaLanguage(local.metaTemplateLanguage) === normalizeMetaLanguage(t.language)
+                  )
+                )
+                .map((t) => (
                 <option
                   key={`${t.name}__${t.language}`}
                   value={`${t.name}__${t.language}`}
