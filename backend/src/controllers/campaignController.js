@@ -696,7 +696,7 @@
 //       usesDedicatedMetaTemplate
 //         ? dedicatedTemplateParams // fills {{1}}..{{n}} on the dedicated template's body
 //         : [customer.name, personalizedMessage], // fills {{1}} and {{2}} on "campaign"
-//       "en" // Meta approved this template under "English", not "English (US)"
+//       campaign.metaTemplateLanguage || "en_US"
 //     );
 
 //   } else {
@@ -970,6 +970,12 @@ console.log("Is Array:", Array.isArray(customerIds));
     }
     if (!liveMetaStatus.data || liveMetaStatus.data.status !== "APPROVED") {
       return res.status(400).json({ success: false, message: "The selected template is not approved by Meta yet." });
+    }
+    if (req.file && !liveMetaStatus.data.hasImageHeader) {
+      return res.status(400).json({
+        success: false,
+        message: "This campaign includes an image. Select a Meta-approved template with an Image Header, or remove the image.",
+      });
     }
 
     await prisma.template.update({
@@ -1469,10 +1475,26 @@ exports.sendCampaign = async (req, res) => {
 
     const template = await prisma.template.findFirst({
       where: { id: campaign.templateId, businessId: campaign.businessId, status: "ACTIVE", metaApprovalStatus: "APPROVED", metaTemplateName: { not: null } },
-      select: { id: true },
+      select: { id: true, metaTemplateId: true, metaTemplateName: true, metaTemplateLanguage: true },
     });
     if (!template) {
       return res.status(400).json({ success: false, message: "Campaign template is not an active approved template for this business." });
+    }
+    if (campaign.imageUrl) {
+      const liveMetaStatus = await getMessageTemplateStatus({
+        id: template.metaTemplateId,
+        name: template.metaTemplateName,
+        language: template.metaTemplateLanguage,
+      });
+      if (!liveMetaStatus.success) {
+        return res.status(502).json({ success: false, message: "Unable to verify the image template with Meta right now." });
+      }
+      if (!liveMetaStatus.data?.hasImageHeader) {
+        return res.status(400).json({
+          success: false,
+          message: "This campaign has an image, but its Meta template does not have an Image Header. Remove the image or use an Image Header template.",
+        });
+      }
     }
 
     const requestedCustomerIds = [...new Set(customerIds.map((id) => String(id)))];
@@ -1608,7 +1630,7 @@ try {
       usesDedicatedMetaTemplate
         ? dedicatedTemplateParams // fills {{1}}..{{n}} on the dedicated template's body
         : [customer.name, personalizedMessage], // fills {{1}} and {{2}} on "campaign"
-      "en" // Meta approved this template under "English", not "English (US)"
+      campaign.metaTemplateLanguage || "en_US"
     );
 
   } else {
