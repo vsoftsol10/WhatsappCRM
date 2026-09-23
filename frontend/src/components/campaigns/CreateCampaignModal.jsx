@@ -306,9 +306,10 @@
 //       .map((line) => line.trim())
 //       .filter((line) => line.length > 0);
 
-//     if (formData.metaTemplateName.trim() && templateParams.length === 0) {
+//     const requiredParamCount = selectedTemplate?.paramCount ?? 0;
+//     if (formData.metaTemplateName.trim() && templateParams.length !== requiredParamCount) {
 //       return toast.error(
-//         "You set a Meta template name — add its body parameter values below (one per line), or leave the template name blank."
+//         `This Meta template needs exactly ${requiredParamCount} parameter${requiredParamCount === 1 ? "" : "s"}.`
 //       );
 //     }
 
@@ -1172,9 +1173,10 @@ const removeImage = () => {
       .map((line) => line.trim())
       .filter((line) => line.length > 0);
 
-    if (formData.metaTemplateName.trim() && templateParams.length === 0) {
+    const requiredParamCount = selectedTemplate?.paramCount ?? 0;
+    if (formData.metaTemplateName.trim() && templateParams.length !== requiredParamCount) {
       return toast.error(
-        "You set a Meta template name — add its body parameter values below (one per line), or leave the template name blank."
+        `This Meta template needs exactly ${requiredParamCount} parameter${requiredParamCount === 1 ? "" : "s"}.`
       );
     }
 
