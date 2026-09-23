@@ -237,6 +237,16 @@ const toMetaTemplateName = (value) => {
   return normalized.slice(0, 512);
 };
 
+// WhatsApp Manager displays approved templates as "Active - Quality pending".
+// The matching Graph API value can be APPROVED or ACTIVE.
+const normalizeMetaApprovalStatus = (value) => {
+  const status = String(value || "PENDING").trim().toUpperCase().replace(/[\s-]+/g, "_");
+  if (status === "APPROVED" || status === "ACTIVE" || status.startsWith("ACTIVE_")) return "APPROVED";
+  if (status === "REJECTED") return "REJECTED";
+  return "PENDING";
+};
+
+const normalizeMetaLanguage = (value) => String(value || "").trim().toLowerCase().replace(/-/g, "_");
 const submitMessageTemplate = async ({ name, category, language, content }) => {
   const metaName = toMetaTemplateName(name);
   const metaCategory = category === "MARKETING" || category === "AUTHENTICATION" ? category : "UTILITY";
@@ -259,7 +269,11 @@ const submitMessageTemplate = async ({ name, category, language, content }) => {
 const getMessageTemplateStatus = async ({ id, name, language }) => {
   const result = await getMessageTemplates({ approvedOnly: false });
   if (!result.success) return result;
-  const template = result.data.find((item) => (id && item.id === id) || (toMetaTemplateName(item.name) === toMetaTemplateName(name) && item.language === language));
+  const template = result.data.find((item) =>
+    (id && item.id === id) ||
+    (toMetaTemplateName(item.name) === toMetaTemplateName(name) &&
+      normalizeMetaLanguage(item.language) === normalizeMetaLanguage(language))
+  );
   return { success: true, data: template || null };
 };
 // ================= FETCH APPROVED TEMPLATES FROM META =================
@@ -291,7 +305,7 @@ const getMessageTemplates = async ({ approvedOnly = true } = {}) => {
           // business ever exceeds this, paging.next handling can be
           // added later — not needed for the CRM's current scale.
           limit: 200,
-          fields: "name,language,category,status,components",
+          fields: "id,name,language,category,status,components",
         },
         headers: {
           Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
@@ -304,7 +318,7 @@ const getMessageTemplates = async ({ approvedOnly = true } = {}) => {
       // PENDING/REJECTED ones in this same list, which would otherwise
       // show up as selectable options and fail exactly like the manual
       // typo did.
-      .filter((t) => !approvedOnly || t.status === "APPROVED")
+      .filter((t) => !approvedOnly || normalizeMetaApprovalStatus(t.status) === "APPROVED")
       .map((t) => {
         const bodyComponent = (t.components || []).find(
           (c) => c.type === "BODY"
@@ -330,6 +344,7 @@ const getMessageTemplates = async ({ approvedOnly = true } = {}) => {
           name: t.name,
           language: t.language,
           category: t.category,
+          status: normalizeMetaApprovalStatus(t.status),
           bodyText: bodyComponent?.text || "",
           paramCount,
           hasImageHeader: headerComponent?.format === "IMAGE",
@@ -356,4 +371,5 @@ module.exports = {
   submitMessageTemplate,
   toMetaTemplateName,
   getMessageTemplateStatus,
+  normalizeMetaApprovalStatus,
 };
