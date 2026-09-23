@@ -389,7 +389,7 @@
 
 //           <div>
 //             <label className="mb-2 block font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
-//             <BusinessSelect required value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
+//             <BusinessSelect required allowGlobal={false} value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
 //           </div>
 
 //           {/* Campaign Name */}
@@ -1256,7 +1256,7 @@ return (
 
           <div>
             <label className="mb-2 block font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
-            <BusinessSelect required value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
+            <BusinessSelect required allowGlobal={false} value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
           </div>
 
           {/* Campaign Name */}
