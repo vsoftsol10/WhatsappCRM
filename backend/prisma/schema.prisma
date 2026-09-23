@@ -244,6 +244,10 @@ model Campaign {
   imageUrl       String?
   metaTemplateName String?
   metaTemplateLanguage String? @default("en_US")
+  metaTemplateId       String?
+  metaApprovalStatus   String     @default("DRAFT")
+  metaRejectionReason  String?
+  metaStatusSyncedAt   DateTime?
   // Ordered list of values for a dedicated Meta template's {{1}}, {{2}}, {{3}}...
   // body placeholders, e.g. ["Eco & Natural Product Entrepreneurs Meetup",
   // "22 August 2026, Saturday", "4:30 PM - 6:30 PM", "Vannarpet, Tirunelveli",
@@ -313,6 +317,10 @@ model Template {
   purpose     TemplatePurpose     @default(CUSTOM)
   metaTemplateName     String?
   metaTemplateLanguage String?    @default("en_US")
+  metaTemplateId       String?
+  metaApprovalStatus   String     @default("DRAFT")
+  metaRejectionReason  String?
+  metaStatusSyncedAt   DateTime?
   templateParams       Json?
   businessId           String?
   createdBy   User                @relation(fields: [createdById], references: [id])
