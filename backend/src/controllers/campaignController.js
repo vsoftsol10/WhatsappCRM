@@ -670,13 +670,13 @@
 //   const usesDedicatedMetaTemplate = Boolean(campaign.metaTemplateName);
 
 //   // Meta templates can legitimately have zero body placeholders. In that
-  // case WhatsApp requires an empty parameters array, not a made-up value.
-  // Templates with placeholders are validated when the campaign is created.
-  const campaignTemplateParams = Array.isArray(campaign.templateParams)
-    ? campaign.templateParams
-    : [];
+//   // case WhatsApp requires an empty parameters array, not a made-up value.
+//   // Templates with placeholders are validated when the campaign is created.
+//   const campaignTemplateParams = Array.isArray(campaign.templateParams)
+//     ? campaign.templateParams
+//     : [];
 
-  // Per-recipient personalization: templateParams may itself contain
+//   // Per-recipient personalization: templateParams may itself contain
 //   // {{customer_name}} etc. tokens (same convention as messageContent),
 //   // so run each value through the same filler before sending.
 //   const dedicatedTemplateParams = usesDedicatedMetaTemplate
