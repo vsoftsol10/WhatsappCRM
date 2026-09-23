@@ -23,17 +23,17 @@ export default function TemplateCard({
   return (
     <div className="flex flex-col h-full bg-white rounded-2xl shadow-md border border-gray-200 overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
       {/* HEADER */}
-      <div className="flex justify-between items-start p-5">
-        <div className="flex gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-green-100 flex items-center justify-center">
+      <div className="flex items-start gap-3 p-5">
+        <div className="flex min-w-0 flex-1 gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100">
             <FileText
               size={28}
               className="text-green-600"
             />
           </div>
 
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">
+          <div className="min-w-0">
+            <h2 className="break-words text-xl font-bold leading-tight text-gray-800">
               {template.name}
             </h2>
 
@@ -44,7 +44,7 @@ export default function TemplateCard({
         </div>
 
         <span
-          className={`px-4 py-1 rounded-full text-xs font-semibold ${
+          className={`shrink-0 whitespace-nowrap px-4 py-1 rounded-full text-xs font-semibold ${
             template.status === "ACTIVE"
               ? "bg-green-100 text-green-700"
               : template.status === "INACTIVE"
@@ -95,7 +95,7 @@ export default function TemplateCard({
       <div className="border-t" />
 
       {/* ACTIONS */}
-      <div className="grid grid-cols-6 text-center py-3">
+      <div className={`grid ${template.metaApprovalStatus === "APPROVED" ? "grid-cols-5" : "grid-cols-6"} py-3 text-center`}>
         {/* Preview */}
         <button
           onClick={() =>
