@@ -130,10 +130,6 @@ export default function CreateTemplateModal({
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.businessId) {
-      newErrors.businessId = "Business is required";
-    }
-
     if (!formData.name.trim()) {
       newErrors.name = "Template name is required";
     } else if (formData.name.trim().length < 3) {
@@ -288,8 +284,8 @@ export default function CreateTemplateModal({
             className="max-h-[75vh] space-y-5 overflow-y-auto p-5 sm:p-6"
           >
             <div>
-              <label className="block mb-2 font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
-              <BusinessSelect required value={formData.businessId} onChange={(businessId) => setFormData((prev) => ({ ...prev, businessId }))} />
+              <label className="block mb-2 font-medium text-gray-700">Business <span className="font-normal text-gray-400">(optional — leave empty for all customers)</span></label>
+              <BusinessSelect value={formData.businessId} onChange={(businessId) => setFormData((prev) => ({ ...prev, businessId }))} />
               {errors.businessId && <p className="mt-1 text-sm text-red-500">{errors.businessId}</p>}
             </div>
             {/* Name */}

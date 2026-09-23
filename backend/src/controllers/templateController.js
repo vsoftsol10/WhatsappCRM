@@ -809,7 +809,7 @@ const createTemplate = async (req, res) => {
         category,
         messageType,
         content,
-        businessId,
+        businessId: normalizedBusinessId,
         // Empty string means "use the default generic template" —
         // store it as null so the send logic's fallback is clean.
         metaTemplateName: metaTemplateName?.trim() || name.trim(),
@@ -975,7 +975,8 @@ const updateTemplate = async (req, res) => {
       businessId,
     } = req.body;
 
-    if (businessId !== undefined && !(await prisma.business.findFirst({ where: { id: businessId, isActive: true } }))) {
+    const normalizedBusinessId = businessId === undefined ? undefined : businessId || null;
+    if (normalizedBusinessId && !(await prisma.business.findFirst({ where: { id: normalizedBusinessId, isActive: true } }))) {
       return res.status(400).json({ success: false, message: "Select an active business." });
     }
 
@@ -1000,7 +1001,7 @@ const updateTemplate = async (req, res) => {
         messageType,
         content,
         status,
-        ...(businessId !== undefined && { businessId }),
+        ...(normalizedBusinessId !== undefined && { businessId: normalizedBusinessId }),
         ...(metaTemplateName !== undefined && {
           metaTemplateName: metaTemplateName?.trim() || name.trim(),
         metaApprovalStatus: "DRAFT",

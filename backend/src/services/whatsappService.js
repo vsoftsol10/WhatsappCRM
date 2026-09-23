@@ -258,7 +258,7 @@ const submitMessageTemplate = async ({ name, category, language, content }) => {
 const getMessageTemplateStatus = async ({ id, name, language }) => {
   const result = await getMessageTemplates({ approvedOnly: false });
   if (!result.success) return result;
-  const template = result.data.find((item) => (id && item.id === id) || (item.name === name && item.language === language));
+  const template = result.data.find((item) => (id && item.id === id) || (toMetaTemplateName(item.name) === toMetaTemplateName(name) && item.language === language));
   return { success: true, data: template || null };
 };
 // ================= FETCH APPROVED TEMPLATES FROM META =================

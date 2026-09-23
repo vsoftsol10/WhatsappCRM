@@ -796,7 +796,6 @@ const fileInputRef = useRef(null);
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
     businessId: "",
-    templateId: "",
   });
   useEffect(() => {
     if (!formData.businessId) { setBusinessTemplates([]); return; }
@@ -831,7 +830,6 @@ const fileInputRef = useRef(null);
         metaTemplateName: "",
         metaTemplateLanguage: "en_US",
     businessId: "",
-    templateId: "",
       }));
 
       return;
@@ -864,7 +862,6 @@ const resetForm = () => {
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
     businessId: "",
-    templateId: "",
   });
 
   setTemplateParamsText("");
@@ -948,7 +945,6 @@ const resetForm = () => {
       metaTemplateName: "",
       metaTemplateLanguage: "en_US",
     businessId: "",
-    templateId: "",
     });
   }, [aiCampaign]);
 
@@ -1033,7 +1029,7 @@ const removeImage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.businessId || !formData.templateId) { return toast.error("Select a business and its approved template."); }
+    if (!formData.businessId || !formData.metaTemplateName) { return toast.error("Select a business and an approved Meta template."); }
 
     if (!formData.name.trim()) {
       return toast.error("Campaign name is required.");
@@ -1130,14 +1126,9 @@ return (
 
           <div>
             <label className="mb-2 block font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
-            <BusinessSelect required value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, templateId: "" })); setSelectedCustomers([]); }} />
+            <BusinessSelect required value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
           </div>
-          <div>
-            <label className="mb-2 block font-medium text-gray-700">Approved Template <span className="text-red-500">*</span></label>
-            <select required disabled={!formData.businessId} value={formData.templateId} onChange={(e) => { const template = businessTemplates.find((item) => item.id === e.target.value); setFormData((prev) => ({ ...prev, templateId: e.target.value, metaTemplateName: template?.metaTemplateName || "", metaTemplateLanguage: template?.metaTemplateLanguage || "en_US", messageContent: template?.content || prev.messageContent })); }} className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 outline-none transition focus:border-[#25D366]">
-              <option value="">Select approved template</option>{businessTemplates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}
-            </select>
-          </div>
+
           {/* Campaign Name */}
 
           <div>
@@ -1221,7 +1212,7 @@ return (
           <div>
 
             <label className="mb-2 block font-medium text-gray-700">
-              Meta Approved Template (optional)
+              Meta Approved Template
             </label>
 
             <select
@@ -1237,7 +1228,7 @@ return (
 
               {templatesLoading && <option disabled>Loading templates…</option>}
 
-              {approvedTemplates.map((t) => (
+              {approvedTemplates.filter((t) => businessTemplates.some((local) => local.metaTemplateName === t.name && local.metaTemplateLanguage === t.language)).map((t) => (
                 <option
                   key={`${t.name}__${t.language}`}
                   value={`${t.name}__${t.language}`}

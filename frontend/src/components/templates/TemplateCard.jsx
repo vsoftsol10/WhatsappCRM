@@ -57,7 +57,7 @@ export default function TemplateCard({
       </div>
 
       <div className="px-5 pb-3 text-sm">
-        <p><span className="font-semibold">Business:</span> {template.business?.name || "Not assigned"}</p>
+        <p><span className="font-semibold">Business:</span> {template.business?.name || "All businesses (global)"}</p>
         <p className={template.metaApprovalStatus === "APPROVED" ? "text-green-700" : template.metaApprovalStatus === "REJECTED" ? "text-red-700" : "text-amber-700"}><span className="font-semibold">Meta:</span> {template.metaApprovalStatus === "APPROVED" ? "Approved by Meta" : template.metaApprovalStatus === "PENDING" ? "Waiting for Meta Approval" : template.metaApprovalStatus === "REJECTED" ? "Rejected by Meta" : "Not submitted"}</p>
         {template.metaRejectionReason && <p className="mt-1 text-xs text-red-600">Reason: {template.metaRejectionReason}</p>}
       </div>
@@ -95,7 +95,7 @@ export default function TemplateCard({
       <div className="border-t" />
 
       {/* ACTIONS */}
-      <div className="grid grid-cols-5 text-center py-3">
+      <div className="grid grid-cols-6 text-center py-3">
         {/* Preview */}
         <button
           onClick={() =>
@@ -125,10 +125,10 @@ export default function TemplateCard({
         {/* Send stays visible; Meta requires approval before it can be used. */}
         <button disabled={template.metaApprovalStatus !== "APPROVED"} onClick={() => onSend?.(template)} title={template.metaApprovalStatus !== "APPROVED" ? "Waiting for Meta approval" : "Send to customers"} className={`flex flex-col items-center gap-1 transition ${template.metaApprovalStatus === "APPROVED" ? "text-green-600 hover:text-green-700" : "cursor-not-allowed text-gray-300"}`}><Send size={22} /><span className="text-sm">Send</span></button>
 
-        {template.metaApprovalStatus === "PENDING" ? (
-          <button onClick={() => onSyncMeta?.(template)} className="flex flex-col items-center gap-1 text-blue-600 hover:text-blue-700 transition"><RefreshCw size={22} /><span className="text-sm">Refresh</span></button>
-        ) : template.metaApprovalStatus !== "APPROVED" ? (
-          <button onClick={() => onSubmitMeta?.(template)} className="flex flex-col items-center gap-1 text-green-600 hover:text-green-700 transition"><RefreshCw size={22} /><span className="text-sm">Submit</span></button>
+        <button onClick={() => onSyncMeta?.(template)} className="flex flex-col items-center gap-1 text-blue-600 hover:text-blue-700 transition"><RefreshCw size={22} /><span className="text-sm">Sync Meta</span></button>
+
+        {template.metaApprovalStatus !== "APPROVED" ? (
+          <button onClick={() => onSubmitMeta?.(template)} className="flex flex-col items-center gap-1 text-green-600 hover:text-green-700 transition"><Send size={22} /><span className="text-sm">Submit</span></button>
         ) : <span />}
 
 
