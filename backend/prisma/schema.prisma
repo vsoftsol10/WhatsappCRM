@@ -322,6 +322,10 @@ model Template {
   metaRejectionReason  String?
   metaStatusSyncedAt   DateTime?
   templateParams       Json?
+  headerType           TemplateHeaderType @default(NONE)
+  headerContent        String?
+  footerContent        String?
+  bodyExamples         Json?
   businessId           String?
   createdBy   User                @relation(fields: [createdById], references: [id])
   business    Business?           @relation(fields: [businessId], references: [id])
@@ -498,7 +502,20 @@ enum TemplateCategory {
 
 enum TemplatePurpose {
   WELCOME
+  ORDER_CONFIRMATION
+  ORDER_UPDATE
+  PAYMENT_REMINDER
+  APPOINTMENT_REMINDER
+  SUPPORT_FOLLOW_UP
+  FESTIVAL_GREETING
+  PROMOTION
   CUSTOM
+}
+
+enum TemplateHeaderType {
+  NONE
+  TEXT
+  IMAGE
 }
 
 enum MessageType {

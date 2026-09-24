@@ -639,16 +639,108 @@ const normalizeMetaApprovalStatus = (value) => {
 };
 
 const normalizeMetaLanguage = (value) => String(value || "").trim().toLowerCase().replace(/-/g, "_");
-const submitMessageTemplate = async ({ name, category, language, content }) => {
+
+// ================= META RESUMABLE UPLOAD (for IMAGE header templates) =================
+// Meta will NOT accept a plain Cloudinary URL as a template header image.
+// A template's IMAGE header must reference a "header_handle" obtained by
+// pushing the actual image bytes through Meta's Resumable Upload API,
+// scoped to the app (WHATSAPP_APP_ID), not the WABA. Two calls:
+//   1. Start a session: POST /{app-id}/uploads?file_length&file_type -> "upload:<session_id>"
+//   2. Push the bytes:   POST /{session_id} with file_offset:0 header + raw binary body -> { h: "<handle>" }
+// The handle is single-use and only valid for a short window, so this is
+// called fresh right before every submitMessageTemplate() with an image header.
+const getMetaImageHeaderHandle = async (imageUrl) => {
+  if (!process.env.WHATSAPP_APP_ID) {
+    return { success: false, error: { message: "WHATSAPP_APP_ID is not configured on the server (required for image header templates)." } };
+  }
+  try {
+    const imageResponse = await whatsappApi.get(imageUrl, { responseType: "arraybuffer" });
+    const fileBuffer = Buffer.from(imageResponse.data);
+    const fileType = imageResponse.headers["content-type"] || "image/jpeg";
+
+    const sessionResponse = await whatsappApi.post(
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_APP_ID}/uploads`,
+      null,
+      {
+        params: {
+          file_length: fileBuffer.length,
+          file_type: fileType,
+          access_token: process.env.WHATSAPP_ACCESS_TOKEN,
+        },
+      }
+    );
+
+    const uploadSessionId = sessionResponse.data?.id;
+    if (!uploadSessionId) {
+      return { success: false, error: { message: "Meta did not return an upload session id." } };
+    }
+
+    const uploadResponse = await whatsappApi.post(
+      `https://graph.facebook.com/${GRAPH_API_VERSION}/${uploadSessionId}`,
+      fileBuffer,
+      {
+        headers: {
+          Authorization: `OAuth ${process.env.WHATSAPP_ACCESS_TOKEN}`,
+          file_offset: "0",
+          "Content-Type": "application/octet-stream",
+        },
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
+      }
+    );
+
+    const handle = uploadResponse.data?.h;
+    if (!handle) {
+      return { success: false, error: { message: "Meta did not return a header handle." } };
+    }
+
+    return { success: true, handle };
+  } catch (error) {
+    console.error("Meta Resumable Upload Error:", error.response?.data || error.message);
+    return { success: false, error: error.response?.data || error.message, userMessage: "Could not upload the header image to Meta. Please check the image and try again." };
+  }
+};
+
+const submitMessageTemplate = async ({ name, category, language, content, headerType, headerContent, footerContent, bodyExamples }) => {
   const metaName = toMetaTemplateName(name);
   const metaCategory = category === "MARKETING" || category === "AUTHENTICATION" ? category : "UTILITY";
   if (!process.env.WHATSAPP_BUSINESS_ACCOUNT_ID) return { success: false, error: { message: "WhatsApp Business Account is not configured." } };
+
+  const components = [];
+
+  // HEADER — TEXT or IMAGE only, matching what the Create/Edit Template
+  // modals currently offer (Video/Document intentionally left out).
+  if (headerType === "TEXT" && headerContent) {
+    components.push({ type: "HEADER", format: "TEXT", text: headerContent });
+  } else if (headerType === "IMAGE" && headerContent) {
+    const handleResult = await getMetaImageHeaderHandle(headerContent);
+    if (!handleResult.success) {
+      return { success: false, error: handleResult.error, userMessage: handleResult.userMessage || "Could not prepare the header image for Meta submission." };
+    }
+    components.push({ type: "HEADER", format: "IMAGE", example: { header_handle: [handleResult.handle] } });
+  }
+
+  // BODY — Meta requires an `example.body_text` sample for every
+  // {{n}} placeholder in the body before it will review the template.
+  const bodyComponent = { type: "BODY", text: content };
+  const sampleValues = Array.isArray(bodyExamples) ? bodyExamples.filter((v) => v !== undefined && v !== null && String(v).trim() !== "") : [];
+  const placeholderCount = new Set([...String(content || "").matchAll(/\{\{\s*(\d+)\s*\}\}/g)].map((m) => m[1])).size;
+  if (placeholderCount > 0 && sampleValues.length >= placeholderCount) {
+    bodyComponent.example = { body_text: [sampleValues.slice(0, placeholderCount)] };
+  }
+  components.push(bodyComponent);
+
+  // FOOTER — optional
+  if (footerContent) {
+    components.push({ type: "FOOTER", text: footerContent });
+  }
+
   try {
     const response = await whatsappApi.post(`https://graph.facebook.com/${GRAPH_API_VERSION}/${process.env.WHATSAPP_BUSINESS_ACCOUNT_ID}/message_templates`, {
       name: metaName,
       category: metaCategory,
       language,
-      components: [{ type: "BODY", text: content }],
+      components,
     }, { headers: { Authorization: `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`, "Content-Type": "application/json" } });
     return { success: true, data: { ...response.data, name: metaName } };
   } catch (error) {
