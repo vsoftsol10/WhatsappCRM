@@ -5,6 +5,8 @@
 //   sendImageMessage,
 //   sendTemplateMessage,
 //   sendCampaignImageTemplate,
+//   getMessageTemplateStatus,
+//   toMetaTemplateName,
 // } = require("../services/whatsappService");
 // const { generateCampaign } = require("../services/geminiService");
 // const { notifyAdmins } = require("../services/notificationService");
@@ -60,6 +62,7 @@
 //   metaTemplateName,
 //   metaTemplateLanguage,
 //   templateParams,
+//   businessId,
 // } = req.body;
 
 // // =============================
@@ -78,6 +81,61 @@
 
 // console.log("Customer IDs:", customerIds);
 // console.log("Is Array:", Array.isArray(customerIds));
+//     if (!businessId || !metaTemplateName || !metaTemplateLanguage) {
+//       return res.status(400).json({ success: false, message: "Business and an approved Meta template are required." });
+//     }
+//     // A template must first be mapped to the selected business in the CRM.
+//     // Its approval is checked live against Meta here, rather than relying on
+//     // a stale local sync value from an earlier page visit.
+//     const templateCandidates = await prisma.template.findMany({
+//       where: { businessId, metaTemplateName: { not: null } },
+//       select: { id: true, metaTemplateId: true, metaTemplateName: true, metaTemplateLanguage: true },
+//     });
+//     const selectedTemplate = templateCandidates.find(
+//       (template) =>
+//         toMetaTemplateName(template.metaTemplateName) === toMetaTemplateName(metaTemplateName) &&
+//         String(template.metaTemplateLanguage || "").trim().toLowerCase().replace(/-/g, "_") ===
+//           String(metaTemplateLanguage || "").trim().toLowerCase().replace(/-/g, "_")
+//     );
+//     if (!selectedTemplate) {
+//       return res.status(400).json({ success: false, message: "Select a Meta template mapped to the selected business." });
+//     }
+
+//     const liveMetaStatus = await getMessageTemplateStatus({
+//       id: selectedTemplate.metaTemplateId,
+//       name: selectedTemplate.metaTemplateName,
+//       language: selectedTemplate.metaTemplateLanguage,
+//     });
+//     if (!liveMetaStatus.success) {
+//       return res.status(502).json({ success: false, message: "Unable to verify the selected template with Meta right now." });
+//     }
+//     if (!liveMetaStatus.data || liveMetaStatus.data.status !== "APPROVED") {
+//       return res.status(400).json({ success: false, message: "The selected template is not approved by Meta yet." });
+//     }
+//     if (req.file && !liveMetaStatus.data.hasImageHeader) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "This campaign includes an image. Select a Meta-approved template with an Image Header, or remove the image.",
+//       });
+//     }
+
+//     await prisma.template.update({
+//       where: { id: selectedTemplate.id },
+//       data: {
+//         metaTemplateId: liveMetaStatus.data.id || selectedTemplate.metaTemplateId,
+//         metaApprovalStatus: "APPROVED",
+//         metaRejectionReason: null,
+//         metaStatusSyncedAt: new Date(),
+//         status: "ACTIVE",
+//       },
+//     });
+//     const templateId = selectedTemplate.id;
+//     const selectedIds = [...new Set(customerIds)];
+//     const allowedCustomers = await prisma.customer.count({ where: { id: { in: selectedIds }, businesses: { some: { businessId } } } });
+//     if (allowedCustomers !== selectedIds.length) {
+//       return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
+//     }
+
 //     if (!name || !messageContent) {
 //       return res.status(400).json({
 //         success: false,
@@ -101,6 +159,8 @@
 //         name,
 //         type,
 //         messageContent,
+//         businessId,
+//         templateId,
 
 //         // NEW FIELD
 //         imageUrl,
@@ -549,15 +609,57 @@
 //       });
 //     }
 
-//     await prisma.campaign.update({
+//     // Server-side isolation: client filtering is never trusted.
+//     if (!campaign.businessId || !campaign.templateId) {
+//       return res.status(400).json({ success: false, message: "Campaign must have a business and an approved business template." });
+//     }
+
+//     const template = await prisma.template.findFirst({
+//       where: { id: campaign.templateId, businessId: campaign.businessId, status: "ACTIVE", metaApprovalStatus: "APPROVED", metaTemplateName: { not: null } },
+//       select: { id: true, metaTemplateId: true, metaTemplateName: true, metaTemplateLanguage: true },
+//     });
+//     if (!template) {
+//       return res.status(400).json({ success: false, message: "Campaign template is not an active approved template for this business." });
+//     }
+//     if (campaign.imageUrl) {
+//       const liveMetaStatus = await getMessageTemplateStatus({
+//         id: template.metaTemplateId,
+//         name: template.metaTemplateName,
+//         language: template.metaTemplateLanguage,
+//       });
+//       if (!liveMetaStatus.success) {
+//         return res.status(502).json({ success: false, message: "Unable to verify the image template with Meta right now." });
+//       }
+//       if (!liveMetaStatus.data?.hasImageHeader) {
+//         return res.status(400).json({
+//           success: false,
+//           message: "This campaign has an image, but its Meta template does not have an Image Header. Remove the image or use an Image Header template.",
+//         });
+//       }
+//     }
+
+//     const requestedCustomerIds = [...new Set(customerIds.map((id) => String(id)))];
+//     const allowedCustomerCount = await prisma.customer.count({
+//       where: { id: { in: requestedCustomerIds }, businesses: { some: { businessId: campaign.businessId } } },
+//     });
+//     if (allowedCustomerCount !== requestedCustomerIds.length) {
+//       return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
+//     }
+//     // Existing campaigns may contain the old, human-readable title. Always
+//     // send Meta's canonical lowercase name from the linked template record.
+//     const canonicalMetaTemplateName = toMetaTemplateName(template.metaTemplateName);
+//     const campaignToSend = await prisma.campaign.update({
 //       where: { id: campaignId },
-//       data: { status: "SENDING" },
+//       data: {
+//         status: "SENDING",
+//         metaTemplateName: canonicalMetaTemplateName,
+//         metaTemplateLanguage: template.metaTemplateLanguage || "en_US",
+//       },
 //     });
 
-//     // Not awaited on purpose — this runs after the response is sent.
-//     // Errors inside are caught and logged there so they can't crash
-//     // the process or leave an unhandled rejection.
-//     processCampaignSend(campaign, customerIds);
+//     // The actual send runs after the response so a large campaign does not
+//     // exceed the web request timeout.
+//     processCampaignSend(campaignToSend, customerIds);
 
 //     return res.status(202).json({
 //       success: true,
@@ -598,28 +700,6 @@
 //       if (!customer) continue;
 
 //       // =============================
-//       // Save Campaign Recipient
-//       // =============================
-//       const existingRecipient =
-//         await prisma.campaignRecipient.findUnique({
-//           where: {
-//             campaignId_customerId: {
-//               campaignId,
-//               customerId,
-//             },
-//           },
-//         });
-
-//       if (!existingRecipient) {
-//         await prisma.campaignRecipient.create({
-//           data: {
-//             campaignId,
-//             customerId,
-//           },
-//         });
-//       }
-
-//       // =============================
 //       // Find or Create Conversation (by phone — avoids duplicate
 //       // conversations / unique constraint crashes when a
 //       // Conversation already exists for this phone but isn't
@@ -641,6 +721,7 @@
 
 // let sendStatus = "FAILED";
 // let metaMessageId = null;
+// let failureReason = null;
 
 // // Gemini-generated campaign copy may still contain literal
 // // {{customer_name}} / {{company}} / {{phone}} / {{email}} tokens
@@ -721,11 +802,17 @@
 //   if (result.success) {
 //     sendStatus = "SENT";
 //     metaMessageId = result.data?.messages?.[0]?.id || null;
+//   } else {
+//     failureReason =
+//       result.error?.error?.message ||
+//       result.error?.message ||
+//       "Failed to send message";
 //   }
 
 // } catch (err) {
 
 //   console.error("WhatsApp Send Error:", err);
+//   failureReason = err.message || "Failed to send message";
 
 // }
 // // =============================
@@ -743,6 +830,35 @@
 //     metaMessageId,
 //   },
 // });
+
+//       // =============================
+//       // Save Campaign Recipient — upserted here (not pre-created) so
+//       // the row reflects the real outcome (SENT/FAILED) and carries
+//       // metaMessageId, which the webhook later matches delivered/read/
+//       // failed status updates back to. See webhook.js.
+//       // =============================
+//       await prisma.campaignRecipient.upsert({
+//         where: {
+//           campaignId_customerId: {
+//             campaignId,
+//             customerId,
+//           },
+//         },
+//         update: {
+//           status: sendStatus,
+//           metaMessageId,
+//           failureReason,
+//           ...(sendStatus === "SENT" && { sentAt: new Date() }),
+//         },
+//         create: {
+//           campaignId,
+//           customerId,
+//           status: sendStatus,
+//           metaMessageId,
+//           failureReason,
+//           ...(sendStatus === "SENT" && { sentAt: new Date() }),
+//         },
+//       });
 
 //       // =============================
 //       // Update Conversation
@@ -838,6 +954,73 @@
 //       data: recipients.map(
 //         (recipient) => recipient.customerId
 //       ),
+//     });
+
+//   } catch (error) {
+
+//     console.error("Get Campaign Recipients Error:", error);
+
+//     return res.status(500).json({
+//       success: false,
+//       message: "Failed to fetch campaign recipients",
+//       error: error.message,
+//     });
+//   }
+// };
+
+// // =====================================================
+// // GET CAMPAIGN RECIPIENT DELIVERY STATUSES
+// // =====================================================
+// // Full per-recipient send status (Sent/Delivered/Read/Failed) with
+// // customer name/phone and, on failure, the reason Meta reported.
+// // Separate from getCampaignRecipients above (which only returns bare
+// // customerIds and is used for "already sent to" checks in the Send
+// // modal) so that endpoint's existing callers aren't affected.
+// exports.getCampaignRecipientStatuses = async (req, res) => {
+//   try {
+
+//     const { id } = req.params;
+
+//     const recipients = await prisma.campaignRecipient.findMany({
+//       where: {
+//         campaignId: id,
+//       },
+//       include: {
+//         customer: {
+//           select: {
+//             id: true,
+//             name: true,
+//             phone: true,
+//           },
+//         },
+//       },
+//       orderBy: {
+//         createdAt: "asc",
+//       },
+//     });
+
+//     const summary = recipients.reduce(
+//       (acc, r) => {
+//         acc.total += 1;
+//         acc[r.status] = (acc[r.status] || 0) + 1;
+//         return acc;
+//       },
+//       { total: 0, PENDING: 0, SENT: 0, DELIVERED: 0, READ: 0, FAILED: 0 }
+//     );
+
+//     return res.status(200).json({
+//       success: true,
+//       summary,
+//       data: recipients.map((r) => ({
+//         customerId: r.customerId,
+//         name: r.customer?.name || "Unknown",
+//         phone: r.customer?.phone || "",
+//         status: r.status,
+//         sentAt: r.sentAt,
+//         deliveredAt: r.deliveredAt,
+//         readAt: r.readAt,
+//         failureReason: r.failureReason,
+//       })),
 //     });
 
 //   } catch (error) {
@@ -940,12 +1123,19 @@ console.log("Customer IDs:", customerIds);
 
 console.log("Customer IDs:", customerIds);
 console.log("Is Array:", Array.isArray(customerIds));
-    if (!businessId || !metaTemplateName || !metaTemplateLanguage) {
-      return res.status(400).json({ success: false, message: "Business and an approved Meta template are required." });
+    // "All businesses" campaign: businessId comes in empty/undefined from
+    // the form. Normalize it to null rather than rejecting — a null
+    // businessId here means the campaign targets every business's
+    // customers with one global (businessId: null) template, exactly like
+    // the Template module's "All businesses (global)" option.
+    businessId = businessId || null;
+    if (!metaTemplateName || !metaTemplateLanguage) {
+      return res.status(400).json({ success: false, message: "An approved Meta template is required." });
     }
-    // A template must first be mapped to the selected business in the CRM.
-    // Its approval is checked live against Meta here, rather than relying on
-    // a stale local sync value from an earlier page visit.
+    // A template must first be mapped to the selected business in the CRM
+    // (or be a global template, when businessId is null). Its approval is
+    // checked live against Meta here, rather than relying on a stale local
+    // sync value from an earlier page visit.
     const templateCandidates = await prisma.template.findMany({
       where: { businessId, metaTemplateName: { not: null } },
       select: { id: true, metaTemplateId: true, metaTemplateName: true, metaTemplateLanguage: true },
@@ -959,7 +1149,7 @@ console.log("Is Array:", Array.isArray(customerIds));
     if (!selectedTemplate) {
       return res.status(400).json({ success: false, message: "Select a Meta template mapped to the selected business." });
     }
-
+ 
     const liveMetaStatus = await getMessageTemplateStatus({
       id: selectedTemplate.metaTemplateId,
       name: selectedTemplate.metaTemplateName,
@@ -977,7 +1167,7 @@ console.log("Is Array:", Array.isArray(customerIds));
         message: "This campaign includes an image. Select a Meta-approved template with an Image Header, or remove the image.",
       });
     }
-
+ 
     await prisma.template.update({
       where: { id: selectedTemplate.id },
       data: {
@@ -990,11 +1180,19 @@ console.log("Is Array:", Array.isArray(customerIds));
     });
     const templateId = selectedTemplate.id;
     const selectedIds = [...new Set(customerIds)];
-    const allowedCustomers = await prisma.customer.count({ where: { id: { in: selectedIds }, businesses: { some: { businessId } } } });
+    // For an "All businesses" campaign (businessId null) any existing
+    // customer is eligible — the whole point is reaching customers across
+    // every business at once (e.g. a festival campaign), so the
+    // single-business membership check is skipped in that case.
+    const allowedCustomers = await prisma.customer.count({
+      where: businessId
+        ? { id: { in: selectedIds }, businesses: { some: { businessId } } }
+        : { id: { in: selectedIds } },
+    });
     if (allowedCustomers !== selectedIds.length) {
       return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
     }
-
+ 
     if (!name || !messageContent) {
       return res.status(400).json({
         success: false,
@@ -1468,11 +1666,13 @@ exports.sendCampaign = async (req, res) => {
       });
     }
 
-    // Server-side isolation: client filtering is never trusted.
-    if (!campaign.businessId || !campaign.templateId) {
-      return res.status(400).json({ success: false, message: "Campaign must have a business and an approved business template." });
+    // Server-side isolation: client filtering is never trusted. A null
+    // campaign.businessId is valid — it's an "All businesses" campaign —
+    // so only the template is required here.
+    if (!campaign.templateId) {
+      return res.status(400).json({ success: false, message: "Campaign must have an approved template." });
     }
-
+ 
     const template = await prisma.template.findFirst({
       where: { id: campaign.templateId, businessId: campaign.businessId, status: "ACTIVE", metaApprovalStatus: "APPROVED", metaTemplateName: { not: null } },
       select: { id: true, metaTemplateId: true, metaTemplateName: true, metaTemplateLanguage: true },
@@ -1496,10 +1696,14 @@ exports.sendCampaign = async (req, res) => {
         });
       }
     }
-
+ 
     const requestedCustomerIds = [...new Set(customerIds.map((id) => String(id)))];
+    // Same "All businesses" carve-out as createCampaign: a null
+    // campaign.businessId means every customer is eligible.
     const allowedCustomerCount = await prisma.customer.count({
-      where: { id: { in: requestedCustomerIds }, businesses: { some: { businessId: campaign.businessId } } },
+      where: campaign.businessId
+        ? { id: { in: requestedCustomerIds }, businesses: { some: { businessId: campaign.businessId } } }
+        : { id: { in: requestedCustomerIds } },
     });
     if (allowedCustomerCount !== requestedCustomerIds.length) {
       return res.status(400).json({ success: false, message: "Every selected customer must belong to the campaign business." });
@@ -1515,7 +1719,7 @@ exports.sendCampaign = async (req, res) => {
         metaTemplateLanguage: template.metaTemplateLanguage || "en_US",
       },
     });
-
+ 
     // The actual send runs after the response so a large campaign does not
     // exceed the web request timeout.
     processCampaignSend(campaignToSend, customerIds);

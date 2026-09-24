@@ -6,10 +6,6 @@
 // import useCampaignStore from "../../store/campaignStore";
 // import useMetaApprovedTemplates from "../../hooks/useMetaApprovedTemplates";
 // import BusinessSelect from "../common/BusinessSelect";
-// import { getTemplates } from "../../api/templateApi";
-
-// const normalizeMetaName = (value) => String(value || "").trim().toLowerCase();
-// const normalizeMetaLanguage = (value) => String(value || "").trim().toLowerCase().replace(/-/g, "_");
 
 // export default function CreateCampaignModal({
 //   isOpen,
@@ -21,7 +17,6 @@
 // } = useCampaignStore();
 
 //   const [customers, setCustomers] = useState([]);
-//   const [businessTemplates, setBusinessTemplates] = useState([]);
 //   const [selectedCustomers, setSelectedCustomers] = useState([]);
 //   const [loadingCustomers, setLoadingCustomers] = useState(false);
 //   const [submitting, setSubmitting] = useState(false);
@@ -38,32 +33,6 @@
 //     metaTemplateLanguage: "en_US",
 //     businessId: "",
 //   });
-//   useEffect(() => {
-//     if (!isOpen || !formData.businessId) {
-//       setBusinessTemplates([]);
-//       return;
-//     }
-
-//     let cancelled = false;
-//     getTemplates()
-//       .then((res) => {
-//         if (cancelled) return;
-//         setBusinessTemplates(
-//           (res.data || []).filter(
-//             (t) =>
-//               t.businessId === formData.businessId &&
-//               t.metaTemplateName
-//           )
-//         );
-//       })
-//       .catch(() => {
-//         if (!cancelled) setBusinessTemplates([]);
-//       });
-
-//     return () => {
-//       cancelled = true;
-//     };
-//   }, [isOpen, formData.businessId]);
 //   useEffect(() => { if (isOpen && formData.businessId) fetchCustomers(); }, [isOpen, formData.businessId]);
 //   // One line per Meta template body placeholder, in order: line 1 fills
 //   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
@@ -491,15 +460,7 @@
 
 //               {templatesLoading && <option disabled>Loading templates…</option>}
 
-//               {approvedTemplates
-//                 .filter((t) =>
-//                   businessTemplates.some(
-//                     (local) =>
-//                       normalizeMetaName(local.metaTemplateName) === normalizeMetaName(t.name) &&
-//                       normalizeMetaLanguage(local.metaTemplateLanguage) === normalizeMetaLanguage(t.language)
-//                   )
-//                 )
-//                 .map((t) => (
+//               {approvedTemplates.map((t) => (
 //                 <option
 //                   key={`${t.name}__${t.language}`}
 //                   value={`${t.name}__${t.language}`}
@@ -931,7 +892,8 @@ const fileInputRef = useRef(null);
     metaTemplateLanguage: "en_US",
     businessId: "",
   });
-  useEffect(() => { if (isOpen && formData.businessId) fetchCustomers(); }, [isOpen, formData.businessId]);
+  // Fires even when businessId is "" — that is the valid "All businesses" selection, and getCustomers already returns every customer when no businessId is passed.
+  useEffect(() => { if (isOpen) fetchCustomers(); }, [isOpen, formData.businessId]);
   // One line per Meta template body placeholder, in order: line 1 fills
   // {{1}}, line 2 fills {{2}}, etc. Only used when metaTemplateName is set.
   const [templateParamsText, setTemplateParamsText] = useState("");
@@ -1158,7 +1120,8 @@ const removeImage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.businessId || !formData.metaTemplateName) { return toast.error("Select a business and an approved Meta template."); }
+    // businessId can legitimately be empty here ("All businesses") so only the Meta template is required.
+    if (!formData.metaTemplateName) { return toast.error("Select an approved Meta template."); }
 
     if (!formData.name.trim()) {
       return toast.error("Campaign name is required.");
@@ -1255,8 +1218,14 @@ return (
         >
 
           <div>
-            <label className="mb-2 block font-medium text-gray-700">Business <span className="text-red-500">*</span></label>
-            <BusinessSelect required allowGlobal={false} value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
+            <label className="mb-2 block font-medium text-gray-700">Business</label>
+            {/* allowGlobal lets "All businesses" be picked (empty
+                businessId) for festival/company-wide campaigns that should
+                reach every business's customers in one send — same option
+                the Template module already offers. Not `required`: an
+                empty selection here is itself the valid "All businesses"
+                choice, not a missing one. */}
+            <BusinessSelect allowGlobal={true} value={formData.businessId} onChange={(businessId) => { setFormData((prev) => ({ ...prev, businessId, metaTemplateName: "", metaTemplateLanguage: "en_US" })); setSelectedCustomers([]); }} />
           </div>
 
           {/* Campaign Name */}
