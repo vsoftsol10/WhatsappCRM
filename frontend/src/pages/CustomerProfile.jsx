@@ -119,6 +119,27 @@ function CustomerProfile() {
               </p>
             </div>
 
+            <div>
+              <p className="text-gray-500 text-sm">
+                Business
+              </p>
+
+              {customer.businesses?.length ? (
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {customer.businesses.map(({ business }) => (
+                    <span
+                      key={business.id}
+                      className="crm-badge bg-gray-100 text-gray-700"
+                    >
+                      {business.name}
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="font-semibold text-gray-900">-</p>
+              )}
+            </div>
+
             <div className="sm:col-span-2">
               <p className="text-gray-500 text-sm">
                 Requirements

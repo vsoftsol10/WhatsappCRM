@@ -90,6 +90,10 @@ export default function EditCustomerModal({
       newErrors.status = "Status is required";
     }
 
+    if (!formData.businessIds.length) {
+      newErrors.businessIds = "Select at least one business";
+    }
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -169,8 +173,18 @@ export default function EditCustomerModal({
             >
               <div>
                 <label className="block mb-2 font-semibold text-gray-700">Businesses <span className="text-red-500">*</span></label>
-                <BusinessSelect multiple required value={formData.businessIds} onChange={(businessIds) => setFormData((prev) => ({ ...prev, businessIds }))} />
-                <p className="mt-1 text-xs text-gray-500">Hold Ctrl/Cmd to select more than one business.</p>
+                <BusinessSelect
+                  multiple
+                  required
+                  value={formData.businessIds}
+                  onChange={(businessIds) => {
+                    setFormData((prev) => ({ ...prev, businessIds }));
+                    setErrors((prev) => ({ ...prev, businessIds: "" }));
+                  }}
+                />
+                {errors.businessIds && (
+                  <p className="mt-1 text-sm text-red-500">{errors.businessIds}</p>
+                )}
               </div>
               <div>
                 <h3 className="text-lg font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">

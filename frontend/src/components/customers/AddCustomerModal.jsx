@@ -74,6 +74,10 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }) {
       newErrors.status = "Status is required";
     }
 
+    if (!formData.businessIds.length) {
+      newErrors.businessIds = "Select at least one business";
+    }
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -87,9 +91,9 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }) {
     try {
       setSubmitting(true);
 
-      await createCustomer(formData);
+      const res = await createCustomer(formData);
 
-      toast.success("Customer created successfully!");
+      toast.success(res?.message || "Customer created successfully!");
 
       setFormData(EMPTY_FORM);
       setErrors({});
@@ -129,6 +133,28 @@ export default function AddCustomerModal({ isOpen, onClose, onSuccess }) {
             onSubmit={handleSubmit}
             className="p-6 space-y-8 max-h-[75vh] overflow-y-auto"
           >
+            <div>
+              <label className="block mb-2 font-semibold text-gray-700">
+                Businesses <span className="text-red-500">*</span>
+              </label>
+
+              <BusinessSelect
+                multiple
+                required
+                value={formData.businessIds}
+                onChange={(businessIds) => {
+                  setFormData((prev) => ({ ...prev, businessIds }));
+                  setErrors((prev) => ({ ...prev, businessIds: "" }));
+                }}
+              />
+
+              {errors.businessIds && (
+                <p className="mt-1 text-sm text-red-500">
+                  {errors.businessIds}
+                </p>
+              )}
+            </div>
+
             <div>
               <h3 className="text-lg font-bold text-black border-b-2 border-[#25D366] pb-2 mb-5">
                 Customer Information

@@ -3,6 +3,9 @@ import apiClient from '../api/apiClient';
 import {
   forgotPassword,
   resetPassword,
+  updateProfile,
+  uploadProfileImage,
+  removeProfileImage,
 } from "../api/authApi";
 import { changePassword } from "../api/authApi";
 
@@ -162,6 +165,102 @@ changePasswordAction: async (passwordData) => {
     throw error;
   }
 },
+
+  // UPDATE MY PROFILE (name, phone, address)
+  updateProfileAction: async (profileData) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await updateProfile(profileData);
+
+      set((state) => {
+        const updatedUser = { ...state.user, ...data.user };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        return {
+          user: updatedUser,
+          isLoading: false,
+          error: null,
+        };
+      });
+
+      return { success: true, message: data.message, user: data.user };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Profile update failed";
+
+      set({
+        error: message,
+        isLoading: false,
+      });
+
+      return { success: false, message };
+    }
+  },
+
+  // UPLOAD MY PROFILE PHOTO
+  uploadProfileImageAction: async (file) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await uploadProfileImage(file);
+
+      set((state) => {
+        const updatedUser = { ...state.user, ...data.user };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        return {
+          user: updatedUser,
+          isLoading: false,
+          error: null,
+        };
+      });
+
+      return { success: true, message: data.message, user: data.user };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Photo upload failed";
+
+      set({
+        error: message,
+        isLoading: false,
+      });
+
+      return { success: false, message };
+    }
+  },
+
+  // REMOVE MY PROFILE PHOTO
+  removeProfileImageAction: async () => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const data = await removeProfileImage();
+
+      set((state) => {
+        const updatedUser = { ...state.user, ...data.user };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+
+        return {
+          user: updatedUser,
+          isLoading: false,
+          error: null,
+        };
+      });
+
+      return { success: true, message: data.message, user: data.user };
+    } catch (error) {
+      const message =
+        error.response?.data?.message || "Failed to remove photo";
+
+      set({
+        error: message,
+        isLoading: false,
+      });
+
+      return { success: false, message };
+    }
+  },
 
   // CLEAR ERROR
   clearError: () => set({ error: null }),

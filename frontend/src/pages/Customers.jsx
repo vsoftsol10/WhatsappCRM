@@ -403,6 +403,10 @@ function Customers() {
                 </th>
 
                 <th className="crm-th">
+                  Business
+                </th>
+
+                <th className="crm-th">
                   Status
                 </th>
 
@@ -442,6 +446,23 @@ function Customers() {
 
                       <td className="crm-td">
                         {customer.company || "-"}
+                      </td>
+
+                      <td className="crm-td">
+                        {customer.businesses?.length ? (
+                          <div className="flex flex-wrap gap-1">
+                            {customer.businesses.map(({ business }) => (
+                              <span
+                                key={business.id}
+                                className="crm-badge bg-gray-100 text-gray-700"
+                              >
+                                {business.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          "-"
+                        )}
                       </td>
 
                       <td className="crm-td">

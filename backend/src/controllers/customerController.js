@@ -247,6 +247,15 @@ const updateCustomer = async (req, res) => {
       return res.status(400).json({ success: false, message: "Select at least one active business." });
     }
 
+    const existingBusinessIds = businessIds
+      ? (
+          await prisma.customerBusiness.findMany({
+            where: { customerId: id },
+            select: { businessId: true },
+          })
+        ).map((link) => link.businessId)
+      : [];
+
     let normalizedPhone = existingCustomer.phone;
     if (phone !== undefined) {
       normalizedPhone = normalizeIndianPhone(phone);
@@ -278,20 +287,47 @@ const updateCustomer = async (req, res) => {
     if (status !== undefined && status !== existingCustomer.status) {
       changes.push(`status: ${existingCustomer.status} -> ${status}`);
     }
+    if (
+      businessIds &&
+      (businessIds.length !== existingBusinessIds.length ||
+        businessIds.some((businessId) => !existingBusinessIds.includes(businessId)))
+    ) {
+      changes.push("businesses updated");
+    }
 
-    const updatedCustomer = await prisma.customer.update({
-      where: {
-        id,
-      },
-      data: {
-        name,
-        phone: normalizedPhone,
-        email,
-        company,
-        source,
-        requirements,
-        status,
-      },
+    // Customer fields and business links are saved together, so a
+    // failure can't leave the customer updated but linked to the wrong
+    // businesses. Previously businessIds was validated but never saved.
+    const updatedCustomer = await prisma.$transaction(async (tx) => {
+      await tx.customer.update({
+        where: {
+          id,
+        },
+        data: {
+          name,
+          phone: normalizedPhone,
+          email,
+          company,
+          source,
+          requirements,
+          status,
+        },
+      });
+
+      if (businessIds) {
+        await tx.customerBusiness.deleteMany({
+          where: { customerId: id, businessId: { notIn: businessIds } },
+        });
+        await tx.customerBusiness.createMany({
+          data: businessIds.map((businessId) => ({ customerId: id, businessId })),
+          skipDuplicates: true,
+        });
+      }
+
+      return tx.customer.findUnique({
+        where: { id },
+        include: businessInclude,
+      });
     });
 
     if (changes.length > 0) {

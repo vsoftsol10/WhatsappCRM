@@ -141,6 +141,11 @@ const loginUser = async (req, res) => {
           name: user.name,
           email: user.email,
           role: user.role,
+          phone: user.phone,
+          department: user.department,
+          designation: user.designation,
+          address: user.address,
+          profileImage: user.profileImage,
         },
       });
     }
@@ -154,6 +159,11 @@ const loginUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        department: user.department,
+        designation: user.designation,
+        address: user.address,
+        profileImage: user.profileImage,
       },
     });
   } catch (error) {
@@ -177,6 +187,11 @@ const getMe = async (req, res) => {
         name: true,
         email: true,
         role: true,
+        phone: true,
+        department: true,
+        designation: true,
+        address: true,
+        profileImage: true,
         createdAt: true,
       },
     });
@@ -384,12 +399,191 @@ const resetPassword = async (req, res) => {
 };
 
 // ========================
+// UPDATE MY PROFILE
+// ========================
+// Deliberately separate from employeeController.updateEmployee: this is
+// for the logged-in user editing themselves, so it only ever touches
+// req.user.userId (never req.params.id) and only accepts a fixed
+// whitelist of fields. email, role, status, department and designation
+// are never read from the body here, so this route can't be used to
+// self-promote or change what only an admin should change.
+const updateProfile = async (req, res) => {
+  try {
+    const { name, phone, address } = req.body;
+
+    if (name !== undefined && name.trim().length < 3) {
+      return res.status(400).json({
+        message: "Name must be at least 3 characters",
+      });
+    }
+
+    if (phone !== undefined && phone !== null && phone !== "" && !/^[6-9]\d{9}$/.test(phone)) {
+      return res.status(400).json({
+        message: "Enter a valid 10-digit phone number",
+      });
+    }
+
+    const user = await prisma.user.update({
+      where: {
+        id: req.user.userId,
+      },
+      data: {
+        name,
+        phone,
+        address,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        department: true,
+        designation: true,
+        address: true,
+        profileImage: true,
+      },
+    });
+
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "PROFILE_UPDATED",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} updated their profile`,
+      actorId: user.id,
+    });
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// ========================
+// UPLOAD MY PROFILE IMAGE
+// ========================
+const uploadProfileImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        message: "No image file provided",
+      });
+    }
+
+    const { uploadProfileImage: uploadToCloudinary } = require("../services/cloudinaryService");
+
+    const result = await uploadToCloudinary(req.file);
+
+    if (!result) {
+      return res.status(500).json({
+        message: "Image upload failed",
+      });
+    }
+
+    const user = await prisma.user.update({
+      where: {
+        id: req.user.userId,
+      },
+      data: {
+        profileImage: result.imageUrl,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        department: true,
+        designation: true,
+        address: true,
+        profileImage: true,
+      },
+    });
+
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "PROFILE_UPDATED",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} updated their profile photo`,
+      actorId: user.id,
+    });
+
+    return res.status(200).json({
+      message: "Profile photo updated successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// ========================
+// REMOVE MY PROFILE IMAGE
+// ========================
+// Just clears the DB field; the app doesn't currently store Cloudinary
+// publicIds for any of its images (campaign/template uploads don't
+// either), so the old file is left in Cloudinary rather than deleted.
+const removeProfileImage = async (req, res) => {
+  try {
+    const user = await prisma.user.update({
+      where: {
+        id: req.user.userId,
+      },
+      data: {
+        profileImage: null,
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        department: true,
+        designation: true,
+        address: true,
+        profileImage: true,
+      },
+    });
+
+    // ================= AUDIT LOG =================
+    await recordAuditLog({
+      action: "PROFILE_UPDATED",
+      entityType: "User",
+      entityId: user.id,
+      details: `${user.name} removed their profile photo`,
+      actorId: user.id,
+    });
+
+    return res.status(200).json({
+      message: "Profile photo removed successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+// ========================
 // EXPORTS
 // ========================
 module.exports = {
   registerUser,
   loginUser,
   getMe,
+  updateProfile,
+  uploadProfileImage,
+  removeProfileImage,
   changePassword,
   forgotPassword,
   resetPassword,

@@ -6,8 +6,16 @@ function ProfileMenu() {
 
   return (
     <button className="flex min-w-0 items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-gray-100 sm:px-3">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#25D366] sm:h-11 sm:w-11">
-        <FaUserCircle size={28} className="text-white" />
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#25D366] sm:h-11 sm:w-11">
+        {user?.profileImage ? (
+          <img
+            src={user.profileImage}
+            alt={user?.name || "User"}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <FaUserCircle size={28} className="text-white" />
+        )}
       </div>
 
       <div className="hidden min-w-0 text-left sm:block">

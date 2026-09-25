@@ -3,6 +3,9 @@ const {
   registerUser,
   loginUser,
   getMe,
+  updateProfile,
+  uploadProfileImage,
+  removeProfileImage,
   changePassword,
   forgotPassword,
   resetPassword,
@@ -10,6 +13,7 @@ const {
 
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -23,6 +27,14 @@ router.post("/login", loginUser);
 
 // Get logged-in user (Protected route)
 router.get("/me", authMiddleware, getMe);
+
+// Logged-in user editing their own profile. Deliberately not the
+// employeeController /api/employees/:id route (that one is admin-only
+// and can also change role/status), and req.params is never used here
+// so a user can never update anyone but themselves.
+router.put("/profile", authMiddleware, updateProfile);
+router.post("/profile-image", authMiddleware, upload.single("image"), uploadProfileImage);
+router.delete("/profile-image", authMiddleware, removeProfileImage);
 
 router.post("/change-password", authMiddleware, changePassword);
 

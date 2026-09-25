@@ -1,44 +1,3 @@
-// const cloudinary = require("../config/cloudinary");
-// const streamifier = require("streamifier");
-
-// const uploadCampaignImage = (file) => {
-//   return new Promise((resolve, reject) => {
-//     if (!file || !file.buffer) {
-//       return resolve(null);
-//     }
-// console.log(cloudinary);
-// console.log(cloudinary.uploader);
-//     const stream = cloudinary.uploader.upload_stream(
-//       {
-//         folder: "campaign-images",
-//         resource_type: "image",
-//         // Cap dimensions and let Cloudinary auto-optimize quality/format.
-//         // This keeps large Canva exports well under WhatsApp's 5MB
-//         // per-image send limit while preserving visual quality.
-//         transformation: [
-//           { width: 1600, crop: "limit" },
-//           { quality: "auto:good" },
-//           { fetch_format: "auto" },
-//         ],
-//       },
-//       (error, result) => {
-//         if (error) return reject(error);
-
-//         resolve({
-//           imageUrl: result.secure_url,
-//           publicId: result.public_id,
-//         });
-//       }
-//     );
-
-//     streamifier.createReadStream(file.buffer).pipe(stream);
-//   });
-// };
-
-// module.exports = {
-//   uploadCampaignImage,
-// };
-
 const cloudinary = require("../config/cloudinary");
 const streamifier = require("streamifier");
 
@@ -109,7 +68,40 @@ const uploadTemplateHeaderImage = (file) => {
   });
 };
 
+// User's own profile avatar. Square-cropped and small since it's only
+// ever shown at avatar size (Settings page, header).
+const uploadProfileImage = (file) => {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.buffer) {
+      return resolve(null);
+    }
+
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "profile-images",
+        resource_type: "image",
+        transformation: [
+          { width: 400, height: 400, crop: "fill", gravity: "face" },
+          { quality: "auto:good" },
+          { fetch_format: "auto" },
+        ],
+      },
+      (error, result) => {
+        if (error) return reject(error);
+
+        resolve({
+          imageUrl: result.secure_url,
+          publicId: result.public_id,
+        });
+      }
+    );
+
+    streamifier.createReadStream(file.buffer).pipe(stream);
+  });
+};
+
 module.exports = {
   uploadCampaignImage,
   uploadTemplateHeaderImage,
+  uploadProfileImage,
 };

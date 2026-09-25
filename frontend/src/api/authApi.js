@@ -32,3 +32,35 @@ export const changePassword = async (passwordData) => {
 
   return response.data;
 };
+
+// UPDATE MY PROFILE (name, phone, address only — email/role/department
+// are read-only and never sent here)
+export const updateProfile = async (profileData) => {
+  const response = await apiClient.put(
+    "/api/auth/profile",
+    profileData
+  );
+
+  return response.data;
+};
+
+// UPLOAD MY PROFILE PHOTO
+export const uploadProfileImage = async (file) => {
+  const formData = new FormData();
+  formData.append("image", file);
+
+  const response = await apiClient.post(
+    "/api/auth/profile-image",
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+
+  return response.data;
+};
+
+// REMOVE MY PROFILE PHOTO
+export const removeProfileImage = async () => {
+  const response = await apiClient.delete("/api/auth/profile-image");
+
+  return response.data;
+};

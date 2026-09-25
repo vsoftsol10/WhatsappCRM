@@ -1,4 +1,6 @@
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import {
   User,
@@ -8,10 +10,124 @@ import {
   Shield,
   Lock,
   ChevronRight,
+  Phone,
+  MapPin,
+  Pencil,
+  Camera,
+  X,
+  Check,
 } from "lucide-react";
 
+const PHONE_REGEX = /^[6-9]\d{9}$/;
+
 function Settings() {
-  const { user } = useAuthStore();
+  const {
+    user,
+    updateProfileAction,
+    uploadProfileImageAction,
+    removeProfileImageAction,
+    isLoading,
+  } = useAuthStore();
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || "",
+    phone: user?.phone || "",
+    address: user?.address || "",
+  });
+  const [errors, setErrors] = useState({});
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const startEditing = () => {
+    setFormData({
+      name: user?.name || "",
+      phone: user?.phone || "",
+      address: user?.address || "",
+    });
+    setErrors({});
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setErrors({});
+    setIsEditing(false);
+  };
+
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim() || formData.name.trim().length < 3) {
+      newErrors.name = "Name must be at least 3 characters";
+    }
+
+    if (formData.phone && !PHONE_REGEX.test(formData.phone)) {
+      newErrors.phone = "Enter a valid 10-digit phone number";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSave = async () => {
+    if (!validate()) return;
+
+    const result = await updateProfileAction(formData);
+
+    if (result.success) {
+      toast.success(result.message || "Profile updated successfully!");
+      setIsEditing(false);
+    } else {
+      toast.error(result.message || "Failed to update profile");
+    }
+  };
+
+  const handlePhotoClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file later
+    if (!file) return;
+
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPG, PNG and WEBP images are allowed.");
+      return;
+    }
+
+    if (file.size > 15 * 1024 * 1024) {
+      toast.error("Image must be under 15 MB.");
+      return;
+    }
+
+    setIsUploadingPhoto(true);
+
+    const result = await uploadProfileImageAction(file);
+
+    setIsUploadingPhoto(false);
+
+    if (result.success) {
+      toast.success(result.message || "Profile photo updated!");
+    } else {
+      toast.error(result.message || "Failed to upload photo");
+    }
+  };
+
+  const handleRemovePhoto = async () => {
+    setIsUploadingPhoto(true);
+
+    const result = await removeProfileImageAction();
+
+    setIsUploadingPhoto(false);
+
+    if (result.success) {
+      toast.success(result.message || "Profile photo removed!");
+    } else {
+      toast.error(result.message || "Failed to remove photo");
+    }
+  };
 
   return (
     <div className="crm-page bg-slate-50">
@@ -48,11 +164,57 @@ function Settings() {
 
               <div className="-mt-12 flex justify-center">
 
-                <div className="flex h-24 w-24 items-center justify-center rounded-3xl border-4 border-white bg-[#25D366] text-4xl font-bold text-black shadow-lg">
-                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                <div className="relative h-24 w-24">
+                  {user?.profileImage ? (
+                    <img
+                      src={user.profileImage}
+                      alt={user?.name || "User"}
+                      className="h-24 w-24 rounded-3xl border-4 border-white object-cover shadow-lg"
+                    />
+                  ) : (
+                    <div className="flex h-24 w-24 items-center justify-center rounded-3xl border-4 border-white bg-[#25D366] text-4xl font-bold text-black shadow-lg">
+                      {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handlePhotoClick}
+                    disabled={isUploadingPhoto}
+                    title="Change profile photo"
+                    className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-[#128C7E] text-white shadow-md transition hover:bg-[#0f6f5c] disabled:opacity-60"
+                  >
+                    <Camera size={14} />
+                  </button>
+
+                  {user?.profileImage && (
+                    <button
+                      type="button"
+                      onClick={handleRemovePhoto}
+                      disabled={isUploadingPhoto}
+                      title="Remove profile photo"
+                      className="absolute -bottom-1 -left-1 flex h-8 w-8 items-center justify-center rounded-full border-2 border-white bg-red-500 text-white shadow-md transition hover:bg-red-600 disabled:opacity-60"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/webp"
+                    className="hidden"
+                    onChange={handlePhotoChange}
+                  />
                 </div>
 
               </div>
+
+              {isUploadingPhoto && (
+                <p className="mt-2 text-center text-xs text-slate-400">
+                  Uploading photo...
+                </p>
+              )}
 
               {/* User */}
 
@@ -155,6 +317,39 @@ function Settings() {
 
               </div>
 
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={startEditing}
+                  className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#128C7E]"
+                >
+                  <Pencil size={15} />
+                  Edit
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={cancelEditing}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  >
+                    <X size={15} />
+                    Cancel
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={isLoading}
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-[#128C7E] disabled:opacity-60"
+                  >
+                    <Check size={15} />
+                    {isLoading ? "Saving..." : "Save"}
+                  </button>
+                </div>
+              )}
+
             </div>
 
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -171,13 +366,30 @@ function Settings() {
 
                 </label>
 
-                <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
-                  {user?.name || "-"}
-                </div>
+                {isEditing ? (
+                  <>
+                    <input
+                      type="text"
+                      value={formData.name}
+                      onChange={(e) => {
+                        setFormData((prev) => ({ ...prev, name: e.target.value }));
+                        setErrors((prev) => ({ ...prev, name: "" }));
+                      }}
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 font-medium text-slate-800 outline-none transition focus:border-[#25D366]"
+                    />
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                    )}
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
+                    {user?.name || "-"}
+                  </div>
+                )}
 
               </div>
 
-              {/* Email */}
+              {/* Email — read-only, it's the login ID */}
 
               <div>
 
@@ -195,7 +407,43 @@ function Settings() {
 
               </div>
 
-              {/* Department */}
+              {/* Phone */}
+
+              <div>
+
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600">
+
+                  <Phone size={16} />
+
+                  Phone
+
+                </label>
+
+                {isEditing ? (
+                  <>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => {
+                        setFormData((prev) => ({ ...prev, phone: e.target.value }));
+                        setErrors((prev) => ({ ...prev, phone: "" }));
+                      }}
+                      placeholder="10-digit mobile number"
+                      className="w-full rounded-xl border border-slate-200 px-4 py-3 font-medium text-slate-800 outline-none transition focus:border-[#25D366]"
+                    />
+                    {errors.phone && (
+                      <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                    )}
+                  </>
+                ) : (
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
+                    {user?.phone || "-"}
+                  </div>
+                )}
+
+              </div>
+
+              {/* Department — read-only, admin-managed */}
 
               <div>
 
@@ -213,7 +461,36 @@ function Settings() {
 
               </div>
 
-              {/* Role */}
+              {/* Address */}
+
+              <div className="md:col-span-2">
+
+                <label className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-600">
+
+                  <MapPin size={16} />
+
+                  Address
+
+                </label>
+
+                {isEditing ? (
+                  <textarea
+                    value={formData.address}
+                    onChange={(e) =>
+                      setFormData((prev) => ({ ...prev, address: e.target.value }))
+                    }
+                    rows={2}
+                    className="w-full rounded-xl border border-slate-200 px-4 py-3 font-medium text-slate-800 outline-none transition focus:border-[#25D366]"
+                  />
+                ) : (
+                  <div className="whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-medium text-slate-800">
+                    {user?.address || "-"}
+                  </div>
+                )}
+
+              </div>
+
+              {/* Role — read-only, admin-managed */}
 
               <div>
 
@@ -294,4 +571,3 @@ function Settings() {
 }
 
 export default Settings;
-  
