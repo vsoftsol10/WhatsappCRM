@@ -8,6 +8,7 @@ const {
 } = require("../utils/classificationPromptBuilder");
 
 const { getAiSettings } = require("./aiSettingsService");
+const { buildCampaignContextBlock } = require("../helpers/campaignContextHelper");
 
 // Groq (console.groq.com — the LPU inference company, NOT xAI's Grok)
 // exposes an OpenAI-compatible endpoint. Same request/response shape
@@ -103,13 +104,13 @@ const MAX_AUTOREPLY_ATTEMPTS = 1;
 
 const CLASSIFICATION_MODEL_FALLBACK = DEFAULT_MODEL;
 
-const callGroq = async ({ apiKey, model, messages, jsonMode }) => {
+const callGroq = async ({ apiKey, model, messages, jsonMode, temperature }) => {
   const response = await axios.post(
     GROQ_API_URL,
     {
       model,
       messages,
-      temperature: jsonMode ? 0.2 : 0.6,
+      temperature: temperature ?? (jsonMode ? 0.2 : 0.6),
       ...(jsonMode ? { response_format: { type: "json_object" } } : {}),
     },
     {
@@ -136,7 +137,7 @@ const callGroq = async ({ apiKey, model, messages, jsonMode }) => {
 // (as opposed to the message genuinely being unclassifiable), so the
 // caller can alert a human instead of silently treating a real
 // enquiry like small talk.
-const classifyCustomerMessage = async (messageText) => {
+const classifyCustomerMessage = async (messageText, campaignContext = null) => {
   const fallback = {
     product: "Other",
     intent: "INQUIRY",
@@ -161,7 +162,12 @@ const classifyCustomerMessage = async (messageText) => {
     return { ...fallback, model, aiUnavailable: true, errorMessage: "Missing Groq API key" };
   }
 
-  const prompt = buildClassificationPrompt(messageText);
+  const campaign = campaignContext?.campaign || null;
+  const prompt = buildClassificationPrompt(
+    messageText,
+    campaign ? buildCampaignContextBlock(campaign, campaignContext.sentAt) : "",
+    campaign?.type || null
+  );
   let lastError = null;
   let attemptsMade = 0;
 
@@ -258,6 +264,62 @@ Behavior rules (follow strictly):
 - Never invent facts, numbers, emails, or process details about the company.
 - Do not repeat the customer's message back to them.`;
 
+const PRODUCT_NAMES = PRODUCTS.map((p) => p.name).join(", ");
+
+// Used instead of DEFAULT_AUTOREPLY_SYSTEM_PROMPT when the customer is
+// replying to a campaign we recently sent. The default prompt tells the
+// bot it knows nothing about the company, which is exactly why campaign
+// replies used to come out vague or off-topic — here the campaign's own
+// details are the source of truth.
+// customPrompt = the admin-edited prompt from AI Settings (optional).
+// It is kept as general guidance, but the campaign rules below win
+// whenever the two conflict.
+const buildCampaignAutoReplyPrompt = (campaign, sentAt, customPrompt) => {
+  const block = buildCampaignContextBlock(campaign, sentAt);
+
+  const intro = `You are the WhatsApp assistant for VSoft Solutions, a company offering: ${PRODUCT_NAMES}.
+
+Formatting rules for WhatsApp:
+- Use *single asterisks* for bold (WhatsApp renders this as bold), not double asterisks.
+- Keep replies short — 1-3 sentences, no dense paragraphs.
+- Reply in the same language the customer writes in: Tamil, English, or Tanglish (Tamil typed in English letters). If unsure, use simple English.`;
+
+  const guidelines = customPrompt
+    ? `\n\nGeneral guidelines from our team:\n${customPrompt}`
+    : "";
+
+  if (campaign.type === "GREETING") {
+    return `${intro}${guidelines}
+
+We recently sent this customer a greeting (festival / birthday / general wishes):
+${block}
+
+Rules (follow strictly):
+- The customer is most likely replying to that greeting. Reply with a warm, natural, very short greeting back (1-2 sentences) that fits the occasion and their language.
+- Do NOT promote any product, do NOT ask what they need, and do NOT say a team member will reach out.
+- If they instead ask a real question or request something, answer in one or two sentences only if the information above covers it; otherwise say our team will get back to them shortly.
+- Never invent facts. If asked whether you are a bot, say you are VSoft's virtual assistant.
+- These rules take priority over the general guidelines above if they conflict.`;
+  }
+
+  return `${intro}${guidelines}
+
+We recently sent this customer a WhatsApp campaign. Here is everything we know about it:
+${block}
+
+The customer's message is most likely a reply to this campaign.
+
+Rules (follow strictly):
+- Answer using ONLY the campaign information above. You may state any detail that is written there (date, time, venue, offer, price, contact number, how to join).
+- If the answer is NOT in the campaign information, do not guess. Say our team will confirm the details shortly. Never invent prices, dates, locations, discounts, phone numbers, emails, or policies.
+- If the customer shows interest ("yes", "interested", "tell me more", "I will come"), thank them warmly, mention the key detail (such as the date/venue or next step) if it is available, and say our team will follow up if anything more is needed.
+- If the customer says no or is not interested, thank them politely and do not keep selling.
+- Refunds, complaints, pricing negotiation, contracts or legal topics: acknowledge briefly and say a team member will follow up. Make no commitments.
+- Give only the part that answers their question — do not repeat the whole campaign message.
+- If asked whether you are a bot, say you are VSoft's virtual assistant.
+- These rules take priority over the general guidelines above if they conflict.`;
+};
+
 // Generates a Groq-written, context-aware reply to a customer's
 // WhatsApp message. Used as the conversational fallback for any
 // message that didn't already get a deterministic reply this turn
@@ -265,7 +327,15 @@ Behavior rules (follow strictly):
 // already-enriched lead, or a general question.
 // Never throws — returns null on any failure so the caller simply
 // skips sending a reply for this turn instead of breaking the webhook.
-const generateAutoReply = async (messageText, classification, conversationHistory = []) => {
+// campaignContext (optional) = { campaign, sentAt } from
+// campaignContextHelper.findCampaignContext — passed when the customer
+// is replying to a campaign we recently sent.
+const generateAutoReply = async (
+  messageText,
+  classification,
+  conversationHistory = [],
+  campaignContext = null
+) => {
   if (!messageText || !messageText.trim()) return null;
 
   const settings = await getAiSettings().catch(() => null);
@@ -291,9 +361,17 @@ const generateAutoReply = async (messageText, classification, conversationHistor
       content: m.content,
     }));
 
-  const systemPrompt = settings?.systemPrompt?.trim() || DEFAULT_AUTOREPLY_SYSTEM_PROMPT;
+  const customPrompt = settings?.systemPrompt?.trim() || "";
+  const campaign = campaignContext?.campaign || null;
 
-  const contextNote = classification
+  const systemPrompt = campaign
+    ? buildCampaignAutoReplyPrompt(campaign, campaignContext.sentAt, customPrompt)
+    : customPrompt || DEFAULT_AUTOREPLY_SYSTEM_PROMPT;
+
+  // The classification hint is skipped for campaign replies: a short
+  // "yes" / "price?" is often classified "Other", and telling the
+  // model that would pull it away from the campaign it is answering.
+  const contextNote = classification && !campaign
     ? `\n\n(Internal context, don't mention this to the customer: detected product interest = ${classification.product}, intent = ${classification.intent}.)`
     : "";
 
@@ -308,6 +386,8 @@ const generateAutoReply = async (messageText, classification, conversationHistor
           { role: "user", content: messageText },
         ],
         jsonMode: false,
+        // Factual campaign answers should be steady, not creative.
+        temperature: campaign ? 0.3 : undefined,
       });
 
       const trimmed = (reply || "").trim();

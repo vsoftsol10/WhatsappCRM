@@ -59,7 +59,31 @@ const ALLOWED_PRODUCTS = [...PRODUCTS.map((p) => p.name), "Other"];
 // misread as an ERP sales lead just because it mentions "ERP".
 const ALLOWED_INTENTS = ["INQUIRY", "SUPPORT"];
 
-const buildClassificationPrompt = (messageText) => {
+// campaignBlock (optional) is the text from buildCampaignContextBlock():
+// set when the customer is replying to a campaign we recently sent, so
+// short replies like "yes" / "price?" are read in that context instead
+// of being classified in isolation (which wrongly gives "Other").
+const buildCampaignClassificationNote = (campaignBlock, campaignType) => {
+  if (!campaignBlock) return "";
+
+  if (campaignType === "GREETING") {
+    return `
+CONTEXT: We recently sent this customer a greeting campaign (festival / birthday / general wishes), not a sales offer:
+${campaignBlock}
+
+Their message is most likely a reply to that greeting. Thanks, "same to you", wishes, emojis or any other greeting in return are small talk — product MUST be "Other". Only choose a specific product if the message clearly asks about it.
+`;
+  }
+
+  return `
+CONTEXT: We recently sent this customer the following WhatsApp campaign:
+${campaignBlock}
+
+Their message is most likely a reply to it. Short replies such as "yes", "interested", "details please", "price?", "when / where?", "tell me more" refer to this campaign — if the campaign clearly relates to one of the products above, classify that product with intent INQUIRY. If the campaign is not about any of the products above (e.g. a general event), use "Other".
+`;
+};
+
+const buildClassificationPrompt = (messageText, campaignBlock = "", campaignType = null) => {
   const productList = PRODUCTS.map((p) => `- ${p.name}: ${p.description}`).join(
     "\n"
   );
@@ -67,6 +91,7 @@ const buildClassificationPrompt = (messageText) => {
   return `You are a lead-classification assistant for a software company. Here are the products it sells:
 ${productList}
 
+${buildCampaignClassificationNote(campaignBlock, campaignType)}
 A customer sent this message on WhatsApp:
 """
 ${messageText}

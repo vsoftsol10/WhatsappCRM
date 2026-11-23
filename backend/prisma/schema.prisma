@@ -253,6 +253,10 @@ model Campaign {
   // "22 August 2026, Saturday", "4:30 PM - 6:30 PM", "Vannarpet, Tirunelveli",
   // "9095422237"]. Only used when metaTemplateName is set; ignored otherwise.
   templateParams   Json?
+  // Free-text facts about this campaign (price, venue, how to register,
+  // FAQs...) that the WhatsApp auto-reply bot may use when a customer
+  // replies to it. Filled in by the person creating the campaign.
+  aiContext        String?             @db.Text
   businessId       String?
   templateId       String?
   createdBy      User                @relation(fields: [createdById], references: [id])
@@ -474,6 +478,7 @@ enum CampaignType {
   BROADCAST
   FOLLOW_UP
   ANNOUNCEMENT
+  GREETING
 }
 
 enum CampaignStatus {

@@ -62,6 +62,7 @@ exports.createCampaign = async (req, res) => {
   metaTemplateName,
   metaTemplateLanguage,
   templateParams,
+  aiContext,
   businessId,
 } = req.body;
 
@@ -183,6 +184,9 @@ if (req.file) {
         metaTemplateName: metaTemplateName?.trim() || null,
         metaTemplateLanguage: metaTemplateLanguage?.trim() || "en_US",
         templateParams: parseTemplateParams(templateParams) ?? null,
+
+        // Facts the auto-reply bot may use when customers reply to this campaign
+        aiContext: typeof aiContext === "string" && aiContext.trim() ? aiContext.trim() : null,
 
         scheduledAt: scheduledAt
           ? new Date(scheduledAt)
@@ -375,6 +379,7 @@ exports.updateCampaign = async (req, res) => {
       metaTemplateName,
       metaTemplateLanguage,
       templateParams,
+      aiContext,
     } = req.body;
 
     // Find campaign
@@ -418,6 +423,9 @@ if (req.file) {
         }),
         ...(parseTemplateParams(templateParams) !== undefined && {
           templateParams: parseTemplateParams(templateParams),
+        }),
+        ...(typeof aiContext === "string" && {
+          aiContext: aiContext.trim() || null,
         }),
 
         imageUrl,

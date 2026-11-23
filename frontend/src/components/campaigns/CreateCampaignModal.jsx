@@ -28,6 +28,7 @@ const fileInputRef = useRef(null);
     name: "",
     type: "PROMOTIONAL",
     messageContent: "",
+    aiContext: "",
     scheduledAt: "",
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
@@ -90,6 +91,7 @@ const resetForm = () => {
     name: "",
     type: "PROMOTIONAL",
     messageContent: "",
+    aiContext: "",
     scheduledAt: "",
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
@@ -173,6 +175,7 @@ const resetForm = () => {
       name: aiCampaign.name || "",
       type: aiCampaign.type || "PROMOTIONAL",
       messageContent: aiCampaign.messageContent || "",
+      aiContext: "",
       scheduledAt: "",
       metaTemplateName: "",
       metaTemplateLanguage: "en_US",
@@ -420,6 +423,10 @@ return (
                 Announcement
               </option>
 
+              <option value="GREETING">
+                Greeting (festival / birthday wishes)
+              </option>
+
             </select>
 
           </div>
@@ -441,6 +448,36 @@ return (
               placeholder="Type your campaign message..."
               className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
             />
+
+          </div>
+
+          {/* Info for AI replies — what the auto-reply bot may use when a
+              customer answers this campaign. */}
+
+          <div>
+
+            <label className="mb-2 block font-medium text-gray-700">
+              Info for AI replies
+              <span className="ml-1 text-sm font-normal text-gray-400">(optional)</span>
+            </label>
+
+            <textarea
+              rows={4}
+              name="aiContext"
+              value={formData.aiContext}
+              onChange={handleChange}
+              placeholder={
+                formData.type === "GREETING"
+                  ? "Not needed for greeting campaigns."
+                  : "e.g. Entry is free. Venue: Vannarpet, Tirunelveli. Register by calling 9095422237. Price: ..."
+              }
+              className="w-full resize-none rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-[#25D366]"
+            />
+
+            <p className="mt-1 text-xs text-gray-500">
+              When a customer replies to this campaign, the AI answers only from the
+              message above and this info. Anything not written here, it will not guess.
+            </p>
 
           </div>
 

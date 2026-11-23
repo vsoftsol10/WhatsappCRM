@@ -22,6 +22,7 @@ const fileInputRef = useRef(null);
     name: "",
     type: "PROMOTIONAL",
     messageContent: "",
+    aiContext: "",
     scheduledAt: "",
     metaTemplateName: "",
     metaTemplateLanguage: "en_US",
@@ -37,6 +38,7 @@ useEffect(() => {
       name: campaign.name || "",
       type: campaign.type || "PROMOTIONAL",
       messageContent: campaign.messageContent || "",
+      aiContext: campaign.aiContext || "",
       scheduledAt: campaign.scheduledAt
         ? campaign.scheduledAt.slice(0, 16)
         : "",
@@ -173,6 +175,7 @@ const removeImage = () => {
         name: "",
         type: "PROMOTIONAL",
         messageContent: "",
+        aiContext: "",
         scheduledAt: "",
         metaTemplateName: "",
         metaTemplateLanguage: "en_US",
@@ -257,6 +260,10 @@ const removeImage = () => {
                 <option value="ANNOUNCEMENT">
                   Announcement
                 </option>
+
+                <option value="GREETING">
+                  Greeting (festival / birthday wishes)
+                </option>
               </select>
             </div>
 
@@ -276,6 +283,32 @@ const removeImage = () => {
                 required
                 className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none resize-none focus:border-[#25D366]"
               />
+            </div>
+
+            {/* Info for AI replies */}
+            <div>
+              <label className="block mb-2 font-medium text-gray-700">
+                Info for AI replies{" "}
+                <span className="text-sm font-normal text-gray-400">(optional)</span>
+              </label>
+
+              <textarea
+                rows="4"
+                name="aiContext"
+                placeholder={
+                  formData.type === "GREETING"
+                    ? "Not needed for greeting campaigns."
+                    : "e.g. Entry is free. Venue: Vannarpet, Tirunelveli. Register by calling 9095422237. Price: ..."
+                }
+                value={formData.aiContext}
+                onChange={handleChange}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none resize-none focus:border-[#25D366]"
+              />
+
+              <p className="mt-1 text-xs text-gray-500">
+                When a customer replies to this campaign, the AI answers only from the
+                message above and this info. Anything not written here, it will not guess.
+              </p>
             </div>
 
             {/* Scheduled Date */}

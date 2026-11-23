@@ -89,6 +89,9 @@ export default function CampaignCard({
       case "ANNOUNCEMENT":
         return "bg-cyan-100 text-cyan-700";
 
+      case "GREETING":
+        return "bg-pink-100 text-pink-700";
+
       default:
         return "bg-gray-100 text-gray-700";
     }

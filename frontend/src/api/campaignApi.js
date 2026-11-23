@@ -27,6 +27,10 @@ export const createCampaign = async (campaignData) => {
   formData.append("messageContent", campaignData.messageContent);
   formData.append("businessId", campaignData.businessId);
 
+  if (campaignData.aiContext) {
+    formData.append("aiContext", campaignData.aiContext);
+  }
+
   if (campaignData.scheduledAt) {
     formData.append("scheduledAt", campaignData.scheduledAt);
   }
@@ -98,6 +102,11 @@ export const updateCampaign = async (
 
   if (campaignData.status !== undefined) {
     formData.append("status", campaignData.status);
+  }
+
+  // Sent even when empty so clearing the box also clears it on the server.
+  if (campaignData.aiContext !== undefined) {
+    formData.append("aiContext", campaignData.aiContext || "");
   }
 
   if (campaignData.metaTemplateName !== undefined) {
